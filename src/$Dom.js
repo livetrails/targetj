@@ -8,10 +8,16 @@ function $Dom(elemSelector) {
     
     this.childrenCount = 0;
     this.$domParent = undefined;
+    this.originalContent = undefined;
+    this.textOnly = true;
 }
 
 $Dom.prototype.exists = function() {
-    return this.selector ? !!$Dom.query(this.selector) : !!this.element;
+    if (this.selector) {
+        this.element = $Dom.query(this.selector)
+    }
+    
+    return !!this.element;
 };
 
 $Dom.prototype.create = function(tag) {
@@ -38,32 +44,6 @@ $Dom.prototype.attr = function(name, value) {
     } else {
         return this.element.getAttribute(name);
     }
-};
-
-$Dom.prototype.html = function(html) {
-    if (TUtil.isDefined(html)) {
-      this.element.innerHTML = html; 
-    } else {
-      return this.element.innerHTML;      
-    }
-};
-
-$Dom.prototype.outerHtml = function(html) {
-    if (TUtil.isDefined(html)) {
-      this.element.outerHTML = html; 
-    } else {
-      return this.element.outerHTML;      
-    }  
-};
-
-$Dom.prototype.parentAttr = function(name, value) {
-    if (!this.element || !this.parent()) return;
-    
-    if (TUtil.isDefined(value)) {
-        this.parent().setAttribute(name, value);
-    } else {
-        return this.parent().getAttribute(name);
-    }    
 };
 
 $Dom.prototype.opacity = function(opacity) {
@@ -151,10 +131,6 @@ $Dom.prototype.getStyleValue = function(name) {
     return parseFloat(numericValue);    
 };
 
-$Dom.prototype.hasDomHolderChanged = function(domHolder) {
-    return domHolder && domHolder.exists() && this.parentAttr("id") !== domHolder.attr("id");
-};
-
 $Dom.prototype.parent = function() {
     return this.element ? this.element.parentElement : null;
 };
@@ -165,26 +141,78 @@ $Dom.prototype.detach = function() {
 };
 
 $Dom.prototype.append$Dom = function($dom) {
-    if (this.childrenCount === 0 && this.element.children.length > 1) {
-        this.html("<div>" + this.html() + "</div>");
-    }
     this.element.appendChild($dom.element);
-    $dom.$domParent = this;
+};
+
+$Dom.prototype.appendTModel$Dom = function(tmodel) {
+    if (this.childrenCount === 0 && this.element.children.length > 1 && tmodel.getDomParent() && tmodel.getDomParent().getHtml()
+            && tmodel.getDomParent().getHtml() === this.originalContent) {
+        this.element.innerHTML = "<div>" + this.html() + "</div>";
+    }
+    
+    this.element.appendChild(tmodel.$dom.element);
+    tmodel.$dom.$domParent = this;
     this.childrenCount++;
 };
 
-$Dom.prototype.firstChildHtml = function(html) {
-    if (this.childrenCount > 0 && this.element.firstChild) {
-        if (TUtil.isDefined(html) &&  /<[^>]+>/.test(html)) {
+$Dom.prototype.html = function(html) {
+    if (TUtil.isDefined(html)) { 
+        if (this.childrenCount > 0) {
+
             var element = document.createElement('div');
             element.innerHTML = html;
-            this.element.replaceChild(element, this.element.firstChild);
-        } else if (TUtil.isDefined(html)) {
-            var textNode = document.createTextNode(html);
-            this.element.replaceChild(textNode, this.element.firstChild);         
+                    
+            if (TUtil.isDefined(this.originalContent)) {
+                this.element.replaceChild(element, this.element.firstChild);
+            } else {
+                this.element.insertBefore(element, this.element.firstChild);
+            }
+
+            this.originalContent = html;
+            this.textOnly = false;
+            
         } else {
-            return this.element.firstChild.innerHTML ? this.element.firstChild.innerHTML : this.element.firstChild.textContent;
+            this.element.innerHTML = html; 
+            this.originalContent = html;
+            this.textOnly = false;
         }          
+    } else {
+        return this.originalContent;
+    }
+};
+
+$Dom.prototype.text = function(text) {
+    if (TUtil.isDefined(text)) { 
+        if (this.childrenCount > 0) {
+            var element = document.createTextNode(text);
+            if (TUtil.isDefined(this.originalContent)) {
+                this.element.replaceChild(element, this.element.firstChild);
+            } else {
+                this.element.insertBefore(element, this.element.firstChild);
+            }
+
+            this.originalContent = text;
+            this.textOnly = true;
+            
+        } else {
+            this.element.textContent = text; 
+            this.originalContent = text;
+            this.textOnly = true;
+        }          
+    } else {
+        return this.originalContent;
+    }
+};
+
+$Dom.prototype.outerHTML = function(html) {
+    this.element.outerHTML = html; 
+};
+
+$Dom.prototype.innerHTML = function(html) {
+    if (TUtil.isDefined(html)) {
+        this.element.innerHTML = html; 
+    } else {
+        return this.element.innerHTML;
     }
 };
 

@@ -69,9 +69,9 @@ EventListener.prototype.addHandlers = function () {
 };
 
 EventListener.prototype.captureEvents = function() {
-    this.currentEvent = "";
 
-    if (!this.lastEvent) {      
+    if (!this.lastEvent) { 
+        this.currentEvent = "";
         return;
     }
     

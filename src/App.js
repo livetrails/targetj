@@ -5,10 +5,10 @@ function App(uiFn, rootId) {
     function my() {} 
     
     my.throttle = 0;
-    
+    my.debugLevel = 0;
+
     my.runningFlag = false;
-    var scrollingFlag = false;
-    var scalingFlag = false;
+
     my.oids = {};    
     
     my.rootId = rootId ? rootId || uiFn.rootId : "#tpage";
@@ -25,6 +25,8 @@ function App(uiFn, rootId) {
         
         my.uiFn = uiFn;
         this.ui = uiFn();
+        this.ui.xVisible = true;
+        this.ui.yVisible = true;
         
         my.loader = new LoadingManager();
         
@@ -51,10 +53,11 @@ function App(uiFn, rootId) {
             my.$dom.create('div');
             my.$dom.setSelector(my.rootId);
             my.$dom.setId(my.rootId);
+            my.$dom.attr("tabindex", "0");
             new $Dom('body').append$Dom(my.$dom);            
+        } else {
+            my.$dom = new $Dom(my.rootId);
         }
-        
-        my.$dom = new $Dom(my.rootId);
         
         my.events.removeHandlers();
         my.events.clear();
@@ -105,33 +108,6 @@ function App(uiFn, rootId) {
     
     my.isRunning = function() {
         return my.runningFlag;
-    };
-
-    my.setScrolling = function()    {
-        scrollingFlag = true;
-    };
-    
-    my.resetScrolling = function()  {
-        scrollingFlag = false;
-    };
-    
-    my.isScrolling = function() {
-        return scrollingFlag;
-    };
-    
-    my.setScaling = function()    {
-        scalingFlag = true;
-    };
-    
-    my.resetScaling = function()  {
-        if (scalingFlag) {
-            tapp.manager.scheduleRun(800, "resetScaling");
-        }
-        scalingFlag = false;
-    };
-    
-    my.isScaling = function() {
-        return scalingFlag;
     };
 
     my.find = function(oid) {

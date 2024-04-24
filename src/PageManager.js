@@ -23,7 +23,7 @@ PageManager.prototype.openPage = function(link, isPageFetchNeeded) {
             type: 'GET',
             data: { tpageOnly: true }, 
             success: function (data) {
-                tapp.$dom.outerHtml(data);                                
+                tapp.$dom.outerHTML(data);                                
                 tapp.ui = tapp.uiFn();               
                 self.lastLink = link;
                 tapp.start();
@@ -35,13 +35,13 @@ PageManager.prototype.openPage = function(link, isPageFetchNeeded) {
         });
 
     } else if (!this.pageCache[link]) {
-        tapp.$dom.html("");                                
+        tapp.$dom.innerHTML("");                                
         tapp.ui = tapp.uiFn();
         self.lastLink = link;        
         setTimeout(tapp.start);  
     } else {
 
-        tapp.$dom.html(this.pageCache[link].html);
+        tapp.$dom.innerHTML(this.pageCache[link].html);
         tapp.ui = this.pageCache[link].ui;
         TUtil.initDoms(this.pageCache[link].visibleList);
         tapp.manager.lists.visible = this.pageCache[link].visibleList.slice(0);
@@ -68,7 +68,7 @@ PageManager.prototype.openLink = function(link, isPageFetchNeeded) {
     if (this.lastLink) {
         this.pageCache[this.lastLink] = { 
             link: this.lastLink, 
-            html: tapp.$dom.html(), 
+            html: tapp.$dom.innerHTML(), 
             visibleList: tapp.manager.lists.visible.slice(0),
             ui: tapp.ui 
         };
@@ -87,7 +87,7 @@ PageManager.prototype.updateBrowserUrl = function(link) {
     if (!currentState.browserUrl) {
         this.pageCache[document.URL] = { 
             link: document.URL, 
-            html: tapp.$dom.html(), 
+            html: tapp.$dom.innerHTML(), 
             visibleList: tapp.manager.lists.visible.slice(0),
             ui: tapp.ui 
         };

@@ -58,8 +58,8 @@ TModelManager.prototype.analyze = function()    {
                 this.visibleTypeMap[tmodel.type] = [];
             }
             this.visibleTypeMap[tmodel.type].push(tmodel);
-
-            if (tmodel.canHaveDom() && !tmodel.hasDom() && tmodel.getDomHolder() && this.lists.visibleNoDom.indexOf(tmodel) === -1)  {
+                        
+            if (tmodel.canHaveDom() && !tmodel.hasDom() && tmodel.getDomHolder() && tmodel.getDomHolder().exists() && this.lists.visibleNoDom.indexOf(tmodel) === -1)  {
                 this.lists.visibleNoDom.push(tmodel);
             }
         }        
@@ -82,19 +82,20 @@ TModelManager.prototype.renderTModels = function () {
     this.lists.visible.forEach(function(tmodel) {          
         if (tmodel.hasDom() && TUtil.isDefined(tmodel.getHtml())) {
             
-            if ((TUtil.isDefined(tmodel.$dom.firstChildHtml()) && tmodel.$dom.firstChildHtml() !== tmodel.getHtml()) || (tmodel.$dom.childrenCount === 0 && tmodel.$dom.html() != tmodel.getHtml())) {
+            if (tmodel.$dom.html() !== tmodel.getHtml() || tmodel.$dom.textOnly !== tmodel.isTextOnly()) {
                 rerendedList.push(tmodel);
             }
         } 
                 
-        if (tmodel.hasDom() && tmodel.$dom.hasDomHolderChanged(tmodel.getDomHolder())) {
+        if (tmodel.hasDom() && tmodel.hasDomHolderChanged()) {
             holderChangedList.push(tmodel);
         }
     });
     
-    for (i = 0; i < rerendedList.length; i++) {
-        tmodel = rerendedList[i];        
-        tmodel.$dom.childrenCount > 0 ? tmodel.$dom.firstChildHtml(tmodel.getHtml()) : tmodel.$dom.html(tmodel.getHtml());
+    for (i = 0; i < rerendedList.length; i++) { 
+        tmodel = rerendedList[i];
+        
+        tmodel.isTextOnly() ? tmodel.$dom.text(tmodel.getHtml()) : tmodel.$dom.html(tmodel.getHtml());
         tmodel.setActualValueLastUpdate('html');
         
         //we might need to re-measure dim from dom if tmodel has no measure method 
@@ -105,7 +106,7 @@ TModelManager.prototype.renderTModels = function () {
     for (i = 0; i < holderChangedList.length; i++) {
         tmodel = holderChangedList[i];
         tmodel.$dom.detach();                    
-        tmodel.getDomHolder().append$Dom(tmodel.$dom);
+        tmodel.getDomHolder().appendTModel$Dom(tmodel);
     }
 };
 
@@ -126,10 +127,9 @@ TModelManager.prototype.deleteDoms = function () {
             });
         }
         
-        //dom that came in the page can't be removed.
         if (tmodel.isDomDeletable())    {
-            tmodel.$dom.detach(); 
-            tmodel.$dom = null;
+            tmodel.$dom.detach();
+            tmodel.$dom = null;    
         } 
     }
     
@@ -196,13 +196,9 @@ TModelManager.prototype.createDoms = function () {
 
     for (i = 0; i < this.lists.visibleNoDom.length; i++) {
         tmodel = this.lists.visibleNoDom[i];
-        if (tmodel.hasPageDom())  {
+        if ($Dom.query('#' + tmodel.oid)) {
             $dom = new $Dom('#' + tmodel.oid);
-            if ($dom.exists()) {
-                tmodel.$dom = $dom;        
-                tmodel.$dom.addClass('tgt');
-                tmodel.$dom.attr('oid', tmodel.oid);
-            }
+            tmodel.$dom = $dom;        
         } else {
             needsDom.push(tmodel);  
         }
@@ -256,9 +252,8 @@ TModelManager.prototype.createDoms = function () {
     }
     
     contentList.map(function(content) {
-                        
         content.tmodels.map(function(tmodel) {
-            content.domHolder.append$Dom(tmodel.$dom);
+            content.domHolder.appendTModel$Dom(tmodel);
         });
     });
     
@@ -293,8 +288,6 @@ TModelManager.prototype.run = function(oid, delay) {
         return;
     }
    
-    //console.log("request from: " + oid + " delay:  " + delay);
-
     tapp.manager.runningFlag = true;
                 
     window.requestAnimationFrame(function () {
@@ -302,16 +295,11 @@ TModelManager.prototype.run = function(oid, delay) {
         while((browser.now() - frameTime) < 25 && tapp.manager.runningStep < 7 && tapp.isRunning()) {
             switch(tapp.manager.runningStep) {
                 case 0:
-                    tapp.events.currentTouch.deltaY !== 0 ? tapp.setScrolling() : tapp.resetScrolling();
-                    tapp.events.currentTouch.pinchDelta !== 0 ? tapp.setScaling() : tapp.resetScaling();
 
                     tapp.events.captureEvents();
                     
                     tapp.locationManager.calculateTargets(tapp.ui);
-                    
-                    tapp.ui.yVisible = true;
-                    tapp.ui.xVisible = true;
-                    
+
                     tapp.locationManager.calculateAll();
 
                     tapp.events.resetEvents();
@@ -359,10 +347,11 @@ TModelManager.prototype.run = function(oid, delay) {
             tapp.manager.runningStep++;
         }
         
-//        if (browser.now() - frameTime > 10) {
-//            console.log("it took: " + (browser.now() - frameTime) + ", " + oid);
-//            console.log("count: " + tapp.locationManager.locationCount);
-//        }
+        if (tapp.debugLevel > 0) {
+            browser.log(tapp.debugLevel > 0 && browser.now() - frameTime > 10)("it took: " + (browser.now() - frameTime) + ", " + oid);
+            browser.log(tapp.debugLevel > 0 && browser.now() - frameTime > 10)("count: " + tapp.locationManager.locationCount);
+            browser.log(tapp.debugLevel > 1)("request from: " + oid + " delay:  " + delay);
+        }
         
         tapp.manager.runningFlag = false;
 

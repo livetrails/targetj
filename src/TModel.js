@@ -37,6 +37,7 @@ function TModel(type, options, targets) {
         rotate: 0,
         scrollLeft: 0,
         scrollTop: 0,
+        textOnly: true,
         html: undefined,
         css: '',
         style: null,
@@ -96,11 +97,12 @@ TModel.prototype.getDomParent = function() {
 };
 
 TModel.prototype.getDomHolder = function() {
-    if (this.getDomParent()) {
-        return this.getDomParent().hasDom() ? this.getDomParent().$dom : null;
-    } else {
-        return tapp.$dom;
-    }
+    return this.getDomParent() ? this.getDomParent().$dom : tapp.$dom;
+};
+
+TModel.prototype.hasDomHolderChanged = function() {
+
+    return this.getDomHolder() && this.getDomHolder().exists() && this.$dom.parent().getAttribute("id") !== this.getDomHolder().attr("id");
 };
 
 TModel.prototype.hasDom = function () {
@@ -353,6 +355,10 @@ TModel.prototype.markAsDeleted = function()   {
 
 TModel.prototype.hasPageDom = function () {
     return !!this.options.hasPageDom;
+};
+
+TModel.prototype.isTextOnly = function()    {
+    return this.actualValues.textOnly;
 };
 
 TModel.prototype.getHtml = function()    {

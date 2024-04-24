@@ -27,13 +27,9 @@ LocationManager.prototype.calculateAll = function() {
     }
 };
 
-LocationManager.prototype.calculate = function() {   
+LocationManager.prototype.calculate = function() {                   
     this.addToLocationList(tapp.ui);
     this.calculateContainer(tapp.ui);
-};
-
-LocationManager.prototype.needsToFixScrollTop = function() {
-    return tapp.isScaling() && !tapp.isScrolling() && tapp.scalingTimeStamp > tapp.scrollingTimeStamp;
 };
 
 LocationManager.prototype.getChildren = function(container) {
@@ -61,7 +57,7 @@ LocationManager.prototype.calculateContainer = function(container) {
     while (i < allChildren.length && tapp.isRunning()) {
         
         var child = allChildren[i++];
-                
+                        
         var outerXEast = undefined, innerXEast = undefined;
                 
         
@@ -83,7 +79,7 @@ LocationManager.prototype.calculateContainer = function(container) {
         } else {            
             child.setLocation(viewport);
         }
-                  
+                 
         if (child.canBeVisible() && !this.hasLocationMap[child.oid]) {    
             this.addToLocationList(child);          
         }

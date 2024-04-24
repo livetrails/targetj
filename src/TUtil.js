@@ -38,8 +38,8 @@ TUtil.initDoms = function(visibleList) {
         tmodel.$dom = null;
     });
     
-    var visibleMap = TUtil.list2map(visibleList);
-
+    var visibleMap = TUtil.list2map(visibleList.filter(function(item) { return item.type !== 'BI'; }));
+    
     for (var i = 0; i < elements.length; i++) {
         var element = elements[i];
         
@@ -52,7 +52,7 @@ TUtil.initDoms = function(visibleList) {
         } else {
             $Dom.detach(element);
         }
-    } 
+    }   
 };
 
 TUtil.list2map = function(list, defaultValue) {
