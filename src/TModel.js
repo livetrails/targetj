@@ -1,20 +1,11 @@
-function TModel(type, options, targets) {
+function TModel(type, targets) {
       
     if (arguments.length === 1 && typeof type === 'object') {
-        options = TUtil.isArgumentOptions(type) ? type : undefined;
-        targets = options ? undefined : type;
+        targets = type;
         type = "";     
-    } else if (arguments.length === 2 && typeof type === 'object') {
-        targets = TUtil.isArgumentOptions(type) ? options : type;
-        options = targets === type ? options : type;        
-        type = "";  
-    } else if (arguments.length === 2 && typeof type === 'string') {
-        targets = !TUtil.isArgumentOptions(options) ? options : undefined;
-        options = targets ? undefined : options;       
     }
     
     this.type = type ? type : TUtil.getTypeFromCallerFile() || 'blank';
-    this.options = Object.assign({}, options);
     this.targets = Object.assign({}, targets);  
     var uniqueId = tapp.getOid(this.type);
     this.oid = uniqueId.oid;
@@ -45,10 +36,12 @@ function TModel(type, options, targets) {
         addedChildren: [],
         allChildren: [],
         isInFlow: true,
+        canHaveDom: true,
         canHandleEvents: false,
         isOverflowHidden: false,
         canBeVisible: true,
-        canBeBracketed: true
+        canBeBracketed: true,
+        isDomDeletable: true
     };
     this.activeTargetKeyMap = {};
     
@@ -225,18 +218,6 @@ TModel.prototype.getContentWidth = function()  {
     return this.contentWidth;
 };
 
-TModel.prototype.initWidthFromDom = function()  {
-    return TUtil.getOptionValue(this.options.initWidthFromDom, true, this);
-};
-
-TModel.prototype.initHeightFromDom = function()  {
-    return TUtil.getOptionValue(this.options.initHeightFromDom, true, this);
-};
-
-TModel.prototype.canHaveDom = function() {
-    return TUtil.getOptionValue(this.options.canHaveDom, true, this);
-};
-
 TModel.prototype.getUIDepth = function()  {
     var depth = 0;
     
@@ -353,10 +334,6 @@ TModel.prototype.markAsDeleted = function()   {
     });
 };
 
-TModel.prototype.hasPageDom = function () {
-    return !!this.options.hasPageDom;
-};
-
 TModel.prototype.isTextOnly = function()    {
     return this.actualValues.textOnly;
 };
@@ -383,6 +360,14 @@ TModel.prototype.canBeBracketed = function() {
 
 TModel.prototype.canBeVisible = function() {
     return this.actualValues.canBeVisible;     
+};
+
+TModel.prototype.canHaveDom = function() {
+    return this.actualValues.canHaveDom;         
+};
+
+TModel.prototype.isDomDeletable = function()   {
+    return this.actualValues.isDomDeletable;     
 };
 
 TModel.prototype.getOpacity = function()    {
@@ -557,25 +542,16 @@ TModel.prototype.isTargetEnabled = function(key) {
 };
 
 TModel.prototype.isTargetInLoop = function(targetName) {            
-    return this.options.loopTargets === true 
-            || (Array.isArray(this.options.loopTargets) && this.options.loopTargets.includes(targetName)) 
-            || (TUtil.isDefined(this.targets[targetName]) && this.targets[targetName].loop);
+    return TUtil.isDefined(this.targets[targetName]) && this.targets[targetName].loop;
 };
 
 TModel.prototype.enableTargetLoop = function(targetName) {  
-    this.options.loopTargets = Array.isArray(this.options.loopTargets) ? this.options.loopTargets : [];
-    if (this.options.loopTargets.indexOf(targetName) === -1) {
-        this.options.loopTargets.push(targetName);
-        this.activeTargetKeyMap[targetName] = true;
+    if (TUtil.isDefined(this.targets[targetName])) {
+        this.targets[targetName].loop = true;
     }
 };
 
 TModel.prototype.disableTargetLoop = function(targetName) { 
-    var index = Array.isArray(this.options.loopTargets) ? this.options.loopTargets.indexOf(targetName) : -1;
-    if (index >= 0) {
-        this.options.loopTargets.splice(index, 1);
-    }
-    
     if (TUtil.isDefined(this.targets[targetName])) {
         this.targets[targetName].loop = false;
     }
@@ -782,8 +758,4 @@ TModel.prototype.getTargetWidth = function() {
 
 TModel.prototype.getTargetScale = function()  {
     return this.getTargetValue('scale') || 1;
-};
-
-TModel.prototype.isDomDeletable = function()   {
-    return TUtil.isDefined(this.options.isDomDeletable) ? this.options.isDomDeletable : true;
 };

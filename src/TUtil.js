@@ -1,13 +1,5 @@
 function TUtil() {}
 
-TUtil.allTModelOptions = {
-    'canHaveDom': true,
-    'loopTargets': true,
-    'isDomDeletable': true,
-    'initWidthFromDom': true,
-    'initHeightFromDom': true
-};
-
 TUtil.getTypeFromCallerFile = function() {
     var stack = new Error("PRINTING CALL STACK").stack;
     var lines = stack.split("\n");
@@ -17,17 +9,6 @@ TUtil.getTypeFromCallerFile = function() {
     var type = typeLine.match(/[a-zA-Z]{3,}/);
                 
     return TUtil.isDefined(type) ? type[0] : '';
-};
-
-TUtil.isArgumentOptions = function(a) {
-    
-    var result = false;
-    if (typeof a === 'object') {
-        var keys = Object.keys(a);
-        result = keys.length > 0 && TUtil.allTModelOptions[keys[0]];
-    }
-    
-    return result;
 };
 
 TUtil.initDoms = function(visibleList) {

@@ -1,8 +1,27 @@
 {
-    "name": "targetj.io",
-    "version": "1.0.0",
-    "keywords": ["util", "functional", "server", "client", "browser"],
-    "author": "ahmadahmad",
-    "contributors": [],
-    "dependencies": {}
+  "name": "targetj.io",
+  "version": "1.0.4",
+  "keywords": [
+    "targetJ"
+  ],
+  "contributors": [
+    "ahmad.wasfi"
+  ],
+  "description": "TargetJ is a JavaScript framework designed for creating animated and efficient web user interfaces.",
+  "main": "Gruntfile.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/livetrails/targetj.io.git"
+  },
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/livetrails/targetj.io/issues"
+  },
+  "homepage": "http://targetj.io",
+  "devDependencies": {
+    "grunt": "^1.6.1",
+    "grunt-contrib-concat": "^2.1.0",
+    "grunt-contrib-jshint": "^3.2.0",
+    "grunt-contrib-uglify": "^5.2.2"
+  }
 }

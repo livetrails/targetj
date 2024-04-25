@@ -119,7 +119,8 @@ LocationManager.prototype.calculateContainer = function(container) {
            
             if (child.hasChildren()) {
                 tapp.targetManager.setTargetValuesWithKeys(child, ['width', 'height'], true);
-                ['width', 'height'].forEach(function(key) { tapp.targetManager.setJustActualValue(child, key); });
+                tapp.targetManager.setJustActualValue(child, 'width');
+                tapp.targetManager.setJustActualValue(child, 'height');
             }
 
             if (child.getHeight() !== childLastHeight && tapp.events.isScrollTopHandler(child.getParent())
@@ -145,8 +146,8 @@ LocationManager.prototype.calculateTargets = function(tmodel) {
     tapp.targetManager.setTargetValues(tmodel);        
     tapp.targetManager.setActualValues(tmodel);
 
-    if (!TUtil.isDefined(tmodel.targetValues.width) && tmodel.initWidthFromDom()) TargetUtil.setWidthFromDom(tmodel);
-    if (!TUtil.isDefined(tmodel.targetValues.height) && tmodel.initHeightFromDom()) TargetUtil.setHeightFromDom(tmodel);
+    if (!TUtil.isDefined(tmodel.targetValues.width) && tmodel.hasDom()) TargetUtil.setWidthFromDom(tmodel);
+    if (!TUtil.isDefined(tmodel.targetValues.height) && tmodel.hasDom()) TargetUtil.setHeightFromDom(tmodel);
 };
 
 LocationManager.prototype.addToLocationList = function(child)   {

@@ -68,7 +68,7 @@ TModelManager.prototype.analyze = function()    {
     var lastVisible = Object.values(lastVisibleMap).filter(function(tmodel) { return tmodel !== null; });
         
     lastVisible.forEach(function(tmodel)   {
-        if (!tmodel.hasPageDom() && tmodel.hasDom())  {
+        if (tmodel.hasDom())  {
             tapp.manager.lists.invisibleDom.push(tmodel);
         }
     });

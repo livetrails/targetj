@@ -14,7 +14,7 @@ function $Dom(elemSelector) {
 
 $Dom.prototype.exists = function() {
     if (this.selector) {
-        this.element = $Dom.query(this.selector)
+        this.element = $Dom.query(this.selector);
     }
     
     return !!this.element;

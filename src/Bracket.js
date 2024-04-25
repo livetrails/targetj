@@ -4,19 +4,19 @@ function Bracket(parent) {
     tm.parent = parent;
     tm.newFlag = true;
     
-    tm.options = { 
-        canHaveDom: false,
-        initWidthFromDom: false,
-        initHeightFromDom: false,
-        loopTargets: ['innerXEast', 'xOverflow']
-    };
-    
     tm.targets = {
-        innerXEast: function() {
-            return TUtil.isDefined(tm.getRealParent().getValue('innerXEast')) ? tm.getRealParent().getValue('innerXEast') : tm.getRealParent().absX + tm.getRealParent().getWidth();
+        canHaveDom: false,
+        innerXEast: {
+            loop: true,
+            value: function() {
+                return TUtil.isDefined(tm.getRealParent().getValue('innerXEast')) ? tm.getRealParent().getValue('innerXEast') : tm.getRealParent().absX + tm.getRealParent().getWidth();
+            }
         },
-        xOverflow: function() { 
-            return this.getRealParent().getX();
+        xOverflow: {
+            loop: true,
+            value: function() { 
+                return this.getRealParent().getX();
+            }
         },
         outerXEast: 0
     };
