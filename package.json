@@ -1,8 +1,8 @@
 {
-  "name": "targetj.io",
-  "version": "1.0.4",
+  "name": "targetj",
+  "version": "1.0.2",
   "keywords": [
-    "targetJ"
+    "targetj"
   ],
   "contributors": [
     "ahmad.wasfi"
