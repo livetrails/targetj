@@ -1,3 +1,7 @@
+import { $Dom } from "./$Dom.js";
+import { TUtil } from "./TUtil.js";
+import { tapp } from "./App.js";
+
 function PageManager() {
     this.lastLink = document.URL;
     this.pageCache = {};
@@ -24,7 +28,7 @@ PageManager.prototype.openPage = function(link, isPageFetchNeeded) {
             data: { tpageOnly: true }, 
             success: function (data) {
                 tapp.$dom.outerHTML(data);                                
-                tapp.ui = tapp.uiFn();               
+                tapp.resetUI();              
                 self.lastLink = link;
                 tapp.start();
             },
@@ -36,7 +40,7 @@ PageManager.prototype.openPage = function(link, isPageFetchNeeded) {
 
     } else if (!this.pageCache[link]) {
         tapp.$dom.innerHTML("");                                
-        tapp.ui = tapp.uiFn();
+        tapp.resetUI();
         self.lastLink = link;        
         setTimeout(tapp.start);  
     } else {
@@ -102,3 +106,5 @@ PageManager.prototype.updateBrowserUrl = function(link) {
 PageManager.prototype.back = function()    {
     return history.back();
 };
+
+export { PageManager };

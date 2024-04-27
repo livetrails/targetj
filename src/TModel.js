@@ -1,3 +1,10 @@
+import { tapp, App } from "./App.js";
+import { browser } from "./Browser.js";
+import { SearchUtil } from "./SearchUtil.js";
+import { TUtil } from "./TUtil.js";
+import { TargetUtil } from "./TargetUtil.js";
+import { Viewport } from "./Viewport.js";
+
 function TModel(type, targets) {
       
     if (arguments.length === 1 && typeof type === 'object') {
@@ -7,7 +14,7 @@ function TModel(type, targets) {
     
     this.type = type ? type : TUtil.getTypeFromCallerFile() || 'blank';
     this.targets = Object.assign({}, targets);  
-    var uniqueId = tapp.getOid(this.type);
+    var uniqueId = App.getOid(this.type);
     this.oid = uniqueId.oid;
     this.oidNum = uniqueId.num;
 
@@ -759,3 +766,5 @@ TModel.prototype.getTargetWidth = function() {
 TModel.prototype.getTargetScale = function()  {
     return this.getTargetValue('scale') || 1;
 };
+
+export { TModel };

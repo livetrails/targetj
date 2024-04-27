@@ -1,3 +1,8 @@
+import { browser } from "./Browser.js";
+import { TUtil, EasingEffects } from "./TUtil.js";
+import { TargetUtil } from "./TargetUtil.js";
+import { tapp } from "./App.js";
+
 function TargetManager() {
     this.doneTargets = [];
 }
@@ -224,5 +229,6 @@ TargetManager.prototype.setActualValue = function(tmodel, key) {
     if (step < steps || cycleUpdate) {
         tapp.manager.scheduleRun(step < steps ? stepInterval : 0, tmodel.oid + "---" + key + "-" + step + "/" + steps + "-" + cycle + "-" + stepInterval);
     }            
-    
 };
+
+export { TargetManager };

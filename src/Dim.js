@@ -17,3 +17,5 @@ function Dim()  {
     
     return my;
 }
+
+export { Dim };

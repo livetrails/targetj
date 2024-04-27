@@ -1,3 +1,8 @@
+import { $Dom } from "./$Dom.js";
+import { browser } from "./Browser.js";
+import { TUtil } from "./TUtil.js";
+import { tapp } from "./App.js";
+
 function LoadingManager() {
     
     this.resultMap = {};
@@ -344,5 +349,8 @@ LoadingManager.prototype.getAverageLoadingTime = function(category) {
         return 0;
     }
 };
+
+export { LoadingManager };
+
 
 

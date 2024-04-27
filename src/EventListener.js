@@ -1,3 +1,10 @@
+import { $Dom } from "./$Dom.js";
+import { browser } from "./Browser.js";
+import { SearchUtil } from "./SearchUtil.js";
+import { TUtil } from "./TUtil.js";
+import { tapp } from "./App.js";
+
+
 function EventListener() {
 
     this.currentTouch = { 
@@ -452,3 +459,6 @@ EventListener.prototype.wheel = function (event) {
             
     this.setDeltaXDeltaY(deltaX, deltaY);
 };
+
+export { EventListener };
+

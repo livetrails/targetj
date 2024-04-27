@@ -1,3 +1,7 @@
+import { browser } from "./Browser.js";
+import { TModel } from "./TModel.js";
+import { TUtil } from "./TUtil.js";
+
 function TargetUtil() {}
 
 TargetUtil.extractInvisibles = function(tmodel, target, key) {
@@ -219,3 +223,5 @@ TargetUtil.setHeightFromDom = function(child) {
     
     child.setValue('height', height);
 };
+
+export { TargetUtil };

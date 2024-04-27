@@ -1,3 +1,6 @@
+import { TUtil } from "./TUtil.js";
+import { tapp } from "./App.js";
+
 function SearchUtil() {}
 
 SearchUtil.foundParentWithType = {};
@@ -88,6 +91,9 @@ SearchUtil.findByType = function (type) {
     var tmodel;
     
     function search(container) {
+        
+        if (container.tmodel.type === type) return container;
+        
         var children = container.getChildren();
         var found;
         
@@ -95,10 +101,10 @@ SearchUtil.findByType = function (type) {
 
             tmodel = children[i];
 
-            if (tmodel && tmodel.type === type) {
-                found = tmodel;
-            } else if (tmodel.hasChildren()) {
+            if (tmodel.hasChildren()) {
                 found = search(tmodel);
+            } else if (tmodel.type === type) {
+                found = tmodel;
             }
         }
 
@@ -120,6 +126,8 @@ SearchUtil.findByTarget = function (target) {
     
     function search(container) {
 
+        if (container.targets[target]) return container;
+        
         var children = container.getChildren();
         var found;
         
@@ -127,10 +135,10 @@ SearchUtil.findByTarget = function (target) {
 
             tmodel = children[i];
 
-            if (tmodel && tmodel.targets[target]) {
-                found = tmodel;
-            } else if (tmodel.hasChildren()) {
+            if (tmodel.hasChildren()) {
                 found = search(tmodel);
+            } else if (tmodel.targets[target]) {
+                found = tmodel;
             }
         }
         
@@ -151,17 +159,19 @@ SearchUtil.find = function (oid) {
     var tmodel;
     
     function search(container) {
-
+        
+        if (container.oid === oid) return container;
+        
         var children = container.getChildren();
         var found;
 
         for (var i = 0; children && i < children.length && !found; i++) {
             tmodel = children[i];
 
-            if (tmodel.oid === oid) {
-                found = tmodel;
-            } else if (tmodel.hasChildren()) {
+            if (tmodel.hasChildren()) {
                 found = search(tmodel);
+            } else if (tmodel.oid === oid) {
+                found = tmodel;
             }
         }
         
@@ -177,3 +187,5 @@ SearchUtil.find = function (oid) {
     
     return SearchUtil.foundOids[oid];
 };
+
+export { SearchUtil };

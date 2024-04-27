@@ -1,3 +1,8 @@
+import { $Dom } from "./$Dom.js";
+import { browser } from "./Browser.js";
+import { TUtil } from "./TUtil.js";
+import { tapp } from "./App.js";
+
 function TModelManager() {
     this.init();
 } 
@@ -375,4 +380,4 @@ TModelManager.prototype.getNextRun = function() {
     }
 };
 
-
+export { TModelManager };

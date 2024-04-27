@@ -1,3 +1,7 @@
+import { TModel } from "./TModel.js";
+import { TUtil } from "./TUtil.js";
+import { tapp } from "./App.js";
+
 function Bracket(parent) {
 
     var tm = new TModel("BI");
@@ -199,3 +203,5 @@ Bracket.generate = function(page, listOfTModel)  {
           
     return brackets;  
 };
+
+export { Bracket };

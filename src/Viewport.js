@@ -1,3 +1,7 @@
+import { browser } from "./Browser.js";
+import { TUtil } from "./TUtil.js";
+import { tapp } from "./App.js";
+
 function Viewport(tmodel) {
     
     this.tmodel = tmodel;
@@ -182,3 +186,5 @@ Viewport.prototype.calcContentWidthHeight = function() {
     this.tmodel.innerContentWidth = this.xSouth - this.xWest;    
     this.tmodel.contentWidth = this.xEast - this.xWest;
 };
+
+export { Viewport };

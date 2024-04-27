@@ -295,3 +295,5 @@ var browser = {
         return nextRun;
     }
 };
+
+export { browser };

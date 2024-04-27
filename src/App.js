@@ -1,6 +1,19 @@
+import { $Dom } from "./$Dom.js";
+import { TModel } from "./TModel.js";
+import { browser } from "./Browser.js";
+import { Dim } from "./Dim.js";
+import { EventListener } from "./EventListener.js";
+import { LoadingManager } from "./LoadingManager.js";
+import { LocationManager } from "./LocationManager.js";
+import { PageManager } from "./PageManager.js";
+import { SearchUtil } from "./SearchUtil.js";
+import { TModelManager } from "./TModelManager.js";
+import { TUtil } from "./TUtil.js";
+import { TargetManager } from "./TargetManager.js";
+
 var tapp;
 
-function App(uiFn, rootId) {
+function App(tmodel, rootId) {
     
     function my() {} 
     
@@ -8,12 +21,10 @@ function App(uiFn, rootId) {
     my.debugLevel = 0;
 
     my.runningFlag = false;
-
-    my.oids = {};    
     
-    my.rootId = rootId ? rootId || uiFn.rootId : "#tpage";
+    my.rootId = rootId ? rootId : "#tpage";
 
-    my.init = function(uiFn) {
+    my.init = function() {
         browser.setup();
         
         my.window = new $Dom(window);
@@ -23,17 +34,23 @@ function App(uiFn, rootId) {
             }
         });
         
-        my.uiFn = uiFn;
-        this.ui = uiFn();
-        this.ui.xVisible = true;
-        this.ui.yVisible = true;
-        
         my.loader = new LoadingManager();
         
         my.pagers = new PageManager();
                  
         my.dim = Dim().measureScreen();
         
+        my.ui = new TModel("ui", {
+            width: {
+                loop: true, value: function() { return my.dim.screen.width; }
+            },
+            height: {
+                loop: true, value: function() { return my.dim.screen.height; }
+            }            
+        });
+        my.ui.xVisible = true;
+        my.ui.yVisible = true; 
+      
         my.events = new EventListener();
         
         my.locationManager = new LocationManager();
@@ -42,9 +59,13 @@ function App(uiFn, rootId) {
         
         window.history.pushState({ link: document.URL }, "", document.URL);                
 
+        if (tmodel) {
+            my.ui.addChild(tmodel);
+        }
+
         return my;
     };
-    
+
     my.start = function () {
         my.runningFlag = false; 
         
@@ -86,6 +107,10 @@ function App(uiFn, rootId) {
         return my;
     };
     
+    my.addChild = function(tmodel) {
+        my.ui.addChild(tmodel);
+    };
+    
     my.resetRuns = function() {
         my.manager.nextRuns = [];
         my.manager.runningStep = 0;
@@ -114,29 +139,21 @@ function App(uiFn, rootId) {
         return SearchUtil.find(oid);
     };
    
-    my.getOid = function(type) { 
-        if (!TUtil.isDefined(my.oids[type]))  {
-            my.oids[type] = 0;
-        }
-        
-        var num = my.oids[type]++;
-        return { oid: num > 0 ? type + num : type, num: num };
-    };
-    
-    my.brackets = function(oid) {
-        return tapp.locationManager.bracketMap[oid] ? tapp.locationManager.bracketMap[oid].list : null;
-    };
-    
     tapp = my;
-    my.init(uiFn).start();
+    my.init().start();
 
     return my;
 }
-
-$Dom.ready(function() {
-    window._ = window._ || SearchUtil.find;
-
-    if (typeof window.MainT === 'function') {
-        App(MainT);
+   
+window.t = window.t || SearchUtil.find;
+App.oids = {};
+App.getOid = function(type) { 
+    if (!TUtil.isDefined(App.oids[type]))  {
+        App.oids[type] = 0;
     }
-});
+
+    var num = App.oids[type]++;
+    return { oid: num > 0 ? type + num : type, num: num };
+};
+
+export { tapp, App };

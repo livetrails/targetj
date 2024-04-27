@@ -1,3 +1,9 @@
+import { Bracket } from "./Bracket.js";
+import { TUtil } from "./TUtil.js";
+import { TargetUtil } from "./TargetUtil.js";
+import { tapp } from "./App.js";
+import { browser } from "./Browser.js";
+
 function LocationManager() {
     this.hasLocationList = [];
     this.hasLocationMap = {};
@@ -154,3 +160,5 @@ LocationManager.prototype.addToLocationList = function(child)   {
     this.hasLocationList.push(child);
     this.hasLocationMap[child.oid] = child;
 };
+
+export { LocationManager };

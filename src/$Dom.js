@@ -1,3 +1,6 @@
+import { browser } from "./Browser.js";
+import { TUtil } from "./TUtil.js";
+
 function $Dom(elemSelector) {
     if (typeof elemSelector === 'string') {
         this.selector = elemSelector;
@@ -356,3 +359,4 @@ $Dom.ajax = function(query) {
     }
 };
 
+export { $Dom };

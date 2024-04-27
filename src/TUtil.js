@@ -1,3 +1,5 @@
+import { $Dom } from "./$Dom.js";
+
 function TUtil() {}
 
 TUtil.getTypeFromCallerFile = function() {
@@ -200,3 +202,4 @@ EasingEffects.circular = function (t) {
     return Math.sqrt(1 - (--t * t));
 };
 
+export { TUtil, EasingEffects };
