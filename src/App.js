@@ -13,7 +13,7 @@ import { TargetManager } from "./TargetManager.js";
 
 var tapp;
 
-function App(tmodel, rootId) {
+function AppFn(tmodel, rootId) {
     
     function my() {} 
     
@@ -30,13 +30,13 @@ function App(tmodel, rootId) {
         my.window = new $Dom(window);
         my.window.addEvent("popstate", function(event) {
             if (event.state) {
-                tapp.pagers.openLinkFromHistory(event.state);
+                tapp.pager.openLinkFromHistory(event.state);
             }
         });
         
         my.loader = new LoadingManager();
         
-        my.pagers = new PageManager();
+        my.pager = new PageManager();
                  
         my.dim = Dim().measureScreen();
         
@@ -138,14 +138,31 @@ function App(tmodel, rootId) {
     my.find = function(oid) {
         return SearchUtil.find(oid);
     };
-   
-    tapp = my;
-    my.init().start();
 
     return my;
 }
-   
+
+function App(tmodel, rootId) {
+    tapp = AppFn(tmodel, rootId);    
+    tapp.init().start();
+
+    return tapp;
+}
+
+function getEvents() {
+    return tapp ? tapp.events : null;
+}
+
+function getPager() {
+    return tapp ? tapp.pager : null;
+}
+
+function getLoader() {
+    return tapp ? tapp.loader : null;
+}
+
 window.t = window.t || SearchUtil.find;
+
 App.oids = {};
 App.getOid = function(type) { 
     if (!TUtil.isDefined(App.oids[type]))  {
@@ -156,4 +173,4 @@ App.getOid = function(type) {
     return { oid: num > 0 ? type + num : type, num: num };
 };
 
-export { tapp, App };
+export { tapp, App, getEvents, getPager, getLoader };

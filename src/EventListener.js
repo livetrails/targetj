@@ -7,7 +7,7 @@ import { tapp } from "./App.js";
 
 function EventListener() {
 
-    this.currentTouch = { 
+    this.currentTouch = {
         deltaY: 0, 
         deltaX: 0,
         pinchDelta: 0,
