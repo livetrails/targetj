@@ -1,8 +1,5 @@
 var browser = {
     style: undefined,
-    localStorage: null,
-    startTimes: [],
-    callCount: {},
     delayProcess: {},
     setup: function () {
 
@@ -156,19 +153,6 @@ var browser = {
             return function() {};
         }
     },   
-    getLocalStorage: function () {
-        if (this.localStorage === null) {
-            try {
-                this.localStorage = window.localStorage; // This will throw an exception in some browsers when cookies/localStorage are explicitly disabled (i.e. Chrome)
-                this.localStorage.setItem('TEST', '1');
-                this.localStorage.removeItem('TEST');
-            } catch (e) {
-                this.localStorage = false;
-            }
-        }
-
-        return this.localStorage;
-    },
     prefixStyle: function (style) {
         var elementStyle = document.createElement('div').style;
         
@@ -198,64 +182,6 @@ var browser = {
     },
     nowInSeconds: function () {
         return Math.floor(this.now() / 1000);
-    },
-    time: function (s) {     
-        this.startTimes.push({label: s, time: this.now()});
-    },
-    timeEnd: function (minTime) {
-        minTime = minTime || 0;
-        var total = 0, diff;
-        var key, out = [];
-        browser.time("#end#");
-        for (var i = 1; i < this.startTimes.length; i++) {
-  
-            diff = (this.startTimes[i].time - this.startTimes[i - 1].time);
-            total += diff;
-
-            if (diff >= minTime) {
-               out.push(this.startTimes[i - 1].label + " =  " + diff); 
-            }
-            
-        }
-        for (key in this.callCount) {
-            out.push("count: " + key + " =  " + this.callCount[key]);
-        }
-              
-        console.log(out);
-
-        this.startTimes.length = 0;
-        this.callCount = {};
-        
-        return out;
-    },
-    createCookie: function (name, value, days) {
-        if (!name) return;
-
-        var expires;
-
-        if (days) {
-            var date = new Date();
-            date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
-            expires = "; expires=" + date.toGMTString();
-        } else {
-            expires = "";
-        }
-        document.cookie = escape(name) + "=" + escape(value) + expires + "; path=/";
-    },
-    readCookie: function (name) {
-        var nameEQ = escape(name) + "=";
-        var ca = document.cookie.split(';');
-        for (var i = 0; i < ca.length; i++) {
-            var c = ca[i];
-            while (c.charAt(0) === ' ')
-                c = c.substring(1, c.length);
-            if (c.indexOf(nameEQ) === 0)
-                return unescape(c.substring(nameEQ.length, c.length));
-        }
-        return null;
-    },
-    eraseCookie: function (name) {
-        browser.createCookie(name, "", -1);
     },
     delay: function (fn, oid, delay) {
         var timeStamp = browser.now() + delay;

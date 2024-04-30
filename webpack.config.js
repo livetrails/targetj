@@ -2,8 +2,10 @@
 module.exports = {
   entry: './Exports.js',
   output: {
-    library: 'TargetJ',
-    libraryTarget: 'umd',
-    filename: 'TargetJ.js'
+    library: {
+      name: 'TargetJ',
+      type: 'window'
+    },
+    filename: 'targetj.js'
   }
 };
