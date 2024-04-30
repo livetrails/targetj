@@ -12,7 +12,7 @@ function TModel(type, targets) {
         type = "";     
     }
     
-    this.type = type ? type : TUtil.getTypeFromCallerFile() || 'blank';
+    this.type = type ? type : 'blank';
     this.targets = Object.assign({}, targets);  
     var uniqueId = App.getOid(this.type);
     this.oid = uniqueId.oid;
@@ -748,11 +748,11 @@ TModel.prototype.addTarget = function(targetName, target) {
     tapp.manager.scheduleRun(10, 'addTarget-' + this.oid + "-" + targetName);
 };
 
-TModel.prototype.deleteTargetValues = function(key)   {
+TModel.prototype.deleteTargetValue = function(key)   {
     delete this.targetValues[key];
     this.activeTargetKeyMap[key] = true;
 
-    tapp.manager.scheduleRun(10, 'deleteTargetValues-' + this.oid + "-" + key);    
+    tapp.manager.scheduleRun(10, 'deleteTargetValue-' + this.oid + "-" + key);    
 };
 
 TModel.prototype.getTargetHeight = function()    {

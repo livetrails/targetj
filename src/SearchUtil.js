@@ -92,7 +92,7 @@ SearchUtil.findByType = function (type) {
     
     function search(container) {
         
-        if (container.tmodel.type === type) return container;
+        if (container.type === type) return container;
         
         var children = container.getChildren();
         var found;

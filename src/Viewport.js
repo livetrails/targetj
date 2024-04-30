@@ -155,7 +155,7 @@ Viewport.prototype.appendNewLine = function() {
     this.xSouth = this.xNext;
 
     this.ySouth = Math.max(this.yNext, this.ySouth);
-
+    
     this.currentChild.getRealParent().viewport.xEast = Math.max(this.currentChild.getRealParent().viewport.xEast, this.xEast);   
     this.currentChild.getRealParent().viewport.ySouth = Math.max(this.currentChild.getRealParent().viewport.ySouth, this.ySouth); 
 };
@@ -175,7 +175,7 @@ Viewport.prototype.nextLocation = function() {
     
     this.xEast = Math.max(this.xNext, this.xEast);
     this.ySouth = Math.max(ySouth, this.ySouth);
-            
+           
     this.currentChild.getRealParent().viewport.xEast = Math.max(this.currentChild.getRealParent().viewport.xEast, this.xEast);       
     this.currentChild.getRealParent().viewport.ySouth = Math.max(this.currentChild.getRealParent().viewport.ySouth, this.ySouth); 
 };

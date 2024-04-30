@@ -2,17 +2,6 @@ import { $Dom } from "./$Dom.js";
 
 function TUtil() {}
 
-TUtil.getTypeFromCallerFile = function() {
-    var stack = new Error("PRINTING CALL STACK").stack;
-    var lines = stack.split("\n");
-    var index = lines.findIndex(function(s) { return s.indexOf("TModel") >= 0; });
-    var typeLine = index < lines.length - 1 ? lines[index + 1] : '';
-        
-    var type = typeLine.match(/[a-zA-Z]{3,}/);
-                
-    return TUtil.isDefined(type) ? type[0] : '';
-};
-
 TUtil.initDoms = function(visibleList) {
     
     var elements = $Dom.findByClass('tgt'); 

@@ -28,7 +28,7 @@ PageManager.prototype.openPage = function(link, isPageFetchNeeded) {
             data: { tpageOnly: true }, 
             success: function (data) {
                 tapp.$dom.outerHTML(data);                                
-                tapp.resetUI();              
+                tapp.ui = tapp.uiFactory();               
                 self.lastLink = link;
                 tapp.start();
             },
@@ -40,7 +40,7 @@ PageManager.prototype.openPage = function(link, isPageFetchNeeded) {
 
     } else if (!this.pageCache[link]) {
         tapp.$dom.innerHTML("");                                
-        tapp.resetUI();
+        tapp.ui = tapp.uiFactory();
         self.lastLink = link;        
         setTimeout(tapp.start);  
     } else {

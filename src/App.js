@@ -13,7 +13,7 @@ import { TargetManager } from "./TargetManager.js";
 
 var tapp;
 
-function AppFn(tmodel, rootId) {
+function AppFn(uiFactory, rootId) {
     
     function my() {} 
     
@@ -40,17 +40,11 @@ function AppFn(tmodel, rootId) {
                  
         my.dim = Dim().measureScreen();
         
-        my.ui = new TModel("ui", {
-            width: {
-                loop: true, value: function() { return my.dim.screen.width; }
-            },
-            height: {
-                loop: true, value: function() { return my.dim.screen.height; }
-            }            
-        });
+        my.uiFactory = uiFactory;
+        my.ui = uiFactory();
         my.ui.xVisible = true;
-        my.ui.yVisible = true; 
-      
+        my.ui.yVisible = true;
+        
         my.events = new EventListener();
         
         my.locationManager = new LocationManager();
@@ -58,10 +52,6 @@ function AppFn(tmodel, rootId) {
         my.manager = new TModelManager();
         
         window.history.pushState({ link: document.URL }, "", document.URL);                
-
-        if (tmodel) {
-            my.ui.addChild(tmodel);
-        }
 
         return my;
     };
@@ -107,10 +97,6 @@ function AppFn(tmodel, rootId) {
         return my;
     };
     
-    my.addChild = function(tmodel) {
-        my.ui.addChild(tmodel);
-    };
-    
     my.resetRuns = function() {
         my.manager.nextRuns = [];
         my.manager.runningStep = 0;
@@ -142,8 +128,8 @@ function AppFn(tmodel, rootId) {
     return my;
 }
 
-function App(tmodel, rootId) {
-    tapp = AppFn(tmodel, rootId);    
+function App(uiFactory, rootId) {
+    tapp = AppFn(uiFactory, rootId);    
     tapp.init().start();
 
     return tapp;
@@ -161,6 +147,14 @@ function getLoader() {
     return tapp ? tapp.loader : null;
 }
 
+function getScreenWidth() {
+    return tapp ? tapp.dim.screen.width : 0;
+};
+
+function getScreenHeight() {
+    return tapp ? tapp.dim.screen.height : 0;
+};
+
 window.t = window.t || SearchUtil.find;
 
 App.oids = {};
@@ -173,4 +167,4 @@ App.getOid = function(type) {
     return { oid: num > 0 ? type + num : type, num: num };
 };
 
-export { tapp, App, getEvents, getPager, getLoader };
+export { tapp, App, getEvents, getPager, getLoader, $Dom, getScreenWidth, getScreenHeight };
