@@ -149,11 +149,11 @@ function getLoader() {
 
 function getScreenWidth() {
     return tapp ? tapp.dim.screen.width : 0;
-};
+}
 
 function getScreenHeight() {
     return tapp ? tapp.dim.screen.height : 0;
-};
+}
 
 window.t = window.t || SearchUtil.find;
 

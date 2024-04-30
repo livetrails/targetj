@@ -9,7 +9,8 @@
                laxbreak: true,
                sub: true,
                expr: true,
-               loopfunc: true
+               loopfunc: true,
+               esversion: 6  
            },
            all: jsrc
         },
