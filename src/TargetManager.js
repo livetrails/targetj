@@ -51,7 +51,7 @@ TargetManager.prototype.setTargetValues = function(tmodel) {
         if (result) {
             tmodel.targetUpdatingMap[key] = true;
             tmodel.targetUpdatingList.push(key);  
-        } else if (tmodel.isTargetDone(key) && !tmodel.isTargetComplete(key)) {            
+        } else if (tmodel.isTargetDone(key)) {
             this.doneTargets.push({ tmodel: tmodel, key: key });
         }
     }

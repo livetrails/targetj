@@ -303,6 +303,8 @@ TModelManager.prototype.run = function(oid, delay) {
 
                     tapp.events.captureEvents();
                     
+                    tapp.targetManager.doneTargets.length = 0;
+
                     tapp.locationManager.calculateTargets(tapp.ui);
 
                     tapp.locationManager.calculateAll();

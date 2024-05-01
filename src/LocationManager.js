@@ -16,7 +16,6 @@ LocationManager.prototype.calculateAll = function() {
     this.hasLocationList.length = 0;
     this.hasLocationMap = {};
     this.locationCount.length = 0;
-    tapp.targetManager.doneTargets.length = 0;
     this.startTime = browser.now();
 
     this.calculate(); 
