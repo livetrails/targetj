@@ -19,7 +19,7 @@ function TModel(type, targets) {
     this.oidNum = uniqueId.num;
 
     this.targetValues = {};
-        
+    
     this.actualValues = {
         x: 0,
         y: 0,
@@ -50,6 +50,7 @@ function TModel(type, targets) {
         canBeBracketed: true,
         isDomDeletable: true
     };
+    
     this.activeTargetKeyMap = {};
     
     this.targetUpdatingMap = {};

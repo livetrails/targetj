@@ -40,8 +40,8 @@ function AppFn(uiFactory, rootId) {
                  
         my.dim = Dim().measureScreen();
         
-        my.uiFactory = uiFactory;
-        my.ui = uiFactory();
+        my.uiFactory = uiFactory instanceof TModel ? function() { return new TModel(uiFactory.type, uiFactory.targets); } : uiFactory;
+        my.ui = my.uiFactory();
         my.ui.xVisible = true;
         my.ui.yVisible = true;
         
@@ -128,8 +128,8 @@ function AppFn(uiFactory, rootId) {
     return my;
 }
 
-function App(uiFactory, rootId) {
-    tapp = AppFn(uiFactory, rootId);    
+function App(ui, rootId) {
+    tapp = AppFn(ui, rootId);    
     tapp.init().start();
 
     return tapp;
