@@ -60,7 +60,7 @@ EventListener.prototype.removeHandlers = function () {
     
     var self = this;
     Object.keys(this.eventMap).forEach(function(key) {
-        var target = self.eventMap[key] === 'resize' ? tapp.window : tapp.$dom;
+        var target = self.eventMap[key] === 'resize' ? tapp.$window : tapp.$dom;
         target.detachEvent(key, self.bindedHandleEvent);
     });  
 };
@@ -70,7 +70,7 @@ EventListener.prototype.addHandlers = function () {
         
     var self = this;
     Object.keys(this.eventMap).forEach(function(key) {
-        var target = self.eventMap[key] === 'resize' ? tapp.window : tapp.$dom;
+        var target = self.eventMap[key] === 'resize' ? tapp.$window : tapp.$dom;
         target.addEvent(key, self.bindedHandleEvent);
     });
 };
@@ -94,68 +94,69 @@ EventListener.prototype.handleEvent = function (event) {
         return;
     }
     
+    this.lastEvent = event;
+
     this.eventTagName = (event.target.tagName || "").toUpperCase();
     this.eventName = this.eventMap[event.type];
-                
-    switch (this.eventName) {              
-        case 'touchstart':
-            this.clear();            
-            if (!['INPUT', 'TEXTAREA'].includes(this.eventTagName))   {
+    
+    var tmodel = this.getTModelFromEvent(event);
+
+    if (tmodel && tmodel.keepEventDefault() 
+            && (tmodel.keepEventDefault() === true || (Array.isArray(tmodel.keepEventDefault()) && tmodel.keepEventDefault().includes(this.eventName)))) {
+        tapp.manager.scheduleRun(0, "ignoring=" + this.eventName + '-' + this.eventTagName);
+    } else {            
+        switch (this.eventName) {              
+            case 'touchstart':
+                this.clear();            
                 this.touchCount = this.countTouches(event);
                 event.preventDefault();
                 this.start(event);
-            }        
-            break;
 
-        case 'touchmove':
-            var touch = this.getTouch(event);
-                    
-            this.cursor.x = touch.x;
-            this.cursor.y = touch.y;
-                                          
-            event.preventDefault();
+                break;
 
-            if (this.touchCount > 0) {                
-                this.move(event);
-            }
+            case 'touchmove':
+                var touch = this.getTouch(event);
 
-            break;
+                this.cursor.x = touch.x;
+                this.cursor.y = touch.y;
 
-        case 'touchend':
-            event.preventDefault();
-            this.end(event);
-            break;
-           
-        case 'wheel':
-            event.preventDefault();   
-            this.wheel(event);
-            break;
-            
-        case 'key':
-            this.keyUpHandler(event);
-            break;
-            
-        case 'resize':
-            tapp.dim.measureScreen();
-            break;
-     
+                event.preventDefault();
+
+                if (this.touchCount > 0) {                
+                    this.move(event);
+                }
+
+                break;
+
+            case 'touchend':
+                event.preventDefault();
+                this.end(event);
+                break;
+
+            case 'wheel':
+                event.preventDefault();   
+                this.wheel(event);
+                break;
+
+            case 'key':
+                this.keyUpHandler(event);
+                break;
+
+            case 'resize':
+                tapp.dim.measureScreen();
+                break;
+
+        }
+        tapp.manager.scheduleRun(0, this.eventName + '-' + this.eventTagName);
     }
-    
-    this.lastEvent = event;
-    
-    tapp.manager.scheduleRun(0, this.eventName + '-' + this.eventTagName);
+   
+       
 };
     
 EventListener.prototype.findEventHandlers = function(event) {
- 
-    var oid = typeof event.target.getAttribute === 'function' ? event.target.getAttribute('id') : '';
-    
-    if (!oid) {
-        oid = $Dom.findNearestParentWithId(event.target);
-    }
-                    
-    var tmodel = tapp.manager.visibleOidMap[oid];
-    
+
+    var tmodel = this.getTModelFromEvent(event);
+
     var touchHandler = tmodel ? SearchUtil.findFirstTouchHandler(tmodel) : null;
     var scrollLeftHandler = tmodel ? SearchUtil.findFirstScrollLeftHandler(tmodel) : null;
     var scrollTopHandler = tmodel ? SearchUtil.findFirstScrollTopHandler(tmodel) : null;
@@ -165,6 +166,16 @@ EventListener.prototype.findEventHandlers = function(event) {
     this.currentHandlers.scrollLeft = scrollLeftHandler;
     this.currentHandlers.scrollTop = scrollTopHandler; 
     this.currentHandlers.pinch = pinchHandler; 
+};
+
+EventListener.prototype.getTModelFromEvent = function(event) {
+    var oid = typeof event.target.getAttribute === 'function' ? event.target.getAttribute('id') : '';
+    
+    if (!oid) {
+        oid = $Dom.findNearestParentWithId(event.target);
+    }
+                    
+    return tapp.manager.visibleOidMap[oid];
 };
 
 EventListener.prototype.clear = function () {

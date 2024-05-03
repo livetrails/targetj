@@ -217,7 +217,7 @@ TModelManager.prototype.createDoms = function () {
         var width = Math.floor(tmodel.getWidth());
         var height = Math.floor(tmodel.getHeight());
         var zIndex = Math.floor(tmodel.getZIndex());
-        var opacity = tmodel.getOpacity().toFixed(2);
+        var opacity = tmodel.getOpacity() ? tmodel.getOpacity().toFixed(2) : 0;
         
         var styles = {
             position: 'absolute',

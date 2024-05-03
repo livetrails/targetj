@@ -45,6 +45,7 @@ function TModel(type, targets) {
         isInFlow: true,
         canHaveDom: true,
         canHandleEvents: false,
+        keepEventDefault: false,
         isOverflowHidden: false,
         canBeVisible: true,
         canBeBracketed: true,
@@ -278,7 +279,7 @@ TModel.prototype.shouldCalculateChildrenLocations = function() {
 TModel.prototype.manuallyCalculateChildrenLocations = function() {};
 
 TModel.prototype.fixOpacity = function () {
-    var opacity = this.getOpacity().toFixed(2);
+    var opacity = this.getOpacity() ? this.getOpacity().toFixed(2) : 0;
     
     if (this.$dom.opacity() !== opacity) {
         this.$dom.opacity(opacity); 
@@ -360,6 +361,10 @@ TModel.prototype.isInFlow = function() {
 
 TModel.prototype.canHandleEvents = function() {
     return this.actualValues.canHandleEvents;
+};
+
+TModel.prototype.keepEventDefault = function() {
+    return this.actualValues.keepEventDefault;
 };
 
 TModel.prototype.canBeBracketed = function() {

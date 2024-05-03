@@ -121,14 +121,14 @@ Viewport.prototype.isVisible = function(child) {
     }
    
     var scale = parentScale * child.getTargetScale();
-    var maxWidth = scale * child.getTargetWidth();
-    var maxHeight = scale * child.getTargetHeight();
+    var maxWidth = scale * child.getWidth();
+    var maxHeight = scale * child.getHeight();
 
     child.xVisible = this.isXVisible(child, x, x + maxWidth, minX, maxX);
     child.yVisible = this.isYVisible(child, y, y + maxHeight, minY, maxY);
         
-    //browser.log(child.oid === 'desc')("oid: " + child.oid + " in " + this.tmodel.oid + " min-maxX:" + Math.round(minX) + "-" + Math.round(maxX) + " x:" + Math.round(x) + " w:" + Math.floor(maxWidth) +  " sc:" + scale +  " vx:" + child.xVisible);
-    //browser.log(child.oid === 'closeButton')("oid: " + child.oid + " in " + this.tmodel.oid + " min-maxY:" + Math.round(minY) + "-" + Math.round(maxY) + " y:" + Math.round(y) + " h:" + Math.floor(maxHeight) + " sc:" + scale + " vy:" + child.yVisible);
+    //browser.log(child.oid === 'overview')("oid: " + child.oid + " in " + this.tmodel.oid + " min-maxX:" + Math.round(minX) + "-" + Math.round(maxX) + " x:" + Math.round(x) + " w:" + Math.floor(maxWidth) +  " sc:" + scale +  " vx:" + child.xVisible);
+    //browser.log(child.oid === 'overview')("oid: " + child.oid + " in " + this.tmodel.oid + " min-maxY:" + Math.round(minY) + "-" + Math.round(maxY) + " y:" + Math.round(y) + " h:" + Math.floor(maxHeight) + " sc:" + scale + " vy:" + child.yVisible);
 
     return child.isVisible();    
 };

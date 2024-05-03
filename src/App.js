@@ -27,8 +27,8 @@ function AppFn(uiFactory, rootId) {
     my.init = function() {
         browser.setup();
         
-        my.window = new $Dom(window);
-        my.window.addEvent("popstate", function(event) {
+        my.$window = new $Dom(window);
+        my.$window.addEvent("popstate", function(event) {
             if (event.state) {
                 tapp.pager.openLinkFromHistory(event.state);
             }
