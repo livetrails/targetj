@@ -1,6 +1,6 @@
 {
   "name": "targetj",
-  "version": "1.0.44",
+  "version": "1.0.45",
   "keywords": [
     "targetj"
   ],
@@ -18,7 +18,7 @@
     "url": "https://github.com/livetrails/targetj.io/issues"
   },
   "scripts": {
-    "build": "webpack --mode production"
+    "build": "webpack --mode development"
   },
   "homepage": "http://targetj.io",
   "devDependencies": {

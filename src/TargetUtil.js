@@ -195,32 +195,35 @@ TargetUtil.handleValueChange = function(tmodel, key, newValue, lastValue, step, 
 };
 
 TargetUtil.setWidthFromDom = function(child) {
-    var width = TUtil.isDefined(child.domWidth) ? child.domWidth.width : 10 ;
+    var height = TUtil.isDefined(child.domWidth) ? child.domWidth.height : undefined;    
+    var width = TUtil.isDefined(child.domWidth) ? child.domWidth.width : undefined;
     
     if (!TUtil.isDefined(child.domWidth) 
-            || child.domWidth.height !== child.getHeight() 
+            || height !== child.getHeight()
             || child.hasTargetUpdatedAfter('width', 'width', child.getParent())) {
         child.$dom.width('auto');
         width = child.$dom.width();
+        height = child.$dom.height();
     }
     
-    child.domWidth = { width: width, height: child.getHeight() };
+    child.domWidth = { width: width, height: height };
     child.setValue('width', width);
 };
 
 
 TargetUtil.setHeightFromDom = function(child) {
-    var height = TUtil.isDefined(child.domHeight) ? child.domHeight.height : 10 ;
-    
+    var height = TUtil.isDefined(child.domHeight) ? child.domHeight.height : undefined;
+    var width = TUtil.isDefined(child.domHeight) ? child.domHeight.width : undefined;
+
     if (!TUtil.isDefined(child.domHeight) 
-            || child.domHeight.width !== child.getWidth() 
+            || width !== child.getWidth() 
             || child.hasTargetUpdatedAfter('height', 'height', child.getParent())) {
         child.$dom.height('auto');
+        width =  child.$dom.width();
         height = child.$dom.height();
     }
 
-    child.domHeight = { height: height, width: child.getWidth() };
-    
+    child.domHeight = { height: height, width: width };
     child.setValue('height', height);
 };
 

@@ -15,6 +15,7 @@ function EventListener() {
         manualMomentumFlag: false, 
         orientation: "none" ,
         dir: "",
+        isWheel: false,
         timeStamp: 0
     };
     
@@ -192,8 +193,10 @@ EventListener.prototype.resetCurrentTouch = function() {
     this.currentTouch.deltaX = 0;
     this.currentTouch.pinchDelta = 0;
     this.currentTouch.manualMomentumFlag = false;
+    this.currentTouch.dir = "";
     this.currentTouch.orientation = "none";
     this.currentTouch.key = ''; 
+    this.currentTouch.isWheel = false;
 };
 
 EventListener.prototype.resetEvents = function () {
@@ -209,10 +212,13 @@ EventListener.prototype.resetEvents = function () {
             if (diff > 70) {
                 this.currentTouch.deltaY = 0;
                 this.currentTouch.deltaX = 0;
+                this.currentTouch.isWheel = false;
                 this.currentTouch.pinchDelta = 0;                
             } else if (this.currentTouch.manualMomentumFlag) {
                 this.currentTouch.deltaY *= 0.95;
                 this.currentTouch.deltaX *= 0.95;
+                this.currentTouch.isWheel = false;
+                
                 runDelay = 10;
             }
         } else if (diff > 600) {
@@ -421,19 +427,21 @@ EventListener.prototype.end = function (event) {
     return event.stopPropagation();
 };
 
-EventListener.prototype.setDeltaXDeltaY = function(deltaX, deltaY) {
+EventListener.prototype.setDeltaXDeltaY = function(deltaX, deltaY, isWheel) {
     var diff = Math.abs(deltaX) - Math.abs(deltaY);
         
     if (diff >= 1) {
         if (this.currentTouch.orientation === "none" || (this.currentTouch.orientation === "vertical" && diff > 3) || this.currentTouch.orientation === "horizontal") {
             this.currentTouch.orientation = "horizontal";
-            this.currentTouch.dir = this.currentTouch.deltaX <= -1 ? "left" : this.currentTouch.deltaX >= 1 ? "right" : this.currentTouch.dir;
+            this.currentTouch.dir = deltaX <= -1 ? "left" : deltaX >= 1 ? "right" : this.currentTouch.dir;
+            this.currentTouch.isWheel = isWheel;
             this.setCurrentTouchParam('deltaX', deltaX);
             this.currentTouch.deltaY = 0;
         }
     } else if (this.currentTouch.orientation === "none" || (this.currentTouch.orientation === "horizontal" && diff < -3) || this.currentTouch.orientation === "vertical") {
             this.currentTouch.orientation = "vertical";
-            this.currentTouch.dir = this.currentTouch.deltaY <= -1 ? "up" : this.currentTouch.deltaY >= 1 ? "down" : this.currentTouch.dir;
+            this.currentTouch.dir = deltaY <= -1 ? "up" : deltaY >= 1 ? "down" : this.currentTouch.dir;
+            this.currentTouch.isWheel = isWheel;            
             this.setCurrentTouchParam('deltaY', deltaY);
             this.currentTouch.deltaX = 0;
     } else {
@@ -468,7 +476,7 @@ EventListener.prototype.wheel = function (event) {
         deltaX = event.detail / 3;    
     }
             
-    this.setDeltaXDeltaY(deltaX, deltaY);
+    this.setDeltaXDeltaY(deltaX, deltaY, true);
 };
 
 export { EventListener };

@@ -1,3 +1,4 @@
+ const path = require('path');
 
 module.exports = {
   entry: './Exports.js',
@@ -6,6 +7,7 @@ module.exports = {
       name: 'TargetJ',
       type: 'window'
     },
+    path: path.resolve(__dirname, '../targetj/js/framework'),
     filename: 'targetj.js'
   }
 };

@@ -152,13 +152,13 @@ TModelManager.prototype.deleteDoms = function () {
     }
 };
 
-TModelManager.prototype.removeTModel = function(tmodel)   {    
+TModelManager.prototype.removeTModel = function(tmodel) {    
     tmodel.markAsDeleted();
         
     var parent = tmodel.getParent();
     
     var childIndex;
-    if (parent && parent.hasChildren())  {
+    if (parent && parent.hasChildren()) {
         parent.removeUpdatingChild(tmodel);
 
         

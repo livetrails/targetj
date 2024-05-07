@@ -29,6 +29,8 @@ function TModel(type, targets) {
         rightMargin: 0,
         topMargin: 0,
         bottomMargin: 0,
+        innerWidth: undefined,
+        innerHeight: undefined,
         opacity: 1,
         zIndex: 1,
         scale: 1,
@@ -46,7 +48,6 @@ function TModel(type, targets) {
         canHaveDom: true,
         canHandleEvents: false,
         keepEventDefault: false,
-        isOverflowHidden: false,
         canBeVisible: true,
         canBeBracketed: true,
         isDomDeletable: true
@@ -351,10 +352,6 @@ TModel.prototype.getHtml = function()    {
     return this.actualValues.html;
 };
 
-TModel.prototype.isOverflowHidden = function () {
-    return this.actualValues.isOverflowHidden;
-};
-
 TModel.prototype.isInFlow = function() {
     return this.actualValues.isInFlow;
 };
@@ -554,20 +551,8 @@ TModel.prototype.isTargetEnabled = function(key) {
     return !!targetEnabled;
 };
 
-TModel.prototype.isTargetInLoop = function(targetName) {            
-    return TUtil.isDefined(this.targets[targetName]) && this.targets[targetName].loop;
-};
-
-TModel.prototype.enableTargetLoop = function(targetName) {  
-    if (TUtil.isDefined(this.targets[targetName])) {
-        this.targets[targetName].loop = true;
-    }
-};
-
-TModel.prototype.disableTargetLoop = function(targetName) { 
-    if (TUtil.isDefined(this.targets[targetName])) {
-        this.targets[targetName].loop = false;
-    }
+TModel.prototype.isTargetInLoop = function(key) {            
+    return this.targets[key] ? (typeof this.targets[key].loop === 'function' ? this.targets[key].loop.call(this) :  this.targets[key].loop) : false;
 };
 
 TModel.prototype.doesTargetEqualActual = function(key) {
@@ -730,7 +715,7 @@ TModel.prototype.addChild = function(child, index)  {
     
     tapp.manager.scheduleRun(10, 'addChild-' + this.oid + "-" + child.oid);
      
-    return index;
+    return this;
 };
 
 TModel.prototype.addUpdatingChild = function(child) {
