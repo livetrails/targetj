@@ -739,6 +739,13 @@ TModel.prototype.addTarget = function(targetName, target) {
     tapp.manager.scheduleRun(10, 'addTarget-' + this.oid + "-" + targetName);
 };
 
+TModel.prototype.addTargets = function(targets) {
+    var self = this;
+    Object.keys(targets).forEach(function(key) {
+        self.addTarget(key, targets[key]);
+    });
+};
+
 TModel.prototype.deleteTargetValue = function(key)   {
     delete this.targetValues[key];
     this.activeTargetKeyMap[key] = true;

@@ -147,6 +147,10 @@ function getLoader() {
     return tapp ? tapp.loader : null;
 }
 
+function getManager() {
+    return tapp ? tapp.manager : null;
+}
+
 function getScreenWidth() {
     return tapp ? tapp.dim.screen.width : 0;
 }
@@ -167,4 +171,4 @@ App.getOid = function(type) {
     return { oid: num > 0 ? type + num : type, num: num };
 };
 
-export { tapp, App, getEvents, getPager, getLoader, $Dom, getScreenWidth, getScreenHeight };
+export { tapp, App, getEvents, getPager, getLoader, getManager, $Dom, getScreenWidth, getScreenHeight };

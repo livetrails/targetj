@@ -121,8 +121,8 @@ Viewport.prototype.isVisible = function(child) {
     }
    
     var scale = parentScale * child.getTargetScale();
-    var maxWidth = scale * child.getWidth();
-    var maxHeight = scale * child.getHeight();
+    var maxWidth = TUtil.isDefined(child.getWidth()) ? scale * child.getWidth() : 0;
+    var maxHeight = TUtil.isDefined(child.getHeight()) ? scale * child.getHeight() : 0;
 
     child.xVisible = this.isXVisible(child, x, x + maxWidth, minX, maxX);
     child.yVisible = this.isYVisible(child, y, y + maxHeight, minY, maxY);

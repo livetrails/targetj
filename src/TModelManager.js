@@ -12,7 +12,9 @@ TModelManager.prototype.init = function()   {
         visible: [],
         invisibleDom: [],
         deletedTModel: [],
-        visibleNoDom: []
+        visibleNoDom: [],
+        updatingTModels: [],
+        updatingTargets: []
     };
     this.visibleTypeMap = {};
     this.visibleOidMap = {};
@@ -42,6 +44,8 @@ TModelManager.prototype.analyze = function()    {
     
     this.lists.visible.length = 0;
     this.lists.visibleNoDom.length = 0;
+    this.lists.updatingTModels.length = 0;
+    this.lists.updatingTargets.length = 0;
     this.visibleTypeMap = {};
     this.visibleOidMap = {};
     
@@ -57,6 +61,11 @@ TModelManager.prototype.analyze = function()    {
             lastVisibleMap[tmodel.oid] = null;
             
             this.lists.visible.push(tmodel);
+            
+            if (tmodel.targetUpdatingList.length > 0) {
+                this.lists.updatingTModels.push(tmodel);
+                this.lists.updatingTargets = this.lists.updatingTargets.concat((tmodel.targetUpdatingList));
+            }
             
             this.visibleOidMap[tmodel.oid] = tmodel;
             if (!this.visibleTypeMap[tmodel.type]) {
@@ -129,6 +138,7 @@ TModelManager.prototype.deleteDoms = function () {
             tmodel.invisibleFunctions.forEach(function(invisible)  {
                 var key = invisible.key;
                 invisible.fn.call(tmodel, key, tmodel.getTargetStep(key), tmodel.getTargetCycle(key), tmodel.getTargetSteps(key), tmodel.getTargetCycles(key));
+                tmodel.activeTargetKeyMap[key] = true;
             });
         }
         
@@ -300,7 +310,7 @@ TModelManager.prototype.run = function(oid, delay) {
         while((browser.now() - frameTime) < 25 && tapp.manager.runningStep < 7 && tapp.isRunning()) {
             switch(tapp.manager.runningStep) {
                 case 0:
-
+                                        
                     tapp.events.captureEvents();
                     
                     tapp.targetManager.doneTargets.length = 0;

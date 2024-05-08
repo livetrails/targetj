@@ -53,23 +53,6 @@ TUtil.getDeepList = function(parent)   {
     return deepList;
 };
 
-TUtil.getDeepUpdatingList = function(parent)   {
-    var deepList = []; 
-    
-    function traverse(tmodel) {
-        if (tmodel.updatingChildren)  {
-            deepList = deepList.concat(tmodel.updatingChildren);
-            tmodel.updatingChildren.forEach(function(t) {
-                traverse(t);
-            });            
-        }
-    }
-    
-    traverse(parent);
-    
-    return deepList;
-};
-
 TUtil.areEqual = function(a, b, deepEquality) {
 
     if (deepEquality) {        
