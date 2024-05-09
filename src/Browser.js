@@ -195,9 +195,7 @@ var browser = {
                 nextRun = { timeStamp: this.delayProcess.timeStamp, oid: this.delayProcess.oid, delay: this.delayProcess.delay };
                 
                 clearTimeout(this.delayProcess.id);
-                
-                //console.log("clearing: " + oid + ", " + (this.delayProcess.timeStamp) + " vs " + timeStamp);
-                
+                                
                 this.delayProcess.oid = oid;
                 this.delayProcess.timeStamp = timeStamp;
                 this.delayProcess.delay = delay;

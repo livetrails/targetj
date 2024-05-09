@@ -20,19 +20,18 @@ function EventListener() {
     };
     
     this.eventMap = {
-        mousedown: 'touchstart',
         touchstart: 'touchstart',
-        mousemove: 'touchmove',
         touchmove: 'touchmove',
         touchend: 'touchend',
         touchcancel: 'touchend',
-        pointerup: 'touchend',
-        MSPointerUp: 'touchend',
-        mouseup: 'touchend',
-        pointercancel: 'touchend',
-        MSPointerCancel: 'touchend',
-        mousecancel: 'touchend',
-        mouseleave: 'touchleave',
+        mousedown: 'mousedown',
+        mousemove: 'mousemove',                
+        pointerup: 'mouseup',
+        MSPointerUp: 'mouseup',
+        mouseup: 'mouseup',
+        pointercancel: 'mouseup',
+        MSPointerCancel: 'mouseup',
+        mousecancel: 'mouseup',
         wheel: 'wheel',
         DOMMouseScroll: 'wheel',
         mousewheel: 'wheel',
@@ -100,58 +99,52 @@ EventListener.prototype.handleEvent = function (event) {
     this.eventTagName = (event.target.tagName || "").toUpperCase();
     this.eventName = this.eventMap[event.type];
     
-    var tmodel = this.getTModelFromEvent(event);
+    switch (this.eventName) { 
+        
+        case 'mousedown':
+        case 'touchstart':
+            this.clear();            
+            this.touchCount = this.countTouches(event);
+            if (this.preventDefault(event, this.eventName)) event.preventDefault();
+            this.start(event);
+            event.stopPropagation();
+            break;
+            
+        case 'mousemove':
+        case 'touchmove':
+            var touch = this.getTouch(event);
+            this.cursor.x = touch.x;
+            this.cursor.y = touch.y;
+            if (this.preventDefault(event, this.eventName)) event.preventDefault();
+            if (this.touchCount > 0) {                
+                this.move(event);
+                event.stopPropagation();
+            }
+            break;
 
-    if (tmodel && tmodel.keepEventDefault() 
-            && (tmodel.keepEventDefault() === true || (Array.isArray(tmodel.keepEventDefault()) && tmodel.keepEventDefault().includes(this.eventName)))) {
-        tapp.manager.scheduleRun(0, "ignoring=" + this.eventName + '-' + this.eventTagName);
-    } else {            
-        switch (this.eventName) {              
-            case 'touchstart':
-                this.clear();            
-                this.touchCount = this.countTouches(event);
-                event.preventDefault();
-                this.start(event);
+        case 'mouseup':
+        case 'touchend':
+            if (this.preventDefault(event, this.eventName)) event.preventDefault();
+            this.end(event);
+            event.stopPropagation();
+            break;
 
-                break;
+        case 'wheel':
+            if (this.preventDefault(event, this.eventName)) event.preventDefault();   
+            this.wheel(event);
+            break;
 
-            case 'touchmove':
-                var touch = this.getTouch(event);
+        case 'key':
+            this.keyUpHandler(event);
+            break;
 
-                this.cursor.x = touch.x;
-                this.cursor.y = touch.y;
+        case 'resize':
+            tapp.dim.measureScreen();
+            break;
 
-                event.preventDefault();
-
-                if (this.touchCount > 0) {                
-                    this.move(event);
-                }
-
-                break;
-
-            case 'touchend':
-                event.preventDefault();
-                this.end(event);
-                break;
-
-            case 'wheel':
-                event.preventDefault();   
-                this.wheel(event);
-                break;
-
-            case 'key':
-                this.keyUpHandler(event);
-                break;
-
-            case 'resize':
-                tapp.dim.measureScreen();
-                break;
-
-        }
-        tapp.manager.scheduleRun(0, this.eventName + '-' + this.eventTagName);
     }
-   
-       
+    
+    tapp.manager.scheduleRun(0, this.eventName + '-' + this.eventTagName);   
 };
     
 EventListener.prototype.findEventHandlers = function(event) {
@@ -167,6 +160,16 @@ EventListener.prototype.findEventHandlers = function(event) {
     this.currentHandlers.scrollLeft = scrollLeftHandler;
     this.currentHandlers.scrollTop = scrollTopHandler; 
     this.currentHandlers.pinch = pinchHandler; 
+};
+
+EventListener.prototype.preventDefault = function(event, eventName) {
+    var tmodel = this.getTModelFromEvent(event);
+
+    if (tmodel && (tmodel.keepEventDefault() === true || (Array.isArray(tmodel.keepEventDefault()) && tmodel.keepEventDefault().includes(eventName)))) {
+        return false;
+    }
+    
+    return true;
 };
 
 EventListener.prototype.getTModelFromEvent = function(event) {
@@ -346,9 +349,7 @@ EventListener.prototype.start = function (event) {
     this.start1 = this.getTouch(event, 1);
     
     this.cursor.x = this.start0.x;
-    this.cursor.y = this.start0.y;    
-                
-    return event.stopPropagation();
+    this.cursor.y = this.start0.y;             
 };
 
 EventListener.prototype.move = function (event) {
@@ -382,8 +383,6 @@ EventListener.prototype.move = function (event) {
 
         this.setCurrentTouchParam('pinchDelta', this.currentTouch.diff > 0 ? 0.3 : this.currentTouch.diff  < 0 ? -0.3 : 0);
     }
-       
-    return event.stopPropagation();
 };
 
 EventListener.prototype.end = function (event) {
@@ -424,7 +423,6 @@ EventListener.prototype.end = function (event) {
     }
      
     this.touchCount = 0;
-    return event.stopPropagation();
 };
 
 EventListener.prototype.setDeltaXDeltaY = function(deltaX, deltaY, isWheel) {
