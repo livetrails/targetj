@@ -32,6 +32,9 @@ Viewport.prototype.reset = function() {
         x = this.tmodel.getX() + this.tmodel.getScrollLeft();
         y = this.tmodel.getY() + this.tmodel.getScrollTop();
 
+        this.xOffset = 0;
+        this.yOffset = 0;
+        
         this.xNext = x;
         this.xNorth = x;
         this.xEast = x;
@@ -45,8 +48,11 @@ Viewport.prototype.reset = function() {
         this.yWest = y;
         this.yEast = y;    
         this.ySouth = this.tmodel.getRealParent().viewport ? this.tmodel.getRealParent().viewport.ySouth : y;
-              
+
     } else {
+        this.xOffset = 0;
+        this.yOffset = 0;
+        
         x = this.tmodel.getX();
         y = this.tmodel.getY();
 
@@ -85,7 +91,7 @@ Viewport.prototype.getYNext = function() {
 };
 
 Viewport.prototype.isXVisible = function(child, x1, x2, minX, maxX) {
-    return child.type === 'BI' ? true : x1 <= maxX && x2 >= minX;
+    return x1 <= maxX && x2 >= minX;
 };
 
 Viewport.prototype.isYVisible = function(child, y1, y2, minY, maxY) {
@@ -94,7 +100,7 @@ Viewport.prototype.isYVisible = function(child, y1, y2, minY, maxY) {
 
 Viewport.prototype.isVisible = function(child) {
     
-    var parentScale = child.getDomParent() ? child.getDomParent().getScale() : 1;
+    var parentScale = child.getDomParent() ? child.getDomParent().getMeasuringScale() : 1;
 
     var minX = tapp.dim.screen.x;
     var minY = tapp.dim.screen.y;
@@ -104,31 +110,32 @@ Viewport.prototype.isVisible = function(child) {
     var x = child.getX();
     var y = child.getY();
     
-    if (child.getDomHolder() !== tapp.$dom) {
-        minX = child.getDomParent().isInFlow() ? child.getDomParent().absX : child.getDomParent().getX();
-        minY = child.getDomParent().isInFlow() ? child.getDomParent().absY : child.getDomParent().getY();
-        maxX = Math.min(maxX, minX + child.getDomParent().getWidth());
-        maxY = Math.min(maxY, minY + child.getDomParent().getHeight());
-        minX = Math.max(0, minX);
-        minY = Math.max(0, minY);
-
-        x = child.getDomParent().isInFlow() ? child.getDomParent().absX + child.getX() : child.getDomParent().getX() + child.getX();
-        y = child.getDomParent().isInFlow() ? child.getDomParent().absY + child.getY() : child.getDomParent().getY() + child.getY();
+    var domHolder = child.type === 'BI' ? child.getRealParent().getDomHolder() : child.getDomHolder();
+    
+    if (domHolder !== tapp.$dom) { 
+        var domParent = child.type === 'BI' ? child.getRealParent().getDomParent() : child.getDomParent();
+        
+        minX = domParent.isInFlow() ? domParent.absX : domParent.getX();
+        minY = domParent.isInFlow() ? domParent.absY : domParent.getY();       
                 
-    } else if (child.type === 'BI') {
-        maxX = child.getRealParent().getX() + child.getRealParent().getWidth();
-        maxY = child.getRealParent().getY() + child.getRealParent().getHeight();        
-    }
+        x = minX + child.getX();
+        y = minY + child.getY();
+        
+        maxX = Math.min(maxX, minX + domParent.getWidth());
+        maxY = Math.min(maxY, minY + domParent.getHeight());
+        minX = Math.max(0, minX);
+        minY = Math.max(0, minY);              
+    } 
    
-    var scale = parentScale * child.getTargetScale();
+    var scale = parentScale * child.getMeasuringScale();
     var maxWidth = TUtil.isDefined(child.getWidth()) ? scale * child.getWidth() : 0;
     var maxHeight = TUtil.isDefined(child.getHeight()) ? scale * child.getHeight() : 0;
 
     child.xVisible = this.isXVisible(child, x, x + maxWidth, minX, maxX);
     child.yVisible = this.isYVisible(child, y, y + maxHeight, minY, maxY);
         
-    //browser.log(child.oid === 'overview')("oid: " + child.oid + " in " + this.tmodel.oid + " min-maxX:" + Math.round(minX) + "-" + Math.round(maxX) + " x:" + Math.round(x) + " w:" + Math.floor(maxWidth) +  " sc:" + scale +  " vx:" + child.xVisible);
-    //browser.log(child.oid === 'overview')("oid: " + child.oid + " in " + this.tmodel.oid + " min-maxY:" + Math.round(minY) + "-" + Math.round(maxY) + " y:" + Math.round(y) + " h:" + Math.floor(maxHeight) + " sc:" + scale + " vy:" + child.yVisible);
+    //browser.log(child.oid === 'BI199')("oid: " + child.oid + " in " + this.tmodel.oid + " min-maxX:" + Math.round(minX) + "-" + Math.round(maxX) + " x:" + Math.round(x) + " w:" + Math.floor(maxWidth) +  " sc:" + scale +  " vx:" + child.xVisible);
+    //browser.log(child.oid === 'BI199')("oid: " + child.oid + " in " + this.tmodel.oid + " min-maxY:" + Math.round(minY) + "-" + Math.round(maxY) + " y:" + Math.round(y) + " h:" + Math.floor(maxHeight) + " sc:" + scale + " vy:" + child.yVisible);
 
     return child.isVisible();    
 };
@@ -146,7 +153,7 @@ Viewport.prototype.overflow = function() {
 
 Viewport.prototype.appendNewLine = function() {
     
-    var height = this.currentChild.getHeight() * this.currentChild.getScale();
+    var height = this.currentChild.getHeight() * this.currentChild.getMeasuringScale();
 
     this.xNext = this.xOverflow;
     this.yNext =  this.ySouth + height + this.currentChild.getTopMargin() + this.currentChild.getBottomMargin() + this.currentChild.getValue('appendNewLine');
@@ -162,9 +169,9 @@ Viewport.prototype.appendNewLine = function() {
  
 Viewport.prototype.nextLocation = function() {
     
-    var innerWidth  = this.currentChild.getInnerWidth() * this.currentChild.getScale();
-    var innerHeight = this.currentChild.getInnerHeight() * this.currentChild.getScale();
-    var innerContentHeight = this.currentChild.getInnerContentHeight() * this.currentChild.getScale();
+    var innerWidth  = this.currentChild.getInnerWidth() * this.currentChild.getMeasuringScale();
+    var innerHeight = this.currentChild.getInnerHeight() * this.currentChild.getMeasuringScale();
+    var innerContentHeight = this.currentChild.getInnerContentHeight() * this.currentChild.getMeasuringScale();
             
     var ySouth = this.yNext + innerHeight + this.currentChild.getTopMargin() + this.currentChild.getBottomMargin();
     this.xNext += innerWidth + this.currentChild.getLeftMargin() + this.currentChild.getRightMargin();

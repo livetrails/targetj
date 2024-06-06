@@ -1,5 +1,6 @@
 import { browser } from "./Browser.js";
 import { TUtil } from "./TUtil.js";
+import { getManager } from "./App.js";
 
 function $Dom(elemSelector) {
     if (typeof elemSelector === 'string') {
@@ -307,8 +308,9 @@ $Dom.findByClass = function(className, element) {
 
 $Dom.findNearestParentWithId = function(element) {
     while (element) {
-        if (typeof element.getAttribute === 'function' && element.getAttribute("id")) {
-            return element.getAttribute("id");
+        var oid = typeof element.getAttribute === 'function' && element.getAttribute("id") ? element.getAttribute("id") : null;
+        if (oid && getManager().visibleOidMap[oid]) {
+            return oid;
         }
         
         element = element.parentElement;

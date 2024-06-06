@@ -48,9 +48,11 @@ function TModel(type, targets) {
         canHaveDom: true,
         canHandleEvents: false,
         keepEventDefault: false,
-        canBeVisible: true,
-        canBeBracketed: true,
-        isDomDeletable: true
+        isIncluded: true,
+        canBeBracketed: true,      
+        isDomDeletable: true,
+        calculateChildren: undefined,
+        isVisible: undefined
     };
     
     this.activeTargetKeyMap = {};
@@ -251,7 +253,12 @@ TModel.prototype.addToParentVisibleList = function() {
 };
 
 TModel.prototype.isVisible = function () {
-    return this.xVisible && this.yVisible;
+    return TUtil.isDefined(this.actualValues.isVisible) ? this.actualValues.isVisible : this.xVisible && this.yVisible;
+};
+
+
+TModel.prototype.shouldCalculateChildren = function() {
+    return TUtil.isDefined(this.actualValues.calculateChildren) ?this.actualValues.calculateChildren : this.isVisible() && this.isIncluded() && (this.hasChildren() || this.getContentHeight() > 0);
 };
 
 TModel.prototype.createViewport = function() { 
@@ -272,12 +279,6 @@ TModel.prototype.setLocation = function(viewport) {
     this.deepX = this.absX + (scrollTopHandler ? scrollTopHandler.getScrollTop() : 0);
     this.deepY = this.absY + (scrollLeftHandler ? scrollLeftHandler.getScrollLeft() : 0);   
 };
-
-TModel.prototype.shouldCalculateChildrenLocations = function() {
-    return this.isVisible() && this.canBeVisible() && (this.hasChildren() || this.getContentHeight() > 0);
-};
-
-TModel.prototype.manuallyCalculateChildrenLocations = function() {};
 
 TModel.prototype.fixOpacity = function () {
     var opacity = this.getOpacity() ? this.getOpacity().toFixed(2) : 0;
@@ -368,8 +369,8 @@ TModel.prototype.canBeBracketed = function() {
     return this.actualValues.canBeBracketed;
 };
 
-TModel.prototype.canBeVisible = function() {
-    return this.actualValues.canBeVisible;     
+TModel.prototype.isIncluded = function() {
+    return this.actualValues.isIncluded;     
 };
 
 TModel.prototype.canHaveDom = function() {
@@ -397,6 +398,10 @@ TModel.prototype.getZIndex = function() {
 };
 
 TModel.prototype.getScale = function() {
+    return this.actualValues.scale;
+};
+
+TModel.prototype.getMeasuringScale = function() {
     return this.actualValues.scale;
 };
 
@@ -701,7 +706,7 @@ TModel.prototype.setValue = function(key, value) {
 TModel.prototype.addChild = function(child, index)  { 
     var addedChildren = this.actualValues.addedChildren;
     
-    index = !child.canBeBracketed() ? 0 : TUtil.isDefined(index) ? index : addedChildren.length;
+    index = TUtil.isDefined(index) ? index : addedChildren.length;
     child.parent = this;
         
     if (index >= addedChildren.length) {
@@ -751,18 +756,6 @@ TModel.prototype.deleteTargetValue = function(key)   {
     this.activeTargetKeyMap[key] = true;
 
     tapp.manager.scheduleRun(10, 'deleteTargetValue-' + this.oid + "-" + key);    
-};
-
-TModel.prototype.getTargetHeight = function()    {
-    return this.getTargetValue('height') || 1;
-};
-
-TModel.prototype.getTargetWidth = function() {
-    return this.getTargetValue('width') || 1;
-};
-
-TModel.prototype.getTargetScale = function()  {
-    return this.getTargetValue('scale') || 1;
 };
 
 export { TModel };

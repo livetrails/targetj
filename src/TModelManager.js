@@ -79,12 +79,10 @@ TModelManager.prototype.analyze = function()    {
         }        
     }  
     
-    var lastVisible = Object.values(lastVisibleMap).filter(function(tmodel) { return tmodel !== null; });
+    var lastVisible = Object.values(lastVisibleMap).filter(function(tmodel) { return tmodel !== null && tmodel.hasDom() && tmodel.isDomDeletable(); });
         
     lastVisible.forEach(function(tmodel)   {
-        if (tmodel.hasDom())  {
-            tapp.manager.lists.invisibleDom.push(tmodel);
-        }
+        tapp.manager.lists.invisibleDom.push(tmodel);
     });
 };
 
@@ -142,10 +140,8 @@ TModelManager.prototype.deleteDoms = function () {
             });
         }
         
-        if (tmodel.isDomDeletable())    {
-            tmodel.$dom.detach();
-            tmodel.$dom = null;    
-        } 
+        tmodel.$dom.detach();
+        tmodel.$dom = null;   
     }
     
     for (i = 0; i < this.lists.deletedTModel.length; i++) {

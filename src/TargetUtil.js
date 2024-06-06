@@ -58,7 +58,7 @@ TargetUtil.getValueStepsCycles = function(tmodel, _target, cycle, valueOnly, key
         } else if (typeof target === 'object' && target && !(target instanceof TModel)) {
             value = typeof target.value === 'function' ? target.value.call(tmodel, key, cycle, lastValue) : TUtil.isDefined(target.value) ? target.value : target;
             steps = typeof target.steps === 'function' ? target.steps.call(tmodel, key, cycle) : TUtil.isDefined(target.steps) ? target.steps : 0;
-            stepInterval = typeof target.stepInterval === 'function' ? target.stepInterval.call(tmodel, key, cycle, tmodel.getTargetStepInterval(key), steps) : TUtil.isDefined(target.stepInterval) ? target.stepInterval : 0;            
+            stepInterval = typeof target.stepInterval === 'function' ? target.stepInterval.call(tmodel, key, cycle, tmodel.getTargetStepInterval(key)) : TUtil.isDefined(target.stepInterval) ? target.stepInterval : 0;            
             cycles = typeof target.cycles === 'function' ? target.cycles.call(tmodel, key, cycle, tmodel.getTargetCycles(key)) : TUtil.isDefined(target.cycles) ? target.cycles : 0;
 
             if (Array.isArray(value) && valueOnly === false && !value.valueOnly) {
@@ -222,7 +222,7 @@ TargetUtil.setHeightFromDom = function(child) {
         width =  child.$dom.width();
         height = child.$dom.height();
     }
-
+    
     child.domHeight = { height: height, width: width };
     child.setValue('height', height);
 };

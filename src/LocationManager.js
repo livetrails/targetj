@@ -57,15 +57,14 @@ LocationManager.prototype.calculateContainer = function(container) {
     var viewport = container.createViewport();  
     container.resetVisibleList();
                    
-    var i = 0;
-        
-    while (i < allChildren.length && tapp.isRunning()) {
+    var i = 0, length = allChildren.length;
+
+    while (i < length && tapp.isRunning()) {
         
         var child = allChildren[i++];
                         
         var outerXEast = undefined, innerXEast = undefined;
                 
-        
         this.calculateTargets(child);
         
         if (child.getActualValueLastUpdate('canBeBracketed') > child.getParent().getActualValueLastUpdate("allChildren")) {
@@ -74,7 +73,7 @@ LocationManager.prototype.calculateContainer = function(container) {
          
         viewport.setCurrentChild(child);  
         child.setLocation(viewport);
-
+        
         innerXEast = TUtil.isDefined(container.getValue('innerXEast')) ? container.getValue('innerXEast') : container.absX + container.getInnerWidth();
         outerXEast = TUtil.isDefined(child.getValue('outerXEast')) ? child.getValue('outerXEast') : child.absX + child.getInnerWidth();
         
@@ -85,7 +84,7 @@ LocationManager.prototype.calculateContainer = function(container) {
             child.setLocation(viewport);
         }
                  
-        if (child.canBeVisible() && !this.hasLocationMap[child.oid]) {    
+        if (child.isIncluded() && !this.hasLocationMap[child.oid]) {    
             this.addToLocationList(child);          
         }
 
@@ -109,13 +108,11 @@ LocationManager.prototype.calculateContainer = function(container) {
                                
         child.addToParentVisibleList();
        
-        if (child.shouldCalculateChildrenLocations()) {
+        if (child.shouldCalculateChildren()) {
             this.calculateContainer(child);  
-        } else  {
-            child.manuallyCalculateChildrenLocations();          
         }
         
-        if (child.isVisible() &&  child.canBeVisible() && (child.targetUpdatingList.length > 0 || child.updatingChildren.length > 0)) {
+        if (child.isVisible() && child.isIncluded() && (child.targetUpdatingList.length > 0 || child.updatingChildren.length > 0)) {
             container.addUpdatingChild(child);
         } 
           
@@ -141,7 +138,6 @@ LocationManager.prototype.calculateContainer = function(container) {
         }
         
         this.locationCount.push(child.oid + "-" + child.targetUpdatingList.length + "-" + (browser.now() - this.startTime));
-
     }
 
     viewport.calcContentWidthHeight();

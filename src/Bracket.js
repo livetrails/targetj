@@ -1,6 +1,7 @@
 import { TModel } from "./TModel.js";
 import { TUtil } from "./TUtil.js";
 import { tapp } from "./App.js";
+import { browser } from "./Browser.js";
 
 function Bracket(parent) {
 
@@ -25,20 +26,12 @@ function Bracket(parent) {
         outerXEast: 0
     };
 
-    tm.getTargetWidth = function()  {
+    tm.getWidth = function()    {
         return this.getContentWidth();
     };
     
-    tm.getTargetHeight = function()   {
-        return this.getContentHeight();
-    };
-    
-    tm.getWidth = function()    {
-        return this.getContentWidth() || 1;
-    };
-    
     tm.getHeight = function()   {
-        return this.getContentHeight() || 1;
+        return this.getContentHeight();
     };
     
     tm.getInnerWidth = function() {
@@ -59,6 +52,10 @@ function Bracket(parent) {
         return this.getRealParent().getScrollLeft();
     };
     
+    tm.isVisible = function () {
+        return this.yVisible;
+    };
+    
     tm.addUpdatingChild = function(child) {
         this.getRealParent().addUpdatingChild(child);
     };
@@ -71,8 +68,8 @@ function Bracket(parent) {
         this.initParents();
         return this.realParent;
     };
-    
-    tm.shouldCalculateChildrenLocations = function()    {
+
+    tm.shouldCalculateChildren = function()    {
         var result = this.isVisible() || this.newFlag;
         this.newFlag = false;
                 
@@ -118,7 +115,7 @@ function Bracket(parent) {
 
                 oids = [].concat(oids, [item.oid], goids);
             } else {
-                oids.push(item.oid + ":" + (item.location ? item.y + "px" : "0px"));
+                oids.push(item.oid + ":" + item.getHeight());
             }
             
         }
@@ -133,7 +130,6 @@ Bracket.bracketMap = {};
 Bracket.bracketAllMap = {};
 
 Bracket.generate = function(page, listOfTModel)  {
-    var i;
     var brackets = Bracket.bracketMap[page.oid];
     
     var maxLastUpdate = Math.max(page.getActualValueLastUpdate('allChildren'), page.getActualValueLastUpdate('width'), page.getActualValueLastUpdate('height'));
@@ -147,54 +143,36 @@ Bracket.generate = function(page, listOfTModel)  {
         };  
         
         listOfTModel = page.type !== 'BI' && !listOfTModel ? page.getChildren() : listOfTModel;
-
         var length = listOfTModel.length;
-        var cannotBeBracketedIndex = 0;
-        
-        for (i = 0; i < length; i++) {
-            if (!listOfTModel[i].canBeBracketed()) {
-                cannotBeBracketedIndex++;
-                brackets.list.push(listOfTModel[i]);
-            } else {
-                break;
-            }
-        }
 
         var bracketSize = Math.max(2, tapp.locationManager.bracketThreshold - 1);
-        var bracketCount = Math.ceil((length - cannotBeBracketedIndex) / bracketSize);
-        
-        var index = cannotBeBracketedIndex;
-        for (i = 0; i < bracketCount; i++) {
+        var needsMoreBracketing = false;
+        var consecutiveBrackets = 0;
+        var from = 0;
+        for (var i = 0; i < length; i++) {
 
-            var size = Math.min(length - index, bracketSize);
+            var index = i - from;
 
-            var bracketId = page.oid + "_" + page.getWidth() + "_" + page.getHeight() + "_" + listOfTModel.slice(index, index + size).oids('_');
-            var bracket;
-
-            if (Bracket.bracketAllMap[bracketId]) {
-                bracket = Bracket.bracketAllMap[bracketId];
-            } else {
-                bracket = new Bracket(page);
-
-                Bracket.bracketAllMap[bracketId] = bracket;
-
-                bracket.actualValues.tchildren = listOfTModel.slice(index, index + size);
-
-                if (bracket.actualValues.tchildren[0].type === 'BI')   { 
-
-                    bracket.actualValues.children.forEach(function(b) {
-                        b.bracketParent = bracket; 
-                    });
-                }
-
-                bracket.bracketParent = page;
+            if ((listOfTModel[i].canBeBracketed() && (index === bracketSize || i === length - 1))
+                    || (!listOfTModel[i].canBeBracketed() && index > 0)) {
+                var to = !listOfTModel[i].canBeBracketed() ? i : i + 1;
+                brackets.list.push(Bracket.createBracket(page, listOfTModel, from, to));
+                from = i + 1;
+                consecutiveBrackets++;
             }
-
-            brackets.list.push(bracket);
-            index += size;
+            
+            if (consecutiveBrackets > bracketSize) {
+                needsMoreBracketing = true;
+            }
+            
+            if (!listOfTModel[i].canBeBracketed()) {
+                consecutiveBrackets = 0;
+                brackets.list.push(listOfTModel[i]);
+                from = i + 1;                 
+            }
         }
 
-        if (brackets.list.length - cannotBeBracketedIndex > tapp.locationManager.bracketThreshold)   {
+        if (needsMoreBracketing)   {
             brackets = Bracket.generate(page, brackets.list);
         } else {
             Bracket.bracketMap[page.oid] = brackets;
@@ -202,6 +180,32 @@ Bracket.generate = function(page, listOfTModel)  {
     }
           
     return brackets;  
+};
+
+Bracket.createBracket = function(page, listOfTModel, from, to) {
+    var bracketId = page.oid + "_" + page.getWidth() + "_" + page.getHeight() + "_" + listOfTModel.slice(from, to).oids('_');
+    var bracket;
+    
+    if (Bracket.bracketAllMap[bracketId]) {
+        bracket = Bracket.bracketAllMap[bracketId];
+    } else {
+        bracket = new Bracket(page);
+
+        Bracket.bracketAllMap[bracketId] = bracket;
+
+        bracket.actualValues.tchildren = listOfTModel.slice(from, to);
+
+        if (bracket.actualValues.tchildren[0].type === 'BI')   { 
+
+            bracket.actualValues.children.forEach(function(b) {
+                b.bracketParent = bracket; 
+            });
+        }
+
+        bracket.bracketParent = page;
+        
+    }
+    return bracket;
 };
 
 export { Bracket };
