@@ -110,7 +110,8 @@ function AppFn(uiFactory, rootId) {
         my.manager.lists.deletedTModel.length = 0; 
         my.manager.lists.visibleNoDom.length = 0;
         my.manager.visibleTypeMap = {};
-        my.manager.visibleOidMap = {}; 
+        my.manager.visibleOidMap = {};
+        my.manager.targetExecuteMap = {};
         my.locationManager.hasLocationList.length = 0;
         SearchUtil.foundParentWithTarget = {};
         SearchUtil.foundTypeMap = {};

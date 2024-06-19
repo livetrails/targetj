@@ -60,6 +60,8 @@ function TModel(type, targets) {
     this.targetUpdatingMap = {};
     this.targetUpdatingList = [];
     
+    this.targetExecuteMap = {};
+    
     this.updatingChildren = [];
        
     this.targetLastUpdateMap = {};
@@ -224,6 +226,14 @@ TModel.prototype.getInnerHeight = function()  {
 
 TModel.prototype.getInnerWidth = function()  {
     return TUtil.isDefined(this.actualValues.innerWidth) ? this.actualValues.innerWidth : this.getWidth();
+};
+
+TModel.prototype.getInnerXEast = function()  {
+    return this.absX + this.getInnerWidth();
+};
+
+TModel.prototype.getOuterXEast = function()  {
+    return this.absX + this.getInnerWidth();
 };
 
 TModel.prototype.getContentWidth = function()  {
@@ -736,12 +746,18 @@ TModel.prototype.removeUpdatingChild = function(child) {
     }
 };
 
-TModel.prototype.addTarget = function(targetName, target) {
-    this.targets[targetName] = target;
-    this.activeTargetKeyMap[targetName] = true;
-    delete this.targetValues[targetName];
+TModel.prototype.removeTarget = function(key) {
+    delete this.targets[key];
+    delete this.activeTargetKeyMap[key];
+    delete this.targetValues[key]; 
+};
+
+TModel.prototype.addTarget = function(key, target) {
+    this.targets[key] = target;
+    this.activeTargetKeyMap[key] = true;
+    delete this.targetValues[key];
             
-    tapp.manager.scheduleRun(10, 'addTarget-' + this.oid + "-" + targetName);
+    tapp.manager.scheduleRun(10, 'addTarget-' + this.oid + "-" + key);
 };
 
 TModel.prototype.addTargets = function(targets) {

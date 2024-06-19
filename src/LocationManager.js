@@ -74,8 +74,8 @@ LocationManager.prototype.calculateContainer = function(container) {
         viewport.setCurrentChild(child);  
         child.setLocation(viewport);
         
-        innerXEast = TUtil.isDefined(container.getValue('innerXEast')) ? container.getValue('innerXEast') : container.absX + container.getInnerWidth();
-        outerXEast = TUtil.isDefined(child.getValue('outerXEast')) ? child.getValue('outerXEast') : child.absX + child.getInnerWidth();
+        innerXEast = TUtil.isDefined(container.getValue('innerXEast')) ? container.getValue('innerXEast') : container.getInnerXEast();
+        outerXEast = TUtil.isDefined(child.getValue('outerXEast')) ? child.getValue('outerXEast') : child.getOuterXEast();
         
         if (viewport.isOverflow(outerXEast, innerXEast)) {   
             viewport.overflow();                       

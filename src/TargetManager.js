@@ -31,12 +31,13 @@ TargetManager.prototype.setTargetValues = function(tmodel) {
                     
     tmodel.targetUpdatingMap = {};
     tmodel.targetUpdatingList = [];
+    tmodel.targetExecuteMap = {};
                     
     for (var i = 0; i < activeKeys.length; i++) {
        
         var key = activeKeys[i];
                                 
-        if (tmodel.targetUpdatingMap[key]) {
+        if (tmodel.targetUpdatingMap[key]) {            
             continue;
         }   
         
@@ -47,7 +48,7 @@ TargetManager.prototype.setTargetValues = function(tmodel) {
         }
         
         var result = this.setTargetValue(tmodel, key);
-
+        
         if (result) {
             tmodel.targetUpdatingMap[key] = true;
             tmodel.targetUpdatingList.push(key);  
@@ -79,15 +80,18 @@ TargetManager.prototype.setTargetValue = function(tmodel, key, force) {
                 var cycle = tmodel.getTargetCycle(key);
                 var valueArray = TargetUtil.getValueStepsCycles(tmodel, target, cycle, valueOnly, key);               
                 TargetUtil.assignValueArray(tmodel, key, valueArray);
+                 
+                if (!force) {
+                    tmodel.targetExecuteMap[key] = 'value';
+                }
             }
-
+            
             if (tmodel.isTargetInLoop(key) 
-                    || !tmodel.isTargetDone(key) 
-                    || !tmodel.isTargetComplete(key) 
+                    || (!tmodel.isTargetDone(key) && !tmodel.isTargetComplete(key))
                     || TUtil.isDefined(tmodel.getActualTimeStamp(key))
                     || !tmodel.hasTargetGotExecuted(key)) {
                 tmodel.activeTargetKeyMap[key] = true;
-            } else if (tmodel.activeTargetKeyMap[key]) {
+            } else if (tmodel.activeTargetKeyMap[key]) { 
                 delete tmodel.activeTargetKeyMap[key];
             }
             
@@ -100,6 +104,7 @@ TargetManager.prototype.setTargetValue = function(tmodel, key, force) {
             
             return (!tmodel.isTargetDone(key) && !tmodel.isTargetComplete(key)) || !tmodel.doesTargetEqualActual(key);
         } else {
+            tmodel.targetExecuteMap[key] = 'enabledOn';
             tmodel.activeTargetKeyMap[key] = true;
         }
     } else if (tmodel.activeTargetKeyMap[key]) {
@@ -115,7 +120,7 @@ TargetManager.prototype.setActualValues = function(tmodel)  {
                                 
     for (i = 0; i < tmodel.targetUpdatingList.length; i++) {
         key = tmodel.targetUpdatingList[i];
-                
+
         target = tmodel.targets[key];
         var status = tmodel.getTargetStatus(key);
                
@@ -130,7 +135,7 @@ TargetManager.prototype.setActualValues = function(tmodel)  {
              
     for (i = 0; i < keys.length; i++) {
         key = keys[i];
-        
+         
         var schedulePeriod = TargetUtil.getActualSchedulePeriod(tmodel, key, tmodel.getTargetStepInterval(key));
         if (schedulePeriod === 0 || !TUtil.isDefined(schedulePeriod)) {
             this.setActualValue(tmodel, key);            
@@ -181,6 +186,8 @@ TargetManager.prototype.setActualValue = function(tmodel, key) {
     var lastUpdate = tmodel.getActualValueLastUpdate(key);
     var oldValue = tmodel.actualValues[key], oldStep = step, oldCycle = cycle;
     var now = browser.now();
+   
+    tmodel.targetExecuteMap[key] = 'value';
        
     if (step < steps) { 
         if (!TUtil.isDefined(tmodel.getLastActualValue(key))) {
@@ -205,7 +212,8 @@ TargetManager.prototype.setActualValue = function(tmodel, key) {
         tmodel.setActualValueLastUpdate(key);
                 
         if (typeof tmodel.targets[key] === 'object' && typeof tmodel.targets[key].onStepsEnd === 'function') {
-            tmodel.targets[key].onStepsEnd.call(tmodel, key, cycle);
+            tmodel.targets[key].onStepsEnd.call(tmodel, key, cycle);                      
+            tmodel.targetExecuteMap[key] = 'onStepsEnd';
         }
         
         tmodel.updateTargetStatus(key);        

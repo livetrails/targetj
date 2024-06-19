@@ -41,7 +41,7 @@ Viewport.prototype.reset = function() {
         this.xSouth = x;
         this.xWest = x;
         
-        this.xOverflow = TUtil.isDefined(this.tmodel.getValue('xOverflow')) ? this.tmodel.getValue('xOverflow') : x;
+        this.xOverflow = this.tmodel.getRealParent().getX();
 
         this.yNext = y;
         this.yNorth = y;

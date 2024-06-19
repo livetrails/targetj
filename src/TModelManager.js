@@ -18,6 +18,7 @@ TModelManager.prototype.init = function()   {
     };
     this.visibleTypeMap = {};
     this.visibleOidMap = {};
+    this.targetExecuteMap = {};
             
     this.nextRuns = [];
     this.runningStep = 0;
@@ -48,6 +49,7 @@ TModelManager.prototype.analyze = function()    {
     this.lists.updatingTargets.length = 0;
     this.visibleTypeMap = {};
     this.visibleOidMap = {};
+    this.targetExecuteMap = {};
     
     for (i = 0; i < tapp.locationManager.hasLocationList.length; i++) {
         tmodel = tapp.locationManager.hasLocationList[i];
@@ -65,6 +67,10 @@ TModelManager.prototype.analyze = function()    {
             if (tmodel.targetUpdatingList.length > 0) {
                 this.lists.updatingTModels.push(tmodel);
                 this.lists.updatingTargets = this.lists.updatingTargets.concat((tmodel.targetUpdatingList));
+            }
+                        
+            if (Object.keys(tmodel.targetExecuteMap).length > 0) {                  
+                this.targetExecuteMap[tmodel.oid] = Object.assign({}, tmodel.targetExecuteMap);
             }
             
             this.visibleOidMap[tmodel.oid] = tmodel;
@@ -136,6 +142,7 @@ TModelManager.prototype.deleteDoms = function () {
             tmodel.invisibleFunctions.forEach(function(invisible)  {
                 var key = invisible.key;
                 invisible.fn.call(tmodel, key, tmodel.getTargetStep(key), tmodel.getTargetCycle(key), tmodel.getTargetSteps(key), tmodel.getTargetCycles(key));
+                tmodel.targetExecuteMap[key] = 'onInvisible';
                 tmodel.activeTargetKeyMap[key] = true;
             });
         }

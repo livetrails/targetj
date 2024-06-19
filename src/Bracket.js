@@ -11,21 +11,9 @@ function Bracket(parent) {
     
     tm.targets = {
         canHaveDom: false,
-        innerXEast: {
-            loop: true,
-            value: function() {
-                return TUtil.isDefined(tm.getRealParent().getValue('innerXEast')) ? tm.getRealParent().getValue('innerXEast') : tm.getRealParent().absX + tm.getRealParent().getWidth();
-            }
-        },
-        xOverflow: {
-            loop: true,
-            value: function() { 
-                return this.getRealParent().getX();
-            }
-        },
         outerXEast: 0
     };
-
+    
     tm.getWidth = function()    {
         return this.getContentWidth();
     };
@@ -36,6 +24,10 @@ function Bracket(parent) {
     
     tm.getInnerWidth = function() {
         return this.innerContentWidth;
+    };
+    
+    tm.getInnerXEast = function() {
+        return TUtil.isDefined(tm.getRealParent().getValue('innerXEast')) ? this.getRealParent().getValue('innerXEast') : this.getRealParent().absX + this.getRealParent().getWidth();        
     };
     
     tm.getInnerContentHeight = function() {
