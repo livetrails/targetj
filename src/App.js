@@ -111,7 +111,7 @@ function AppFn(uiFactory, rootId) {
         my.manager.lists.visibleNoDom.length = 0;
         my.manager.visibleTypeMap = {};
         my.manager.visibleOidMap = {};
-        my.manager.targetExecuteMap = {};
+        my.manager.targetMethodMap = {};
         my.locationManager.hasLocationList.length = 0;
         SearchUtil.foundParentWithTarget = {};
         SearchUtil.foundTypeMap = {};

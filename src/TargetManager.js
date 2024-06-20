@@ -31,7 +31,7 @@ TargetManager.prototype.setTargetValues = function(tmodel) {
                     
     tmodel.targetUpdatingMap = {};
     tmodel.targetUpdatingList = [];
-    tmodel.targetExecuteMap = {};
+    tmodel.targetMethodMap = {};
                     
     for (var i = 0; i < activeKeys.length; i++) {
        
@@ -82,7 +82,7 @@ TargetManager.prototype.setTargetValue = function(tmodel, key, force) {
                 TargetUtil.assignValueArray(tmodel, key, valueArray);
                  
                 if (!force) {
-                    tmodel.targetExecuteMap[key] = 'value';
+                    tmodel.setTargetMethodName(key, 'value');
                 }
             }
             
@@ -104,7 +104,7 @@ TargetManager.prototype.setTargetValue = function(tmodel, key, force) {
             
             return (!tmodel.isTargetDone(key) && !tmodel.isTargetComplete(key)) || !tmodel.doesTargetEqualActual(key);
         } else {
-            tmodel.targetExecuteMap[key] = 'enabledOn';
+            tmodel.setTargetMethodName(key, 'enabledOn');
             tmodel.activeTargetKeyMap[key] = true;
         }
     } else if (tmodel.activeTargetKeyMap[key]) {
@@ -187,7 +187,7 @@ TargetManager.prototype.setActualValue = function(tmodel, key) {
     var oldValue = tmodel.actualValues[key], oldStep = step, oldCycle = cycle;
     var now = browser.now();
    
-    tmodel.targetExecuteMap[key] = 'value';
+    tmodel.setTargetMethodName(key, 'value');
        
     if (step < steps) { 
         if (!TUtil.isDefined(tmodel.getLastActualValue(key))) {
@@ -213,7 +213,7 @@ TargetManager.prototype.setActualValue = function(tmodel, key) {
                 
         if (typeof tmodel.targets[key] === 'object' && typeof tmodel.targets[key].onStepsEnd === 'function') {
             tmodel.targets[key].onStepsEnd.call(tmodel, key, cycle);                      
-            tmodel.targetExecuteMap[key] = 'onStepsEnd';
+            tmodel.setTargetMethodName(key, 'onStepsEnd');
         }
         
         tmodel.updateTargetStatus(key);        

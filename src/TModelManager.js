@@ -18,7 +18,7 @@ TModelManager.prototype.init = function()   {
     };
     this.visibleTypeMap = {};
     this.visibleOidMap = {};
-    this.targetExecuteMap = {};
+    this.targetMethodMap = {};
             
     this.nextRuns = [];
     this.runningStep = 0;
@@ -49,7 +49,7 @@ TModelManager.prototype.analyze = function()    {
     this.lists.updatingTargets.length = 0;
     this.visibleTypeMap = {};
     this.visibleOidMap = {};
-    this.targetExecuteMap = {};
+    this.targetMethodMap = {};
     
     for (i = 0; i < tapp.locationManager.hasLocationList.length; i++) {
         tmodel = tapp.locationManager.hasLocationList[i];
@@ -69,8 +69,8 @@ TModelManager.prototype.analyze = function()    {
                 this.lists.updatingTargets = this.lists.updatingTargets.concat((tmodel.targetUpdatingList));
             }
                         
-            if (Object.keys(tmodel.targetExecuteMap).length > 0) {                  
-                this.targetExecuteMap[tmodel.oid] = Object.assign({}, tmodel.targetExecuteMap);
+            if (Object.keys(tmodel.targetMethodMap).length > 0) {                  
+                this.targetMethodMap[tmodel.oid] = Object.assign({}, tmodel.targetMethodMap);
             }
             
             this.visibleOidMap[tmodel.oid] = tmodel;
@@ -142,7 +142,7 @@ TModelManager.prototype.deleteDoms = function () {
             tmodel.invisibleFunctions.forEach(function(invisible)  {
                 var key = invisible.key;
                 invisible.fn.call(tmodel, key, tmodel.getTargetStep(key), tmodel.getTargetCycle(key), tmodel.getTargetSteps(key), tmodel.getTargetCycles(key));
-                tmodel.targetExecuteMap[key] = 'onInvisible';
+                tmodel.setTargetMethodName(key, 'onInvisible');
                 tmodel.activeTargetKeyMap[key] = true;
             });
         }

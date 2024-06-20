@@ -60,7 +60,7 @@ function TModel(type, targets) {
     this.targetUpdatingMap = {};
     this.targetUpdatingList = [];
     
-    this.targetExecuteMap = {};
+    this.targetMethodMap = {};
     
     this.updatingChildren = [];
        
@@ -772,6 +772,15 @@ TModel.prototype.deleteTargetValue = function(key)   {
     this.activeTargetKeyMap[key] = true;
 
     tapp.manager.scheduleRun(10, 'deleteTargetValue-' + this.oid + "-" + key);    
+};
+
+TModel.prototype.setTargetMethodName = function(targetName, methodName) {
+    if (!this.targetMethodMap[targetName]) {
+        this.targetMethodMap[targetName] = [];
+    }
+    if (this.targetMethodMap[targetName].indexOf(methodName) === -1) {
+        this.targetMethodMap[targetName].push(methodName);
+    }
 };
 
 export { TModel };

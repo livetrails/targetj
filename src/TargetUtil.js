@@ -190,7 +190,7 @@ TargetUtil.handleValueChange = function(tmodel, key, newValue, lastValue, step, 
         var valueChanged = !TUtil.areEqual(newValue, lastValue, tmodel.targets[key].deepEquality);
         if (valueChanged) {
             tmodel.targets[key].onValueChange.call(tmodel, key, newValue, lastValue, cycle); 
-            tmodel.targetExecuteMap[key] = 'onValueChange';
+            tmodel.setTargetMethodName(key, 'onValueChange');
         }
     }    
 };
