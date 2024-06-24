@@ -55,13 +55,13 @@ TargetUtil.getValueStepsCycles = function(tmodel, _target, cycle, valueOnly, key
                 return [target, steps, stepInterval, cycles];
             }
                 
-        } else if (typeof target === 'object' && target && !(target instanceof TModel)) {
+        } else if (typeof target === 'object' && target) {
             value = typeof target.value === 'function' ? target.value.call(tmodel, key, cycle, lastValue) : TUtil.isDefined(target.value) ? target.value : target;
             steps = typeof target.steps === 'function' ? target.steps.call(tmodel, key, cycle) : TUtil.isDefined(target.steps) ? target.steps : 0;
             stepInterval = typeof target.stepInterval === 'function' ? target.stepInterval.call(tmodel, key, cycle, tmodel.getTargetStepInterval(key)) : TUtil.isDefined(target.stepInterval) ? target.stepInterval : 0;            
             cycles = typeof target.cycles === 'function' ? target.cycles.call(tmodel, key, cycle, tmodel.getTargetCycles(key)) : TUtil.isDefined(target.cycles) ? target.cycles : 0;
 
-            if (Array.isArray(value) && valueOnly === false && !value.valueOnly) {
+            if (Array.isArray(value) && valueOnly === false) {
                 return getValue(value);
             } else {
                 return [value, steps, stepInterval, cycles];
@@ -97,7 +97,6 @@ TargetUtil.assignValueArray = function(tmodel, key, valueArray) {
         var newCycles = valueArray[3];
         var target = tmodel.targets[key];
                
-        var cycle = tmodel.getTargetCycle(key);
         var targetValue = tmodel.targetValues[key];        
         var theValue = targetValue ? targetValue.value : undefined;
         var newValueFlag = !TUtil.areEqual(theValue, newValue, target.deepEquality) 
@@ -108,7 +107,7 @@ TargetUtil.assignValueArray = function(tmodel, key, valueArray) {
                      
             tmodel.setTargetValue(key, newValue, newSteps, newStepInterval, newCycles, key);
             tmodel.targetValues[key].executionCounter++;
-            
+   
             if (newValueFlag) {
                 tmodel.resetTargetStep(key);
                
@@ -187,6 +186,7 @@ TargetUtil.getTargetSchedulePeriod = function(tmodel, key, intervalValue) {
 
 TargetUtil.handleValueChange = function(tmodel, key, newValue, lastValue, step, cycle) {
     if (typeof tmodel.targets[key] === 'object' && typeof tmodel.targets[key].onValueChange === 'function') {
+        
         var valueChanged = !TUtil.areEqual(newValue, lastValue, tmodel.targets[key].deepEquality);
         if (valueChanged) {
             tmodel.targets[key].onValueChange.call(tmodel, key, newValue, lastValue, cycle); 

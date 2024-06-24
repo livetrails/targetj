@@ -696,7 +696,8 @@ TModel.prototype.setTargetValue = function(key, value, steps, stepInterval, cycl
         
         this.updateTargetStatus(key);
         
-        if (this.isTargetUpdating(key) && key !== callingTargetKey) {              
+        if (this.isTargetUpdating(key) && key !== callingTargetKey) {
+            this.targetValues[key].executionCounter++;
             this.activeTargetKeyMap[key] = true;
             if (!this.targetUpdatingMap[key]) {
                 this.targetUpdatingList.push(key);

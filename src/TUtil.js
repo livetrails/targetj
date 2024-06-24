@@ -103,7 +103,7 @@ TUtil.getOptionValue = function(option, defaultValue, tmodel)    {
     return !TUtil.isDefined(option) ? defaultValue : typeof option === 'function' ? option.call(tmodel) : option;
 };
 
-TUtil.executeFunctionByName = function (functionName, context /*, args */) {
+TUtil.executeFunctionByName = function (functionName, context) {
     if (!functionName)
         return null;
 

@@ -44,6 +44,7 @@ TargetManager.prototype.setTargetValues = function(tmodel) {
         if (tmodel.isTargetUpdating(key) && tmodel.getCallingTargetKey(key) !== key) {  
             tmodel.targetUpdatingMap[key] = true;
             tmodel.targetUpdatingList.push(key); 
+            tmodel.setTargetMethodName(key, 'value');
             continue;
         }
         
@@ -51,7 +52,7 @@ TargetManager.prototype.setTargetValues = function(tmodel) {
         
         if (result) {
             tmodel.targetUpdatingMap[key] = true;
-            tmodel.targetUpdatingList.push(key);  
+            tmodel.targetUpdatingList.push(key);
         } else if (tmodel.isTargetDone(key)) {
             this.doneTargets.push({ tmodel: tmodel, key: key });
         }
@@ -74,7 +75,7 @@ TargetManager.prototype.setTargetValue = function(tmodel, key, force) {
 
         if (tmodel.isTargetEnabled(key)) {
 
-            var valueOnly = target ? !!target.valueOnly : false;
+            var valueOnly = target && target.valueOnly ? true : false;
 
             if (!TUtil.isDefined(tmodel.getActualTimeStamp(key))) {
                 var cycle = tmodel.getTargetCycle(key);
@@ -102,7 +103,7 @@ TargetManager.prototype.setTargetValue = function(tmodel, key, force) {
                 }
             }
             
-            return (!tmodel.isTargetDone(key) && !tmodel.isTargetComplete(key)) || !tmodel.doesTargetEqualActual(key);
+            return (!tmodel.isTargetDone(key) && !tmodel.isTargetComplete(key) && tmodel.targetValues[key]) || !tmodel.doesTargetEqualActual(key);
         } else {
             tmodel.setTargetMethodName(key, 'enabledOn');
             tmodel.activeTargetKeyMap[key] = true;
@@ -183,12 +184,8 @@ TargetManager.prototype.setActualValue = function(tmodel, key) {
     var easingStep = easing(tmodel.getTargetStepPercent(key, step)); 
     var cycleUpdate = false;
     var stepInterval = tmodel.getTargetStepInterval(key);  
-    var lastUpdate = tmodel.getActualValueLastUpdate(key);
     var oldValue = tmodel.actualValues[key], oldStep = step, oldCycle = cycle;
-    var now = browser.now();
-   
-    tmodel.setTargetMethodName(key, 'value');
-       
+          
     if (step < steps) { 
         if (!TUtil.isDefined(tmodel.getLastActualValue(key))) {
             tmodel.setLastActualValue(key, tmodel.actualValues[key]);
@@ -196,15 +193,8 @@ TargetManager.prototype.setActualValue = function(tmodel, key) {
         tmodel.actualValues[key] = typeof targetValue  === 'number' ? targetValue * easingStep + tmodel.getLastActualValue(key) * (1 - easingStep) : targetValue;
        
         tmodel.setActualValueLastUpdate(key);
-        tmodel.setActualValueLastUpdate(key);
         
-        var stepIncrease = 1;
-        if (!TUtil.isDefined(stepInterval) && false) {
-            var expectedStepInterval = 10;
-            stepIncrease = step > 0 && lastUpdate && tapp.throttle === 0 && expectedStepInterval > 0 ? Math.max(1, Math.floor((now - lastUpdate) / expectedStepInterval)) : 1;
-        }
-                 
-        step = tmodel.setTargetStep(key, step + stepIncrease);         
+        step = tmodel.setTargetStep(key, step + 1);         
     } 
 
     if (step >= steps) {        
