@@ -57,11 +57,9 @@ TUtil.areEqual = function(a, b, deepEquality) {
 
     if (deepEquality) {        
         return JSON.stringify(a) === JSON.stringify(b);     
-    } else if (TUtil.isDefined(a) && TUtil.isDefined(b)) {
-        return a === b;
     } else {
-        return false;
-    }
+        return a === b;
+    } 
 };
 
 TUtil.momentum = function (past, current, time) {

@@ -5,15 +5,14 @@ import { browser } from "./Browser.js";
 
 function Bracket(parent) {
 
-    var tm = new TModel("BI");
+    var tm = new TModel("BI", {
+        canHaveDom: false,
+        outerXEast: 0        
+    });
+    
     tm.parent = parent;
     tm.newFlag = true;
-    
-    tm.targets = {
-        canHaveDom: false,
-        outerXEast: 0
-    };
-    
+
     tm.getWidth = function()    {
         return this.getContentWidth();
     };

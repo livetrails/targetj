@@ -26,23 +26,28 @@ TargetUtil.emptyValue = function() {
         cycles: 0, 
         stepInterval: 0, 
         lastActualValue: undefined,
-        actualTimeStamp: undefined,
+        scheduleTimeStamp: undefined,
         actualValueLastUpdate: 0,
         status: '',
-        executionCounter: 0,
+        executionCount: 0,
         callingTargetKey: undefined
     };
 };
 
-TargetUtil.getValueStepsCycles = function(tmodel, _target, cycle, valueOnly, key) {
+TargetUtil.getValueStepsCycles = function(tmodel, key) {
+    var _target = tmodel.targets[key];
+    var valueOnly = _target && _target.valueOnly ? true : false;
+    var cycle = tmodel.getTargetCycle(key);
     var value = 0, steps = 0, stepInterval = 0, cycles = 0;
     var lastValue = tmodel.getValue(key);
     
     function getValue(target) {             
         if (Array.isArray(target)) {                      
-            if (!target.valueOnly) {
-                if (typeof target[0] === 'function')    {
-                  value = target[0].call(tmodel, key, cycle, lastValue);
+            if (valueOnly) {
+                return [target, steps, stepInterval, cycles];
+            } else {
+                if (typeof target[0] === 'function') {
+                    value = target[0].call(tmodel, key, cycle, lastValue);
                 } else {
                     value = target[0];
                 }
@@ -51,8 +56,6 @@ TargetUtil.getValueStepsCycles = function(tmodel, _target, cycle, valueOnly, key
                 cycles = target.length >= 4 ? target[3] : cycles;
 
                 return [value, steps, stepInterval, cycles];
-            } else {
-                return [target, steps, stepInterval, cycles];
             }
                 
         } else if (typeof target === 'object' && target) {
@@ -88,8 +91,9 @@ TargetUtil.getValueStepsCycles = function(tmodel, _target, cycle, valueOnly, key
     return valueArray;
 };
 
-TargetUtil.assignValueArray = function(tmodel, key, valueArray) {
-    
+TargetUtil.assignValueArray = function(tmodel, key) {
+    var valueArray = TargetUtil.getValueStepsCycles(tmodel, key);               
+
     if (Array.isArray(valueArray)) {
         var newValue = valueArray[0];
         var newSteps = valueArray[1];
@@ -99,18 +103,16 @@ TargetUtil.assignValueArray = function(tmodel, key, valueArray) {
                
         var targetValue = tmodel.targetValues[key];        
         var theValue = targetValue ? targetValue.value : undefined;
-        var newValueFlag = !TUtil.areEqual(theValue, newValue, target.deepEquality) 
+        var newValueFlag = !TUtil.areEqual(theValue, newValue, tmodel.targets[key] ? !!tmodel.targets[key].deepEquality : false) 
                 || !TUtil.isDefined(targetValue)
                 || (!tmodel.isTargetUpdating(key) && !tmodel.doesTargetEqualActual(key));
                 
         if (newValueFlag || targetValue.steps !== newSteps || targetValue.cycles !== newCycles || targetValue.stepInterval !== newStepInterval) {
                      
             tmodel.setTargetValue(key, newValue, newSteps, newStepInterval, newCycles, key);
-            tmodel.targetValues[key].executionCounter++;
    
             if (newValueFlag) {
                 tmodel.resetTargetStep(key);
-               
                 tmodel.resetLastActualValue(key);
             }
         }
@@ -123,31 +125,27 @@ TargetUtil.getIntervalValue = function(tmodel, key, interval) {
     return TUtil.isNumber(intervalValue) ? intervalValue : 0;
 };
 
-TargetUtil.getActualSchedulePeriod = function(tmodel, key, intervalValue) {   
+TargetUtil.scheduleExecution = function(tmodel, key) {   
     
-    var now = browser.now();
-    var pastPeriod;
     var schedulePeriod = 0;
+    var intervalValue = tmodel.getTargetStepInterval(key);
+    var now = browser.now();
     
     if (intervalValue > 0) {
-        if (TUtil.isDefined(tmodel.getActualTimeStamp(key))) {
-            pastPeriod = now - tmodel.getActualTimeStamp(key);
-            if (pastPeriod < intervalValue) {
-                schedulePeriod = intervalValue - pastPeriod;
+        if (TUtil.isDefined(tmodel.getScheduleTimeStamp(key))) {
+            var period = now - tmodel.getScheduleTimeStamp(key);
+            if (period < intervalValue) {
+                schedulePeriod = intervalValue - period;
             } else {
                 schedulePeriod = 0;
             }
         } else {
-            tmodel.setActualTimeStamp(key, now);
             schedulePeriod = intervalValue;
         }
-    } else if (TUtil.isDefined(tmodel.getActualTimeStamp(key))) {
-        pastPeriod = now - tmodel.getActualTimeStamp(key);
-        if (pastPeriod < 0) {
-            schedulePeriod = -pastPeriod;
-        } else {
-            schedulePeriod = 0;
-        }
+    }
+    
+    if (schedulePeriod > 0 && !TUtil.isDefined(tmodel.getScheduleTimeStamp(key))) {
+        tmodel.setScheduleTimeStamp(key, now);       
     }
 
     return schedulePeriod;

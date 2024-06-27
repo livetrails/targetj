@@ -321,6 +321,15 @@ TModelManager.prototype.run = function(oid, delay) {
                     tapp.locationManager.calculateTargets(tapp.ui);
 
                     tapp.locationManager.calculateAll();
+                    
+                    if (tapp.targetManager.doneTargets.length > 0) {
+                        tapp.targetManager.doneTargets.forEach(function(target) {
+                            //imperative call is possible till this gets executed so we need to make sure that it is still done
+                            if (target.tmodel.isTargetDone(target.key)) {
+                                target.tmodel.setTargetComplete(target.key);
+                            }
+                        });
+                    }                    
 
                     tapp.events.resetEvents();
 

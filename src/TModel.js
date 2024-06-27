@@ -11,9 +11,15 @@ function TModel(type, targets) {
         targets = type;
         type = "";     
     }
-    
+
+    var self = this;
     this.type = type ? type : 'blank';
-    this.targets = Object.assign({}, targets);  
+    this.targets = Object.assign({}, targets);
+    this.activeTargetKeyMap = {};
+    Object.keys(this.targets).forEach(function(key) {
+        self.activeTargetKeyMap[key] = true;
+    });    
+    
     var uniqueId = App.getOid(this.type);
     this.oid = uniqueId.oid;
     this.oidNum = uniqueId.num;
@@ -54,9 +60,7 @@ function TModel(type, targets) {
         calculateChildren: undefined,
         isVisible: undefined
     };
-    
-    this.activeTargetKeyMap = {};
-    
+        
     this.targetUpdatingMap = {};
     this.targetUpdatingList = [];
     
@@ -489,9 +493,9 @@ TModel.prototype.resetTargetCycle = function(key)   {
     }
 };
 
-TModel.prototype.resetActualTimeStamp = function(key)   {
+TModel.prototype.resetScheduleTimeStamp = function(key)   {
     if (this.targetValues[key]) {
-        this.targetValues[key].actualTimeStamp = undefined;
+        this.targetValues[key].scheduleTimeStamp = undefined;
     }
 };
 
@@ -523,15 +527,23 @@ TModel.prototype.updateTargetStatus = function(key) {
     
     this.targetValues[key].status = '';
    
-    if ((steps > 0 || cycles > 0) && (step < steps || cycle < cycles || !this.doesTargetEqualActual(key))) {
+    if (step < steps || cycle < cycles || !this.doesTargetEqualActual(key)) {
         this.targetValues[key].status = 'updating';
-    } else if (this.doesTargetEqualActual(key) || !this.isTargetInLoop(key)) {   
+    } else if (!this.hasTargetGotExecuted(key) || this.isTargetInLoop(key)) {
+        this.targetValues[key].status = 'active';        
+    } else {   
         this.targetValues[key].status = 'done';
     }
+    
+    return this.targetValues[key].status;
 };
 
-TModel.prototype.getTargetStatus = function(key) {
+TModel.prototype.getTargetStatus = function(key) {   
     return this.targetValues[key] ? this.targetValues[key].status : 0;
+};
+
+TModel.prototype.isTargetActive = function(key) {
+    return this.targetValues[key] && this.targetValues[key].status === 'active';
 };
 
 TModel.prototype.isTargetUpdating = function(key) {
@@ -547,7 +559,15 @@ TModel.prototype.isTargetComplete = function(key) {
 };
 
 TModel.prototype.hasTargetGotExecuted = function(key) {
-    return this.targets[key] ? this.targetValues[key] && this.targetValues[key].executionCounter > 0 : true;
+    return this.targets[key] ? this.targetValues[key] && this.targetValues[key].executionCount > 0 : true;
+};
+
+TModel.prototype.isTargetImperative = function(key) {
+    return this.targetValues[key] ? this.targetValues[key] && this.targetValues[key].callingTargetKey !== key : false;    
+};
+
+TModel.prototype.getTargetExecutionCount = function(key) {
+    return this.targetValues[key] ? this.targetValues[key].executionCount : 0;    
 };
 
 TModel.prototype.setTargetComplete = function(key) {
@@ -559,11 +579,9 @@ TModel.prototype.setTargetComplete = function(key) {
 TModel.prototype.isTargetEnabled = function(key) {
     var target = this.targets[key];
     
-    if (!TUtil.isDefined(target) || target.enabledOn === false) return false;
+    if (!TUtil.isDefined(target)) return false;
       
-    var targetEnabled = typeof target.enabledOn === 'function' ? target.enabledOn.call(this, key) : true;
-    
-    return !!targetEnabled;
+    return typeof target.enabledOn === 'function' ? target.enabledOn.call(this, key) : target.enabledOn === false ? false : true;
 };
 
 TModel.prototype.isTargetInLoop = function(key) {            
@@ -571,11 +589,16 @@ TModel.prototype.isTargetInLoop = function(key) {
 };
 
 TModel.prototype.doesTargetEqualActual = function(key) {
-    return this.targetValues[key] && this.getTargetValue(key) === this.getValue(key);
+    if (this.targetValues[key]) {
+        var deepEquality =  this.targets[key] ? this.targets[key].deepEquality : false;
+        return deepEquality ? TUtil.areEqual(this.getTargetValue(key), this.getValue(key), deepEquality) : this.getTargetValue(key) === this.getValue(key);
+    } 
+    
+    return false;
 };
 
 TModel.prototype.getTargetValue = function(key)  {
-    return this.targetValues[key] ? (typeof this.targetValues[key].value  === 'function' ? this.targetValues[key].value.call(this) :  this.targetValues[key].value) : undefined;
+    return this.targetValues[key] ? (typeof this.targetValues[key].value  === 'function' ? this.targetValues[key].value.call(this) : this.targetValues[key].value) : undefined;
 };
 
 TModel.prototype.getTargetSteps = function(key)  {
@@ -586,8 +609,8 @@ TModel.prototype.getTargetStep = function(key)  {
     return this.targetValues[key] ? this.targetValues[key].step : 0;
 };
 
-TModel.prototype.getActualTimeStamp = function(key)  {
-    return this.targetValues[key] ? this.targetValues[key].actualTimeStamp : undefined;
+TModel.prototype.getScheduleTimeStamp = function(key)  {
+    return this.targetValues[key] ? this.targetValues[key].scheduleTimeStamp : undefined;
 };
 
 TModel.prototype.getLastActualValue = function(key)  {
@@ -619,9 +642,9 @@ TModel.prototype.setTargetCycle = function(key, value)   {
     }
 };
 
-TModel.prototype.setActualTimeStamp = function(key, value)   {
+TModel.prototype.setScheduleTimeStamp = function(key, value)   {
     if (this.targetValues[key]) {
-        this.targetValues[key].actualTimeStamp = value;
+        this.targetValues[key].scheduleTimeStamp = value;
     }
 };
 
@@ -660,54 +683,45 @@ TModel.prototype.resetCallingTargetKey = function(key)   {
 };
 
 TModel.prototype.setTargetValue = function(key, value, steps, stepInterval, cycles, callingTargetKey) {
-    if (!TUtil.isDefined(this.targetValues[key]) || value !== this.targetValues[key].value || value !== this.actualValues[key] || steps || cycles || stepInterval || typeof this.targets[key] === 'object')   {
                     
-        steps = steps || 0;
-        cycles = cycles || 0;
-        stepInterval = stepInterval || 0;
-        
-        if (this.targetValues[key]) {    
-            if (key !== callingTargetKey && (this.targetValues[key].callingTargetKey !== callingTargetKey || value !== this.targetValues[key].value)) {
-                this.targetValues[key].step = 0;
-            }            
-            this.targetValues[key].value = value;
-            this.targetValues[key].steps = steps;
-            this.targetValues[key].cycles = cycles;
-            this.targetValues[key].stepInterval = stepInterval;
-            this.targetValues[key].callingTargetKey = callingTargetKey;
-        } else { 
-            this.targetValues[key] = Object.assign(TargetUtil.emptyValue(), {
-                value: value,  
-                steps: steps, 
-                cycles: cycles, 
-                stepInterval: stepInterval, 
-                callingTargetKey: callingTargetKey
-            });
-            TargetUtil.extractInvisibles(this, this.targets[key], key);            
-        }
-        
-        //take a shortcut and update the actualValues immediately without the need for TargetManager
-        if (steps === 0 && cycles === 0) {
-            var oldValue = this.actualValues[key];
-            this.actualValues[key] = typeof value === 'function' ? value.call(this) : value;            
-            this.setActualValueLastUpdate(key);
-            TargetUtil.handleValueChange(this, key, this.actualValues[key], oldValue, 0, 0);             
-        }
-        
-        this.updateTargetStatus(key);
-        
-        if (this.isTargetUpdating(key) && key !== callingTargetKey) {
-            this.targetValues[key].executionCounter++;
-            this.activeTargetKeyMap[key] = true;
-            if (!this.targetUpdatingMap[key]) {
-                this.targetUpdatingList.push(key);
-                this.targetUpdatingMap[key] = key;
-            }
+    steps = steps || 0;
+    cycles = cycles || 0;
+    stepInterval = stepInterval || 0;
+
+    if (this.targetValues[key]) {    
+        if (key !== callingTargetKey && (this.targetValues[key].callingTargetKey !== callingTargetKey || value !== this.targetValues[key].value)) {
+            this.resetTargetStep(key);
             this.resetLastActualValue(key);
-        }
-          
-        tapp.manager.scheduleRun(10, 'setTargetValue-' + (this.getParent() ? this.getParent().oid : "") + "-" + this.oid + "-" + key);
+        }  
+        
+        this.targetValues[key].value = value;
+        this.targetValues[key].steps = steps;
+        this.targetValues[key].cycles = cycles;
+        this.targetValues[key].stepInterval = stepInterval;
+        this.targetValues[key].callingTargetKey = callingTargetKey;
+    } else { 
+        this.targetValues[key] = Object.assign(TargetUtil.emptyValue(), {
+            value: value,  
+            steps: steps, 
+            cycles: cycles, 
+            stepInterval: stepInterval, 
+            callingTargetKey: callingTargetKey
+        });
+        TargetUtil.extractInvisibles(this, this.targets[key], key);            
     }
+
+    //take a shortcut and update the actualValues immediately without the need for TargetManager
+    if (steps === 0 && cycles === 0) {
+        var oldValue = this.actualValues[key];
+        this.actualValues[key] = typeof value === 'function' ? value.call(this) : value;            
+        this.setActualValueLastUpdate(key);
+        TargetUtil.handleValueChange(this, key, this.actualValues[key], oldValue, 0, 0); 
+    }
+    
+    this.activeTargetKeyMap[key] = true;
+    this.targetValues[key].executionCount++; 
+
+    this.updateTargetStatus(key);
 };
 
 TModel.prototype.setValue = function(key, value) {

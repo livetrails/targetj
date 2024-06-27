@@ -18,18 +18,7 @@ LocationManager.prototype.calculateAll = function() {
     this.locationCount.length = 0;
     this.startTime = browser.now();
 
-    this.calculate(); 
-        
-    if (tapp.targetManager.doneTargets.length > 0) {
-        tapp.targetManager.doneTargets.forEach(function(target) {
-            //imperative call is possible till this gets executed so we need to make sure that it is still done
-            if (target.tmodel.isTargetDone(target.key)) {
-                target.tmodel.setTargetComplete(target.key);
-            }
-        });
-        
-        tapp.manager.scheduleRun(10, "done to complete");            
-    }
+    this.calculate();
 };
 
 LocationManager.prototype.calculate = function() {                   
@@ -90,7 +79,7 @@ LocationManager.prototype.calculateContainer = function(container) {
 
         if (!child.targetUpdatingMap.x) {
             if (TUtil.isDefined(child.targets.x)) {
-                tapp.targetManager.setTargetValue(child, 'x');
+                //tapp.targetManager.setTargetValue(child, 'x');
             } else if (!TUtil.isDefined(child.targetValues.x)) {
                 child.setValue('x', child.x);                
             }
@@ -98,7 +87,7 @@ LocationManager.prototype.calculateContainer = function(container) {
 
         if (!child.targetUpdatingMap.y) {
             if (TUtil.isDefined(child.targets.y)) {
-                tapp.targetManager.setTargetValue(child, 'y');
+                //tapp.targetManager.setTargetValue(child, 'y');
             } else if (!TUtil.isDefined(child.targetValues.y)) {
                 child.setValue('y', child.y);
             }            
@@ -120,9 +109,14 @@ LocationManager.prototype.calculateContainer = function(container) {
             var childLastHeight = child.getHeight();
            
             if (child.hasChildren()) {
-                tapp.targetManager.setTargetValuesWithKeys(child, ['width', 'height'], true);
-                tapp.targetManager.setJustActualValue(child, 'width');
-                tapp.targetManager.setJustActualValue(child, 'height');
+                if (child.isTargetEnabled('width')) {
+                    TargetUtil.assignValueArray(child, 'width');
+                    tapp.targetManager.setJustActualValue(child, 'width');
+                }
+                if (child.isTargetEnabled('height')) {
+                    TargetUtil.assignValueArray(child, 'height');
+                    tapp.targetManager.setJustActualValue(child, 'height');
+                }
             }
 
             if (child.getHeight() !== childLastHeight && tapp.events.isScrollTopHandler(child.getParent())
@@ -143,8 +137,8 @@ LocationManager.prototype.calculateContainer = function(container) {
     viewport.calcContentWidthHeight();
 };
 
-LocationManager.prototype.calculateTargets = function(tmodel) {           
-    tapp.targetManager.setTargetValues(tmodel);        
+LocationManager.prototype.calculateTargets = function(tmodel) { 
+    tapp.targetManager.setTargetValues(tmodel, Object.keys(tmodel.activeTargetKeyMap));        
     tapp.targetManager.setActualValues(tmodel);
 
     if (!TUtil.isDefined(tmodel.targetValues.width) && tmodel.hasDom()) TargetUtil.setWidthFromDom(tmodel);
