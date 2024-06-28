@@ -28,7 +28,6 @@ TargetManager.prototype.setTargetValues = function(tmodel, activeKeys) {
                 continue;
             }
         }
- 
         
         if (tmodel.isTargetDone(key)) {
             this.doneTargets.push({ tmodel: tmodel, key: key });
@@ -37,7 +36,6 @@ TargetManager.prototype.setTargetValues = function(tmodel, activeKeys) {
         } else {
             this.setTargetValue(tmodel, key);
             tmodel.updateTargetStatus(key);
-
 
             if (tmodel.isTargetUpdating(key)) {
                 tmodel.targetUpdatingMap[key] = true;

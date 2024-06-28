@@ -115,6 +115,8 @@ TargetUtil.assignValueArray = function(tmodel, key) {
                 tmodel.resetTargetStep(key);
                 tmodel.resetLastActualValue(key);
             }
+        } else {
+            tmodel.targetValues[key].executionCount++; 
         }
     }
 };
