@@ -62,6 +62,10 @@ TModelManager.prototype.analyze = function()    {
         } else if (visible) {
             lastVisibleMap[tmodel.oid] = null;
             
+            if (tmodel.hasDom() && !tmodel.canHaveDom() && this.lists.invisibleDom.indexOf(tmodel) === -1) {
+                this.lists.invisibleDom.push(tmodel);
+            }
+            
             this.lists.visible.push(tmodel);
             
             if (tmodel.targetUpdatingList.length > 0) {

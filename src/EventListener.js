@@ -55,22 +55,22 @@ function EventListener() {
     this.currentHandlers = { touch: null, scrollLeft: null, scrollTop: null, pinch: null };
 }
 
-EventListener.prototype.removeHandlers = function () {
+EventListener.prototype.removeHandlers = function ($dom) {
     if (!this.bindedHandleEvent) return;
     
     var self = this;
     Object.keys(this.eventMap).forEach(function(key) {
-        var target = self.eventMap[key] === 'resize' ? tapp.$window : tapp.$dom;
+        var target = self.eventMap[key] === 'resize' ? tapp.$window : $dom;
         target.detachEvent(key, self.bindedHandleEvent);
     });  
 };
 
-EventListener.prototype.addHandlers = function () {   
+EventListener.prototype.addHandlers = function ($dom) {   
     this.bindedHandleEvent = this.bindedHandleEvent ? this.bindedHandleEvent : this.handleEvent.bind(this);
         
     var self = this;
     Object.keys(this.eventMap).forEach(function(key) {
-        var target = self.eventMap[key] === 'resize' ? tapp.$window : tapp.$dom;
+        var target = self.eventMap[key] === 'resize' ? tapp.$window : $dom;
         target.addEvent(key, self.bindedHandleEvent);
     });
 };

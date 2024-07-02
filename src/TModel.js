@@ -4,6 +4,7 @@ import { SearchUtil } from "./SearchUtil.js";
 import { TUtil } from "./TUtil.js";
 import { TargetUtil } from "./TargetUtil.js";
 import { Viewport } from "./Viewport.js";
+import { $Dom } from "./$Dom.js";
 
 function TModel(type, targets) {
       
@@ -12,13 +13,10 @@ function TModel(type, targets) {
         type = "";     
     }
 
-    var self = this;
     this.type = type ? type : 'blank';
     this.targets = Object.assign({}, targets);
     this.activeTargetKeyMap = {};
-    Object.keys(this.targets).forEach(function(key) {
-        self.activeTargetKeyMap[key] = true;
-    });    
+    this.resetActiveTargetMap();
     
     var uniqueId = App.getOid(this.type);
     this.oid = uniqueId.oid;
@@ -52,7 +50,11 @@ function TModel(type, targets) {
         allChildren: [],
         isInFlow: true,
         canHaveDom: true,
+        domSelector: '#tpage',
+        domCreatedBySelector: false,
         canHandleEvents: false,
+        widthFromDom: false,
+        heightFromDom: false,
         keepEventDefault: false,
         isIncluded: true,
         canBeBracketed: true,      
@@ -108,7 +110,34 @@ TModel.prototype.getDomParent = function() {
 };
 
 TModel.prototype.getDomHolder = function() {
-    return this.getDomParent() ? this.getDomParent().$dom : tapp.$dom;
+    var $dom;
+    
+    if (this.getValue('domCreatedBySelector')) {
+
+        if (!$Dom.query(this.getValue('domSelector'))) {
+            $dom = new $Dom();            
+            $dom.create('div');
+            $dom.setSelector(this.getValue('domSelector'));
+            $dom.setId(this.getValue('domSelector'));
+            $dom.attr("tabindex", "0");
+            new $Dom('body').insertFirst$Dom($dom);            
+        } else {
+            $dom = new $Dom(this.getValue('domSelector'));
+        }
+    } else {
+        $dom = this.actualValues.domHolder ? this.actualValues.domHolder : this.getDomParent() ? this.getDomParent().$dom : SearchUtil.findParentWithTarget(this, 'domHolder') ? SearchUtil.findParentWithTarget(this, 'domHolder').$dom : null;
+    }
+    
+    return $dom;
+};
+
+TModel.prototype.resetActiveTargetMap = function() {
+    var self = this;
+    this.targetValues = {};
+    this.activeTargetKeyMap = {};
+    Object.keys(this.targets).forEach(function(key) {
+        self.activeTargetKeyMap[key] = true;
+    });    
 };
 
 TModel.prototype.hasDomHolderChanged = function() {

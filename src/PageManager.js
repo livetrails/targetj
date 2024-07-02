@@ -7,46 +7,24 @@ function PageManager() {
     this.pageCache = {};
 }
   
-PageManager.prototype.openPage = function(link, isPageFetchNeeded) {
-
-    isPageFetchNeeded = TUtil.isDefined(isPageFetchNeeded) ? isPageFetchNeeded : true;
+PageManager.prototype.openPage = function(link) {
     
     tapp.stop();
     tapp.reset();
        
     var self = this;
 
-    if (typeof tapp.updateAnalytics === 'function') {
-        tapp.updateAnalytics(link);
-    }
-
-    if (!this.pageCache[link] && isPageFetchNeeded) {
-
-        $Dom.ajax({
-            url:link,
-            type: 'GET',
-            data: { tpageOnly: true }, 
-            success: function (data) {
-                tapp.$dom.outerHTML(data);                                
-                tapp.ui = tapp.uiFactory();               
-                self.lastLink = link;
-                tapp.start();
-            },
-            error: function () {
-                self.lastLink = undefined;
-                history.back();
-            }
-        });
-
-    } else if (!this.pageCache[link]) {
-        tapp.$dom.innerHTML("");                                
+    if (!this.pageCache[link]) {
+        tapp.ui.getChildren().forEach(function(child) { child.$dom.innerHTML(""); });
         tapp.ui = tapp.uiFactory();
         self.lastLink = link;        
         setTimeout(tapp.start);  
     } else {
-
-        tapp.$dom.innerHTML(this.pageCache[link].html);
         tapp.ui = this.pageCache[link].ui;
+        tapp.ui.getChildren().forEach(function(child, index) {
+            child.$dom.innerHTML(self.pageCache[link].htmls[index]); 
+        });        
+        
         TUtil.initDoms(this.pageCache[link].visibleList);
         tapp.manager.lists.visible = this.pageCache[link].visibleList.slice(0);
         self.lastLink = link;
@@ -65,14 +43,14 @@ PageManager.prototype.openLinkFromHistory = function(state) {
     tapp.manager.scheduleRun(0, "pagemanager-openLinkFromHistory");
 };
 
-PageManager.prototype.openLink = function(link, isPageFetchNeeded) {    
+PageManager.prototype.openLink = function(link) {    
     
     link = TUtil.getFullLink(link);
         
     if (this.lastLink) {
         this.pageCache[this.lastLink] = { 
             link: this.lastLink, 
-            html: tapp.$dom.innerHTML(), 
+            htmls: tapp.ui.getChildren().map(function(child) { return child.$dom.innerHTML(); }), 
             visibleList: tapp.manager.lists.visible.slice(0),
             ui: tapp.ui 
         };
@@ -80,7 +58,7 @@ PageManager.prototype.openLink = function(link, isPageFetchNeeded) {
     
     history.pushState({ link: link }, "", link); 
     
-    this.openPage(link, isPageFetchNeeded); 
+    this.openPage(link); 
     
     tapp.manager.scheduleRun(0, "pagemanager-processOpenLink");
 };
@@ -91,7 +69,7 @@ PageManager.prototype.updateBrowserUrl = function(link) {
     if (!currentState.browserUrl) {
         this.pageCache[document.URL] = { 
             link: document.URL, 
-            html: tapp.$dom.innerHTML(), 
+            htmls: tapp.ui.getChildren().map(function(child) { return child.$dom.innerHTML(); }), 
             visibleList: tapp.manager.lists.visible.slice(0),
             ui: tapp.ui 
         };

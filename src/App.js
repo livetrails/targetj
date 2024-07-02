@@ -13,8 +13,8 @@ import { TargetManager } from "./TargetManager.js";
 
 var tapp;
 
-function AppFn(uiFactory, rootId) {
-    
+function AppFn(tmodel) { 
+        
     function my() {} 
     
     my.throttle = 0;
@@ -22,8 +22,6 @@ function AppFn(uiFactory, rootId) {
 
     my.runningFlag = false;
     
-    my.rootId = rootId ? rootId : "#tpage";
-
     my.init = function() {
         browser.setup();
         
@@ -33,23 +31,78 @@ function AppFn(uiFactory, rootId) {
                 tapp.pager.openLinkFromHistory(event.state);
             }
         });
-        
+                
         my.loader = new LoadingManager();
         
         my.pager = new PageManager();
                  
         my.dim = Dim().measureScreen();
-        
-        my.uiFactory = uiFactory instanceof TModel ? function() { return new TModel(uiFactory.type, uiFactory.targets); } : uiFactory;
-        my.ui = my.uiFactory();
-        my.ui.xVisible = true;
-        my.ui.yVisible = true;
-        
+                        
         my.events = new EventListener();
         
         my.locationManager = new LocationManager();
         my.targetManager = new TargetManager();
         my.manager = new TModelManager();
+        
+        my.uiFactory = function() {
+
+            var tmodel = new TModel('targetj', {
+                domCreatedBySelector: true,
+                domHolder: {
+                    value: function() {
+                        return this.getDomHolder();
+                    },
+                    enabledOn: function() {
+                        return this.getDomHolder();
+                    }
+                },
+                canHaveDom: false
+            });
+                        
+            tmodel.addChild = function(child, index) {  
+                child.addTargets({
+                    domCreatedBySelector: true,
+                    domHolder: {
+                        value: function() {
+                            return this.getDomHolder();
+                        },
+                        enabledOn: function() {
+                            return this.getDomHolder();
+                        }
+                    },
+                    addEventHandler: {
+                        value: function() {
+                            my.events.removeHandlers(this.$dom);
+                            my.events.addHandlers(this.$dom);
+                            if (this.hasDom) {
+                                this.$dom.focus();                                
+                            }
+                        },
+                        enabledOn: function() {
+                            return this.hasDom();
+                        }
+                    }
+                }); 
+                
+                TModel.prototype.addChild.call(tmodel, child, index);  
+            };
+            
+   
+            if (my.ui) {
+                my.ui.getChildren().forEach(function(t, index) {
+                    delete App.oids[t.type];
+                    tmodel.addChild(new TModel(t.type, t.targets));
+                });
+            }
+            
+            return tmodel;
+        };
+        
+
+        my.ui = my.uiFactory();
+        if (tmodel) {
+            my.ui.addChild(tmodel);
+        }
         
         window.history.pushState({ link: document.URL }, "", document.URL);                
 
@@ -59,28 +112,16 @@ function AppFn(uiFactory, rootId) {
     my.start = function () {
         my.runningFlag = false; 
         
-        if (!$Dom.query(my.rootId)) {
-            my.$dom = new $Dom();            
-            my.$dom.create('div');
-            my.$dom.setSelector(my.rootId);
-            my.$dom.setId(my.rootId);
-            my.$dom.attr("tabindex", "0");
-            new $Dom('body').append$Dom(my.$dom);            
-        } else {
-            my.$dom = new $Dom(my.rootId);
-        }
-        
-        my.events.removeHandlers();
         my.events.clear();
+        my.ui.getChildren().forEach(function(child) {
+            child.deleteTargetValue('addEventHandler');
+        });        
                         
-        my.events.addHandlers(); 
         my.dim.measureScreen();    
         my.resetRuns();
 
         my.runningFlag = true;
-                
-        my.$dom.focus();
-        
+                        
         my.manager.scheduleRun(0, "appStart");
 
         return my;
@@ -89,14 +130,19 @@ function AppFn(uiFactory, rootId) {
     my.stop = function()    { 
         my.runningFlag = false;
 
-        my.events.removeHandlers();
+        my.ui.getChildren().forEach(function(child) {
+            if (child.hasDom()) {
+                my.events.removeHandlers(child.$dom);
+            }
+        });
+
         my.events.clear();
         
         my.resetRuns();
                 
         return my;
     };
-    
+   
     my.resetRuns = function() {
         my.manager.nextRuns = [];
         my.manager.runningStep = 0;
@@ -129,11 +175,19 @@ function AppFn(uiFactory, rootId) {
     return my;
 }
 
-function App(ui, rootId) {
-    tapp = AppFn(ui, rootId);    
+function App(tmodel) {
+    tapp = AppFn(tmodel);    
     tapp.init().start();
 
     return tapp;
+}
+
+function isRunning() {
+    return tapp ? tapp.runningFlag : false;
+};
+
+function ui() {
+    return tapp ? tapp.ui : null;
 }
 
 function getEvents() {
@@ -172,4 +226,4 @@ App.getOid = function(type) {
     return { oid: num > 0 ? type + num : type, num: num };
 };
 
-export { tapp, App, getEvents, getPager, getLoader, getManager, $Dom, getScreenWidth, getScreenHeight };
+export { tapp, App, isRunning, ui, getEvents, getPager, getLoader, getManager, $Dom, getScreenWidth, getScreenHeight };

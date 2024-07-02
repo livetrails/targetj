@@ -148,6 +148,14 @@ $Dom.prototype.append$Dom = function($dom) {
     this.element.appendChild($dom.element);
 };
 
+$Dom.prototype.insertFirst$Dom = function($dom) {
+    if (this.element.firstChild) {
+        this.element.insertBefore($dom.element, this.element.firstChild);    
+    } else {
+        this.append$Dom($dom);
+    }
+};
+
 $Dom.prototype.appendTModel$Dom = function(tmodel) {
     if (this.childrenCount === 0 && this.element.children.length > 1 && tmodel.getDomParent() && tmodel.getDomParent().getHtml()
             && tmodel.getDomParent().getHtml() === this.originalContent) {

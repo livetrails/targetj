@@ -111,10 +111,9 @@ Viewport.prototype.isVisible = function(child) {
     var y = child.getY();
     
     var domHolder = child.type === 'BI' ? child.getRealParent().getDomHolder() : child.getDomHolder();
-    
-    if (domHolder !== tapp.$dom) { 
-        var domParent = child.type === 'BI' ? child.getRealParent().getDomParent() : child.getDomParent();
-        
+    var domParent = child.type === 'BI' ? child.getRealParent().getDomParent() : child.getDomParent();
+
+    if (domParent) { 
         minX = domParent.isInFlow() ? domParent.absX : domParent.getX();
         minY = domParent.isInFlow() ? domParent.absY : domParent.getY();       
                 

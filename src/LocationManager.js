@@ -141,8 +141,8 @@ LocationManager.prototype.calculateTargets = function(tmodel) {
     tapp.targetManager.setTargetValues(tmodel, Object.keys(tmodel.activeTargetKeyMap));        
     tapp.targetManager.setActualValues(tmodel);
 
-    if (!TUtil.isDefined(tmodel.targetValues.width) && tmodel.hasDom()) TargetUtil.setWidthFromDom(tmodel);
-    if (!TUtil.isDefined(tmodel.targetValues.height) && tmodel.hasDom()) TargetUtil.setHeightFromDom(tmodel);
+    if ((!TUtil.isDefined(tmodel.targetValues.width) || tmodel.targetValues.widthFromDom) && tmodel.hasDom()) TargetUtil.setWidthFromDom(tmodel);
+    if ((!TUtil.isDefined(tmodel.targetValues.height) || tmodel.targetValues.heightFromDom) && tmodel.hasDom()) TargetUtil.setHeightFromDom(tmodel);
 };
 
 LocationManager.prototype.addToLocationList = function(child)   {
