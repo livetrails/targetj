@@ -15,13 +15,13 @@ PageManager.prototype.openPage = function(link) {
     var self = this;
 
     if (!this.pageCache[link]) {
-        tapp.ui.getChildren().forEach(function(child) { child.$dom.innerHTML(""); });
-        tapp.ui = tapp.uiFactory();
+        tapp.tjRoot.getChildren().forEach(function(child) { child.$dom.innerHTML(""); });
+        tapp.tjRoot = tapp.tjRootFactory();
         self.lastLink = link;        
         setTimeout(tapp.start);  
     } else {
-        tapp.ui = this.pageCache[link].ui;
-        tapp.ui.getChildren().forEach(function(child, index) {
+        tapp.tjRoot = this.pageCache[link].tjRoot;
+        tapp.tjRoot.getChildren().forEach(function(child, index) {
             child.$dom.innerHTML(self.pageCache[link].htmls[index]); 
         });        
         
@@ -50,9 +50,9 @@ PageManager.prototype.openLink = function(link) {
     if (this.lastLink) {
         this.pageCache[this.lastLink] = { 
             link: this.lastLink, 
-            htmls: tapp.ui.getChildren().map(function(child) { return child.$dom.innerHTML(); }), 
+            htmls: tapp.tjRoot.getChildren().map(function(child) { return child.$dom.innerHTML(); }), 
             visibleList: tapp.manager.lists.visible.slice(0),
-            ui: tapp.ui 
+            tjRoot: tapp.tjRoot 
         };
     }
     
@@ -69,9 +69,9 @@ PageManager.prototype.updateBrowserUrl = function(link) {
     if (!currentState.browserUrl) {
         this.pageCache[document.URL] = { 
             link: document.URL, 
-            htmls: tapp.ui.getChildren().map(function(child) { return child.$dom.innerHTML(); }), 
+            htmls: tapp.tjRoot.getChildren().map(function(child) { return child.$dom.innerHTML(); }), 
             visibleList: tapp.manager.lists.visible.slice(0),
-            ui: tapp.ui 
+            tjRoot: tapp.tjRoot 
         };
         history.pushState({ browserUrl: link }, "", link);
     } else {

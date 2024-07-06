@@ -50,8 +50,6 @@ function TModel(type, targets) {
         allChildren: [],
         isInFlow: true,
         canHaveDom: true,
-        domSelector: '#tpage',
-        domCreatedBySelector: false,
         canHandleEvents: false,
         widthFromDom: false,
         heightFromDom: false,
@@ -110,25 +108,7 @@ TModel.prototype.getDomParent = function() {
 };
 
 TModel.prototype.getDomHolder = function() {
-    var $dom;
-    
-    if (this.getValue('domCreatedBySelector')) {
-
-        if (!$Dom.query(this.getValue('domSelector'))) {
-            $dom = new $Dom();            
-            $dom.create('div');
-            $dom.setSelector(this.getValue('domSelector'));
-            $dom.setId(this.getValue('domSelector'));
-            $dom.attr("tabindex", "0");
-            new $Dom('body').insertFirst$Dom($dom);            
-        } else {
-            $dom = new $Dom(this.getValue('domSelector'));
-        }
-    } else {
-        $dom = this.actualValues.domHolder ? this.actualValues.domHolder : this.getDomParent() ? this.getDomParent().$dom : SearchUtil.findParentWithTarget(this, 'domHolder') ? SearchUtil.findParentWithTarget(this, 'domHolder').$dom : null;
-    }
-    
-    return $dom;
+    return this.actualValues.domHolder ? this.actualValues.domHolder : this.getDomParent() ? this.getDomParent().$dom : SearchUtil.findParentWithTarget(this, 'domHolder') ? SearchUtil.findParentWithTarget(this, 'domHolder').$dom : null;
 };
 
 TModel.prototype.resetActiveTargetMap = function() {

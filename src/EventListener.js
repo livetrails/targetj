@@ -101,7 +101,7 @@ EventListener.prototype.handleEvent = function (event) {
 
     this.eventTagName = (event.target.tagName || "").toUpperCase();
     this.eventName = this.eventMap[event.type];
-    
+        
     switch (this.eventName) { 
         
         case 'mousedown':

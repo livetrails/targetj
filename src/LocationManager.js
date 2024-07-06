@@ -22,8 +22,8 @@ LocationManager.prototype.calculateAll = function() {
 };
 
 LocationManager.prototype.calculate = function() {                   
-    this.addToLocationList(tapp.ui);
-    this.calculateContainer(tapp.ui);
+    this.addToLocationList(tapp.tjRoot);
+    this.calculateContainer(tapp.tjRoot);
 };
 
 LocationManager.prototype.getChildren = function(container) {

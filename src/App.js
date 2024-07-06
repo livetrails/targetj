@@ -13,7 +13,7 @@ import { TargetManager } from "./TargetManager.js";
 
 var tapp;
 
-function AppFn(tmodel) { 
+function AppFn(firstChild) { 
         
     function my() {} 
     
@@ -44,33 +44,32 @@ function AppFn(tmodel) {
         my.targetManager = new TargetManager();
         my.manager = new TModelManager();
         
-        my.uiFactory = function() {
-
-            var tmodel = new TModel('targetj', {
-                domCreatedBySelector: true,
-                domHolder: {
-                    value: function() {
-                        return this.getDomHolder();
-                    },
-                    enabledOn: function() {
-                        return this.getDomHolder();
-                    }
-                },
-                canHaveDom: false
-            });
+        my.tjRootFactory = function() {
+            
+            var tjRoot = new TModel('targetj');
                         
-            tmodel.addChild = function(child, index) {  
-                child.addTargets({
-                    domCreatedBySelector: true,
-                    domHolder: {
+            tjRoot.addChild = function(child, index) {
+                if (!TUtil.isDefined(child.targets['domHolder'])) {
+                    child.addTarget('domHolder', {
                         value: function() {
-                            return this.getDomHolder();
-                        },
-                        enabledOn: function() {
-                            return this.getDomHolder();
+                            var $dom;
+                            if (!$Dom.query('#tj-root')) {
+                                $dom = new $Dom();            
+                                $dom.create('div');
+                                $dom.setSelector('#tj-root');
+                                $dom.setId('#tj-root');
+                                $dom.attr("tabindex", "0");
+                                new $Dom('body').insertFirst$Dom($dom);            
+                            } else {
+                                $dom = new $Dom('#tj-root');
+                            }
+                            return $dom;
                         }
-                    },
-                    addEventHandler: {
+                    });
+                }
+                
+                if (!TUtil.isDefined(child.targets['addEventHandler'])) {                
+                    child.addTarget('addEventHandler', {
                         value: function() {
                             my.events.removeHandlers(this.$dom);
                             my.events.addHandlers(this.$dom);
@@ -81,27 +80,29 @@ function AppFn(tmodel) {
                         enabledOn: function() {
                             return this.hasDom();
                         }
-                    }
-                }); 
+                    });
+                }
                 
-                TModel.prototype.addChild.call(tmodel, child, index);  
+                TModel.prototype.addChild.call(tjRoot, child, index);  
             };
-            
-   
-            if (my.ui) {
-                my.ui.getChildren().forEach(function(t, index) {
-                    delete App.oids[t.type];
-                    tmodel.addChild(new TModel(t.type, t.targets));
+                        
+            if (my.tjRoot) {
+                my.tjRoot.getChildren().forEach(function(t, num) {
+                    var child = new TModel(t.type, t.targets);
+                    child.oidNum = num;
+                    child.oid = num > 0 ? t.type + num : t.type;
+                    tjRoot.addChild(child);
                 });
             }
             
-            return tmodel;
+            return tjRoot;
         };
         
 
-        my.ui = my.uiFactory();
-        if (tmodel) {
-            my.ui.addChild(tmodel);
+        my.tjRoot = my.tjRootFactory();
+        
+        if (firstChild) {
+            my.tjRoot.addChild(firstChild);
         }
         
         window.history.pushState({ link: document.URL }, "", document.URL);                
@@ -113,7 +114,7 @@ function AppFn(tmodel) {
         my.runningFlag = false; 
         
         my.events.clear();
-        my.ui.getChildren().forEach(function(child) {
+        my.tjRoot.getChildren().forEach(function(child) {
             child.deleteTargetValue('addEventHandler');
         });        
                         
@@ -130,7 +131,7 @@ function AppFn(tmodel) {
     my.stop = function()    { 
         my.runningFlag = false;
 
-        my.ui.getChildren().forEach(function(child) {
+        my.tjRoot.getChildren().forEach(function(child) {
             if (child.hasDom()) {
                 my.events.removeHandlers(child.$dom);
             }
@@ -186,8 +187,8 @@ function isRunning() {
     return tapp ? tapp.runningFlag : false;
 };
 
-function ui() {
-    return tapp ? tapp.ui : null;
+function tjRoot() {
+    return tapp ? tapp.tjRoot : null;
 }
 
 function getEvents() {
@@ -226,4 +227,4 @@ App.getOid = function(type) {
     return { oid: num > 0 ? type + num : type, num: num };
 };
 
-export { tapp, App, isRunning, ui, getEvents, getPager, getLoader, getManager, $Dom, getScreenWidth, getScreenHeight };
+export { tapp, App, tjRoot, isRunning, getEvents, getPager, getLoader, getManager, $Dom, getScreenWidth, getScreenHeight };
