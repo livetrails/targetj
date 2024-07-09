@@ -303,7 +303,7 @@ TModelManager.prototype.scheduleRun = function(delay, oid) {
         var lastRun = this.nextRuns.length > 0 ? this.nextRuns[this.nextRuns.length - 1] : null;
         if (nextRun && (!lastRun || nextRun.delay > lastRun.delay)) {
             this.nextRuns.push(nextRun);
-        } else if (nextRun && lastRun && nextRun.delay <= lastRun.delay) {
+        } else if (nextRun && lastRun && nextRun.delay <= lastRun.delay && tapp.manager.runningFlag) {
             tapp.manager.rerunFlag = true;
         }
     }
@@ -316,7 +316,7 @@ TModelManager.prototype.run = function(oid, delay) {
     }
     
     if (tapp.manager.runningFlag)   {
-        tapp.manager.scheduleRun(1, oid);
+        tapp.manager.rerunFlag = true;
         return;
     }
    
