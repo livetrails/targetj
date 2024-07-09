@@ -14,7 +14,8 @@ TModelManager.prototype.init = function()   {
         deletedTModel: [],
         visibleNoDom: [],
         updatingTModels: [],
-        updatingTargets: []
+        updatingTargets: [],
+        activeTargets: []
     };
     this.visibleTypeMap = {};
     this.visibleOidMap = {};
@@ -23,6 +24,7 @@ TModelManager.prototype.init = function()   {
     this.nextRuns = [];
     this.runningStep = 0;
     this.runningFlag = false;
+    this.rerunFlag = false;
 };
  
 TModelManager.prototype.visibles = function(type, list) {
@@ -47,6 +49,7 @@ TModelManager.prototype.analyze = function()    {
     this.lists.visibleNoDom.length = 0;
     this.lists.updatingTModels.length = 0;
     this.lists.updatingTargets.length = 0;
+    this.lists.activeTargets.length = 0;
     this.visibleTypeMap = {};
     this.visibleOidMap = {};
     this.targetMethodMap = {};
@@ -71,6 +74,11 @@ TModelManager.prototype.analyze = function()    {
             if (tmodel.targetUpdatingList.length > 0) {
                 this.lists.updatingTModels.push(tmodel);
                 this.lists.updatingTargets = this.lists.updatingTargets.concat((tmodel.targetUpdatingList));
+            }
+            
+            var activeTargets = Object.keys(tmodel.activeTargetMap);
+            if (activeTargets.length > 0) {
+                this.lists.activeTargets = this.lists.activeTargets.concat("'" + tmodel.oid + "'", activeTargets);
             }
                         
             if (Object.keys(tmodel.targetMethodMap).length > 0) {                  
@@ -147,7 +155,7 @@ TModelManager.prototype.deleteDoms = function () {
                 var key = invisible.key;
                 invisible.fn.call(tmodel, key, tmodel.getTargetStep(key), tmodel.getTargetCycle(key), tmodel.getTargetSteps(key), tmodel.getTargetCycles(key));
                 tmodel.setTargetMethodName(key, 'onInvisible');
-                tmodel.activeTargetKeyMap[key] = true;
+                tmodel.activeTargetMap[key] = true;
             });
         }
         
@@ -295,6 +303,8 @@ TModelManager.prototype.scheduleRun = function(delay, oid) {
         var lastRun = this.nextRuns.length > 0 ? this.nextRuns[this.nextRuns.length - 1] : null;
         if (nextRun && (!lastRun || nextRun.delay > lastRun.delay)) {
             this.nextRuns.push(nextRun);
+        } else if (nextRun && lastRun && nextRun.delay <= lastRun.delay) {
+            tapp.manager.rerunFlag = true;
         }
     }
 };
@@ -390,6 +400,10 @@ TModelManager.prototype.run = function(oid, delay) {
 
         if (tapp.manager.runningStep !== 7)  {
             tapp.manager.run("rendering: " + tapp.manager.runningStep);
+        } else if (tapp.manager.rerunFlag) {
+            tapp.manager.runningStep = 0;
+            tapp.manager.rerunFlag = false;
+            tapp.manager.run("rerun");
         } else {
            tapp.manager.runningStep = 0;
                               

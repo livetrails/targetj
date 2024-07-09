@@ -15,7 +15,7 @@ function TModel(type, targets) {
 
     this.type = type ? type : 'blank';
     this.targets = Object.assign({}, targets);
-    this.activeTargetKeyMap = {};
+    this.activeTargetMap = {};
     this.resetActiveTargetMap();
     
     var uniqueId = App.getOid(this.type);
@@ -114,9 +114,9 @@ TModel.prototype.getDomHolder = function() {
 TModel.prototype.resetActiveTargetMap = function() {
     var self = this;
     this.targetValues = {};
-    this.activeTargetKeyMap = {};
+    this.activeTargetMap = {};
     Object.keys(this.targets).forEach(function(key) {
-        self.activeTargetKeyMap[key] = true;
+        self.activeTargetMap[key] = true;
     });    
 };
 
@@ -727,7 +727,7 @@ TModel.prototype.setTargetValue = function(key, value, steps, stepInterval, cycl
         TargetUtil.handleValueChange(this, key, this.actualValues[key], oldValue, 0, 0); 
     }
     
-    this.activeTargetKeyMap[key] = true;
+    this.activeTargetMap[key] = true;
     this.targetValues[key].executionCount++; 
 
     this.updateTargetStatus(key);
@@ -772,13 +772,13 @@ TModel.prototype.removeUpdatingChild = function(child) {
 
 TModel.prototype.removeTarget = function(key) {
     delete this.targets[key];
-    delete this.activeTargetKeyMap[key];
+    delete this.activeTargetMap[key];
     delete this.targetValues[key]; 
 };
 
 TModel.prototype.addTarget = function(key, target) {
     this.targets[key] = target;
-    this.activeTargetKeyMap[key] = true;
+    this.activeTargetMap[key] = true;
     delete this.targetValues[key];
             
     tapp.manager.scheduleRun(10, 'addTarget-' + this.oid + "-" + key);
@@ -793,7 +793,7 @@ TModel.prototype.addTargets = function(targets) {
 
 TModel.prototype.deleteTargetValue = function(key)   {
     delete this.targetValues[key];
-    this.activeTargetKeyMap[key] = true;
+    this.activeTargetMap[key] = true;
 
     tapp.manager.scheduleRun(10, 'deleteTargetValue-' + this.oid + "-" + key);    
 };

@@ -32,7 +32,7 @@ TargetManager.prototype.setTargetValues = function(tmodel, activeKeys) {
         if (tmodel.isTargetDone(key)) {
             this.doneTargets.push({ tmodel: tmodel, key: key });
         } else if (tmodel.isTargetComplete(key)) {
-            delete tmodel.activeTargetKeyMap[key];
+            delete tmodel.activeTargetMap[key];
         } else {
             this.setTargetValue(tmodel, key);
             tmodel.updateTargetStatus(key);
@@ -54,7 +54,7 @@ TargetManager.prototype.setTargetValue = function(tmodel, key) {
     var target = tmodel.targets[key];
     
     if (!TUtil.isDefined(target)) {
-        delete tmodel.activeTargetKeyMap[key];        
+        delete tmodel.activeTargetMap[key];        
         return;
     }
 
@@ -65,10 +65,13 @@ TargetManager.prototype.setTargetValue = function(tmodel, key) {
         }
         
         if (!TUtil.isDefined(tmodel.getScheduleTimeStamp(key))) {
-            TargetUtil.assignValueArray(tmodel, key); 
+            var newChange = TargetUtil.assignValueArray(tmodel, key);
+            if (!newChange) {
+                tmodel.targetValues[key].executionCount++;
+            }
             tmodel.setTargetMethodName(key, 'value');
         }
-        
+                    
         var schedulePeriod = TargetUtil.scheduleExecution(tmodel, key);
         if (schedulePeriod > 0) {
             tapp.manager.scheduleRun(schedulePeriod, "actualInterval__" + tmodel.oid + "__" + key); 

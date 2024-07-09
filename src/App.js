@@ -148,6 +148,7 @@ function AppFn(firstChild) {
         my.manager.nextRuns = [];
         my.manager.runningStep = 0;
         my.manager.runningFlag = false;
+        my.manager.rerunFlag = false; 
     };
     
     my.reset = function() {

@@ -138,11 +138,11 @@ LocationManager.prototype.calculateContainer = function(container) {
 };
 
 LocationManager.prototype.calculateTargets = function(tmodel) { 
-    tapp.targetManager.setTargetValues(tmodel, Object.keys(tmodel.activeTargetKeyMap));        
+    tapp.targetManager.setTargetValues(tmodel, Object.keys(tmodel.activeTargetMap));        
     tapp.targetManager.setActualValues(tmodel);
 
-    if ((!TUtil.isDefined(tmodel.targetValues.width) || tmodel.targetValues.widthFromDom) && tmodel.hasDom()) TargetUtil.setWidthFromDom(tmodel);
-    if ((!TUtil.isDefined(tmodel.targetValues.height) || tmodel.targetValues.heightFromDom) && tmodel.hasDom()) TargetUtil.setHeightFromDom(tmodel);
+    if ((!TUtil.isDefined(tmodel.targetValues.width) || tmodel.getTargetValue('widthFromDom')) && tmodel.hasDom()) TargetUtil.setWidthFromDom(tmodel);
+    if ((!TUtil.isDefined(tmodel.targetValues.height) || tmodel.getTargetValue('heightFromDom')) && tmodel.hasDom()) TargetUtil.setHeightFromDom(tmodel);
 };
 
 LocationManager.prototype.addToLocationList = function(child)   {
