@@ -594,7 +594,7 @@ TModel.prototype.isTargetEnabled = function(key) {
 };
 
 TModel.prototype.isTargetInLoop = function(key) {            
-    return this.targets[key] ? (typeof this.targets[key].loop === 'function' ? this.targets[key].loop.call(this) :  this.targets[key].loop) : false;
+    return this.targets[key] ? (typeof this.targets[key].loop === 'function' ? this.targets[key].loop.call(this, key) :  this.targets[key].loop) : false;
 };
 
 TModel.prototype.doesTargetEqualActual = function(key) {
