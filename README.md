@@ -2,7 +2,7 @@
 
 Welcome to TargetJ, a powerful JavaScript framework designed to make building dynamic and responsive web applications easier and more efficient.
 
-TargetJ distinguishes itself by introducing a novel concept known as 'targets', which forms its core. Targets are used as the main building blocks of components instead of direct variables and methods. Each component in TargetJ is a set of targets. They are used to define UI properties, update HTML, add children, handle user events, load data from external APIs, and more.
+TargetJ distinguishes itself by introducing a novel concept known as 'targets', which forms its core. Targets are used as the main building blocks of components instead of direct variables and methods. Each component in TargetJ is a set of targets. They are used to define UI properties, update HTML, add children, handle user events, load data from external APIs, and more. For more details and examples, please visit www.targetj.io.
 
 ## Features
 
