@@ -1,6 +1,6 @@
 # TargetJ
 
-Welcome to TargetJ, a powerful JavaScript framework designed to simplify development and animation. (https://targetj.io)
+Welcome to TargetJ, a powerful JavaScript UI framework designed to simplify development and animation. (https://targetj.io)
 
 TargetJ distinguishes itself by introducing a novel concept known as 'targets', which forms its core. Targets are used as the main building blocks of components instead of direct variables and methods. Each component in TargetJ is a set of targets. Targets are employed across all aspects of the program. They are used in animation, controlling program flow, loading data from external APIs, handling user events, and more.
 
