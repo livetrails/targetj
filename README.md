@@ -1,20 +1,51 @@
 # TargetJ
 
-Welcome to TargetJ, a powerful JavaScript framework designed to make building dynamic and responsive web applications easier and more efficient.
+Welcome to TargetJ, a powerful JavaScript framework designed to simplify development and animation. (https://targetj.io)
+
+TargetJ distinguishes itself by introducing a novel concept known as 'targets', which forms its core. Targets are used as the main building blocks of components instead of direct variables and methods. Each component in TargetJ is a set of targets. Targets are employed across all aspects of the program. They are used in animation, controlling program flow, loading data from external APIs, handling user events, and more.
+
+## Brief overview of how it operates
+
+Each target in TargetJ essentially has two variables: target and actual. When the target value does not equal the actual value, TargetJ will update the actual value iteratively until it matches the target value. This iteration is determined by two additional variables: steps and step interval. Steps dictate the number of iterations, and the step interval specifies the duration in milliseconds that the system waits before executing the next iteration.
+
+To animate a variable, create a target after its name. The variable can be of any type: boolean, number, string, object, or array.
+
+A target can have an `onEnabled` method. By default, a target has a simple lifecycle: it executes only once when enabled. the `onEnabled` method establishes dependencies between targets, ensuring they execute at precisely the right moment.
+
+You can use the following special target names to impact the UI or control properties of TargetJ objects (TModel):
+
+1. x, y, width, height: Set the location and dimensions of the object.
+2. opacity, scale, rotate: Set the opacity, scale, and rotation of the object.
+3. zIndex: Sets the z-order of the object.
+4. html: Sets the content of the object. By default, it will be interpreted as text.
+5. style: An object that sets the style of the object.
+6. css: A string that sets the CSS of the object.
+7. scrollLeft and scrollTop: Used for scrolling the object.
+8. leftMargin, rightMargin, topMargin, bottomMargin: Set the margins between objects.
+9. children: Sets the TModel children of the object.
+10. domHolder and domParent: Set to control the HTML element containment and how HTML is nested.
+11. isVisible: An optional boolean flag to explicitly control the visibility of the object instead of leaving it to TargetJ to calculate.
+12. canHaveDom: A boolean flag that sets if the object can have a DOM element in the page.
+13. canHandleEvents: Sets what events the object can handle
+14. widthFromDom and heightFromDom: Boolean flags that control if the width and height should be calculated from the DOM element.
+15. textOnly: A boolean flag that sets the type of content to be text or HTML.
+16. canBeBracketed: A boolean flag that controls if the object will be optimized and included in the TargetJ task process only when visible.
+17. isInFlow: A boolean flag that determines if the object will be used to calculate the content height and width of its parent.
 
 ## Features
 
-- **No HTML required**: One of the principles of TargetJ is to employ a flat page design where HTML nesting is kept to a minimum. Consequently, HTML tags are seldom necessary except for images, text input, and text areas. In cases where nesting is necessary, it's handled dynamically and can be altered at runtime, unlike the static nesting in HTML.
-- **No HTML nesting**: HTML nesting is seldom required in TargetJ. If it is required, nesting is done at runtime. Elements can be dynamically detached and incorporated into other elements, facilitating the easy reuse of components regardless of their location or attachment. For instance, the same login button can be attached to the toolbar or placed in the middle of the page.
-- **Next-level animation**: TargetJ was built from scratch to be able to orchestrate intricate animations involving numerous objects with complex sequences. Users can program objects to move at varying speeds, pause at certain intervals, and repeat sequences based on various conditions. It allows the creation of captivating animations resulting in rich and engaging user experiences.
-- **Handle 100,000s of items**: TargetJ efficiently manages large collections of objects on a single page. This is done by its data structure and optimization algorithm. It divides a long list into a tree structure, monitoring only the keeps track of the branches that are visible to the user at any given time. In our examples page, infinite scrolling and infinite zooming demonstrate how it handles dynamically expanding lists of objects.
-- **Control the flow of execution with time**: TargetJ simplifies the execution of various program segments at specific times, making it easy to sequence or parallelize numerous actions. This functionality supports the development of applications that are efficient and responsive, capable of managing complex operations. It enhances user experiences and optimizes resource utilization.
+As a result of using targets, we can develop web sites or apps with the following features:
+
+- **No HTML required**: HTML tags are seldom necessary except for images.
+- **No HTML nesting**: HTML nesting is seldom required in TargetJ. If it is required, nesting is done at runtime. Elements can be dynamically detached and incorporated into other elements, facilitating the easy reuse of components regardless of their location or attachment. It also opens the door for a new user experiences.
+- **Next-level animation**: Users can program objects to move at varying speeds, pause at certain intervals, and repeat sequences based on various conditions. It allows the creation of complicated animations.
+- **Control the flow of execution with time**: TargetJ simplifies the execution of various program segments at specific times, making it easy to sequence or parallelize numerous actions.
 - **Handle events effortlessly**: In TargetJ, events are triggered synchronously and are designed so that any component can detect when an event occurs. Event handling can be simply implemented as conditions in the enabling functions of \'targets.\' This ensures that managing events is both simple and effective.
-- **Easy to learn**: TargetJ simplifies development by employing the concept of \'targets\' across all aspects of the program. These targets are used in animations,ncontrolling program flow, integrating APIs, and more. This unified approach means that one core concept is applied throughout the program, making TargetJ easy to learn.
-
-
+- **Easy to learn**: TargetJ simplifies development by employing the single concept of \'targets\' making it easy to learn.
+- **Handle 100,000s of items**: TargetJ efficiently manages large collections of objects on a single page. This is done by its data structure and optimization algorithm. It divides a long list into a tree structure, monitoring only the branches that are visible to the user at any given time.
+- **AI friendly**: With a unified concept of targets for all development, the ability to add and remove targets at runtime, and the capability to inspect various statuses of running objects, TargetJ is a strong candidate for AI-powered UI development.
+  
 ## Getting Started
-
 
 ### Installation
 
@@ -24,7 +55,9 @@ To install TargetJ, run the following command in your terminal:
 npm install targetj
 ```
 
-### Quick Example
+## Examples
+
+### Hello World example
 
 ```bash
 import { App, TModel } from 'targetj';
@@ -32,8 +65,105 @@ import { App, TModel } from 'targetj';
 App(new TModel({ html: 'Hello World'}));
 ```
 
+### Simple animation example
+```bash
+import { App, TModel } from 'targetj';
+
+App(new TModel({
+    style: { backgroundColor: '#fff' },
+    width: {
+        value: 250,        
+        steps: 30,
+        stepInterval: 50
+    },
+    height: {
+        value: 250,        
+        steps: 30,
+        stepInterval: 50
+    },
+    opacity: {
+        value: 0.15,        
+        steps: 30,
+        stepInterval: 50
+    }
+ }));
+```
+
+It can also be written in a more compact form using arrays:
+
+```bash
+import { App, TModel } from 'targetj';
+
+App(new TModel({
+    style: { backgroundColor: '#fff' },
+    width: [ 250, 30, 50],
+    height: [ 250, 30, 50],
+    opacity: [ 0.15, 30, 50]
+ }));
+```
+
+### More complicated example
+
+You can find a running example, which also demonstrates how the code operates, at https://targetj.io/docs/declarative.html
+
+```bash
+App(new TModel('Declarative', {     
+    add: {
+        value() {
+           for (var i = 0; i < 10; i++) {
+               this.addChild(new TModel("square", {
+                   width: 50,
+                   height: 50,
+                   style: { backgroundColor: '#fff' },
+                   rotate: {
+                      cycles: 1000,
+                      steps: 15,
+                      stepInterval: 50,
+                      value(key, cycle) {
+                          return [360, 0][cycle % 2];
+                      }
+                   },
+                   domParent() {
+                       return this.getParent();
+                   }
+               }));
+           }
+        }
+    },
+    animate: {
+        loop: true,
+        stepInterval: 1500,
+        value() {
+            var self = this;
+            this.getChildren().forEach(function(child) {
+                child.setTargetValue('x', -child.getWidth());
+                var y = Math.random() * self.getHeight();
+                child.setTargetValue('x', self.getParentValue('width') + child.getWidth(), 30, 50);
+                child.setTargetValue('y', y, 30, 50);
+            });
+        },
+        enabledOn() {
+            return this.isTargetComplete('add');
+        }
+    },
+    width() {
+        return this.getParentValue('width');
+    },
+    height() { 
+        return this.getParentValue('height');
+    }         
+}));
+```
+
+## How to debug in TargetJ
+1. TargetJ.tapp.stop(): Stops the application.
+2. TargetJ.tapp.start(): Restarts the application
+3. TargetJ.tapp.throttle: Slows down the application. This represents the pause in milliseconds before starting another TargetJ task cycle. It is zero by default.
+4. TargetJ.tapp.debugLevel: Logs information about the TargetJ task cycle and its efficiency. It is zero by default. Set it to 1 to log basic information and 2 to log more detailed information.
+5. Use `t()` to find an object from the browser console using its `oid`: Inspect its targetValues to display the status of its targets.
+
 ## Documentation
-For more detailed information on using TargetJ, please refer to www.targetj.io
+Explore the full potential of TargetJ and dive into our interactive documentation at www.targetj.io.
 
 ## License
 Distributed under the MIT License. See LICENSE for more information.
