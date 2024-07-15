@@ -12,7 +12,7 @@ To animate a variable, create a target after its name. The variable can be of an
 
 A target can have an `onEnabled` method. By default, a target has a simple lifecycle: it executes only once when enabled. the `onEnabled` method establishes dependencies between targets, ensuring they execute at precisely the right moment.
 
-You can use the following special target names to impact the UI or control properties of TargetJ objects (TModel):
+You can use the following special target names to impact the UI or control properties of TargetJ objects (called TModel):
 
 1. x, y, width, height: Set the location and dimensions of the object.
 2. opacity, scale, rotate: Set the opacity, scale, and rotation of the object.
@@ -70,7 +70,7 @@ App(new TModel({ html: 'Hello World'}));
 import { App, TModel } from 'targetj';
 
 App(new TModel({
-    style: { backgroundColor: '#fff' },
+    style: { backgroundColor: '#f00' },
     width: {
         value: 250,        
         steps: 30,
@@ -95,7 +95,7 @@ It can also be written in a more compact form using arrays:
 import { App, TModel } from 'targetj';
 
 App(new TModel({
-    style: { backgroundColor: '#fff' },
+    style: { backgroundColor: '#f00' },
     width: [ 250, 30, 50],
     height: [ 250, 30, 50],
     opacity: [ 0.15, 30, 50]
@@ -107,52 +107,58 @@ App(new TModel({
 You can find a running example, which also demonstrates how the code operates, at https://targetj.io/docs/declarative.html
 
 ```bash
-App(new TModel('Declarative', {     
+import { App, TModel, getScreenWidth, getScreenHeight } from "targetj";
+
+App(
+  new TModel({
     add: {
-        value() {
-           for (var i = 0; i < 10; i++) {
-               this.addChild(new TModel("square", {
-                   width: 50,
-                   height: 50,
-                   style: { backgroundColor: '#fff' },
-                   rotate: {
-                      cycles: 1000,
-                      steps: 15,
-                      stepInterval: 50,
-                      value(key, cycle) {
-                          return [360, 0][cycle % 2];
-                      }
-                   },
-                   domParent() {
-                       return this.getParent();
-                   }
-               }));
-           }
+      value() {
+        for (var i = 0; i < 10; i++) {
+          this.addChild(
+            new TModel("square", {
+              width: 50,
+              height: 50,
+              style: { backgroundColor: "#f00" },
+              rotate: {
+                cycles: 1000,
+                steps: 15,
+                stepInterval: 50,
+                value(key, cycle) {
+                  return [360, 0][cycle % 2];
+                },
+              },
+            })
+          );
         }
+      },
     },
     animate: {
-        loop: true,
-        stepInterval: 1500,
-        value() {
-            var self = this;
-            this.getChildren().forEach(function(child) {
-                child.setTargetValue('x', -child.getWidth());
-                var y = Math.random() * self.getHeight();
-                child.setTargetValue('x', self.getParentValue('width') + child.getWidth(), 30, 50);
-                child.setTargetValue('y', y, 30, 50);
-            });
-        },
-        enabledOn() {
-            return this.isTargetComplete('add');
-        }
+      loop: true,
+      stepInterval: 1600,
+      value() {
+        this.getChildren().forEach((child) => {
+          child.setTargetValue("x", -child.getWidth());
+          child.setTargetValue(
+            "x",
+            getScreenWidth() + child.getWidth(),
+            30,
+            50
+          );
+          child.setTargetValue("y", Math.random() * getScreenHeight(), 30, 50);
+        });
+      },
+      enabledOn() {
+        return this.isTargetComplete("add");
+      },
     },
     width() {
-        return this.getParentValue('width');
+      return getScreenWidth();
     },
-    height() { 
-        return this.getParentValue('height');
-    }         
-}));
+    height() {
+      return getScreenHeight();
+    },
+  })
+);
 ```
 
 ## How to debug in TargetJ
