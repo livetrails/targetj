@@ -111,26 +111,24 @@ import { App, TModel, getScreenWidth, getScreenHeight } from "targetj";
 
 App(
   new TModel({
-    add: {
-      value() {
-        for (var i = 0; i < 10; i++) {
-          this.addChild(
-            new TModel("square", {
-              width: 50,
-              height: 50,
-              style: { backgroundColor: "#f00" },
-              rotate: {
-                cycles: 1000,
-                steps: 15,
-                stepInterval: 50,
-                value(key, cycle) {
-                  return [360, 0][cycle % 2];
-                },
+    add() {
+      for (var i = 0; i < 10; i++) {
+        this.addChild(
+          new TModel("square", {
+            width: 50,
+            height: 50,
+            style: { backgroundColor: "#f00" },
+            rotate: {
+              cycles: 1000,
+              steps: 15,
+              stepInterval: 50,
+              value(key, cycle) {
+                return [360, 0][cycle % 2];
               },
-            })
-          );
-        }
-      },
+            },
+          })
+        );
+      }
     },
     animate: {
       loop: true,
@@ -138,12 +136,7 @@ App(
       value() {
         this.getChildren().forEach((child) => {
           child.setTargetValue("x", -child.getWidth());
-          child.setTargetValue(
-            "x",
-            getScreenWidth() + child.getWidth(),
-            30,
-            50
-          );
+          child.setTargetValue("x", getScreenWidth() + child.getWidth(), 30, 50);
           child.setTargetValue("y", Math.random() * getScreenHeight(), 30, 50);
         });
       },
