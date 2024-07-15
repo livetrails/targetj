@@ -60,7 +60,7 @@ TargetManager.prototype.setTargetValue = function(tmodel, key) {
 
     if (tmodel.isTargetEnabled(key)) {
         if (tmodel.getScheduleTimeStamp(key) && tmodel.isTargetActive(key) && tmodel.getTargetStepInterval(key) > 0
-                && tmodel.getScheduleTimeStamp(key) + tmodel.getTargetStepInterval(key) <= TargetJ.browser.now()) {
+                && tmodel.getScheduleTimeStamp(key) + tmodel.getTargetStepInterval(key) <= browser.now()) {
             tmodel.resetScheduleTimeStamp(key);
         }
         
