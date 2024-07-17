@@ -15,13 +15,13 @@ PageManager.prototype.openPage = function(link) {
     var self = this;
 
     if (!this.pageCache[link]) {
-        tapp.tjRoot.getChildren().forEach(function(child) { child.$dom.innerHTML(""); });
-        tapp.tjRoot = tapp.tjRootFactory();
+        tapp.troot.getChildren().forEach(function(child) { child.$dom.innerHTML(""); });
+        tapp.troot = tapp.trootFactory();
         self.lastLink = link;        
         setTimeout(tapp.start);  
     } else {
-        tapp.tjRoot = this.pageCache[link].tjRoot;
-        tapp.tjRoot.getChildren().forEach(function(child, index) {
+        tapp.troot = this.pageCache[link].troot;
+        tapp.troot.getChildren().forEach(function(child, index) {
             child.$dom.innerHTML(self.pageCache[link].htmls[index]); 
         });        
         
@@ -50,9 +50,9 @@ PageManager.prototype.openLink = function(link) {
     if (this.lastLink) {
         this.pageCache[this.lastLink] = { 
             link: this.lastLink, 
-            htmls: tapp.tjRoot.getChildren().map(function(child) { return child.$dom.innerHTML(); }), 
+            htmls: tapp.troot.getChildren().map(function(child) { return child.$dom.innerHTML(); }), 
             visibleList: tapp.manager.lists.visible.slice(0),
-            tjRoot: tapp.tjRoot 
+            troot: tapp.troot 
         };
     }
     
@@ -69,9 +69,9 @@ PageManager.prototype.updateBrowserUrl = function(link) {
     if (!currentState.browserUrl) {
         this.pageCache[document.URL] = { 
             link: document.URL, 
-            htmls: tapp.tjRoot.getChildren().map(function(child) { return child.$dom.innerHTML(); }), 
+            htmls: tapp.troot.getChildren().map(function(child) { return child.$dom.innerHTML(); }), 
             visibleList: tapp.manager.lists.visible.slice(0),
-            tjRoot: tapp.tjRoot 
+            troot: tapp.troot 
         };
         history.pushState({ browserUrl: link }, "", link);
     } else {

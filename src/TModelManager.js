@@ -332,7 +332,7 @@ TModelManager.prototype.run = function(oid, delay) {
                     
                     tapp.targetManager.doneTargets.length = 0;
 
-                    tapp.locationManager.calculateTargets(tapp.tjRoot);
+                    tapp.locationManager.calculateTargets(tapp.troot);
 
                     tapp.locationManager.calculateAll();
                     

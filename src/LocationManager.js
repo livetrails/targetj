@@ -8,7 +8,7 @@ function LocationManager() {
     this.hasLocationList = [];
     this.hasLocationMap = {};
 
-    this.bracketThreshold = 4;
+    this.bracketThreshold = 6;
     this.locationCount = [];
 }
 
@@ -22,8 +22,8 @@ LocationManager.prototype.calculateAll = function() {
 };
 
 LocationManager.prototype.calculate = function() {                   
-    this.addToLocationList(tapp.tjRoot);
-    this.calculateContainer(tapp.tjRoot);
+    this.addToLocationList(tapp.troot);
+    this.calculateContainer(tapp.troot);
 };
 
 LocationManager.prototype.getChildren = function(container) {

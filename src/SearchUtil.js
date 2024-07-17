@@ -112,7 +112,7 @@ SearchUtil.findByType = function (type) {
     }
     
     if (!TUtil.isDefined(SearchUtil.foundTypeMap[type])) {
-        tmodel = search(tapp.tjRoot);  
+        tmodel = search(tapp.troot);  
         if (tmodel) {
             SearchUtil.foundTypeMap[type] = tmodel;
         }
@@ -146,7 +146,7 @@ SearchUtil.findByTarget = function (target) {
     }
     
     if (!TUtil.isDefined(SearchUtil.foundTargetMap[target])) {
-        tmodel = search(tapp.tjRoot);  
+        tmodel = search(tapp.troot);  
         if (tmodel) {
             SearchUtil.foundTargetMap[target] = tmodel;
         }
@@ -179,7 +179,7 @@ SearchUtil.find = function (oid) {
     }
        
     if (!TUtil.isDefined(SearchUtil.foundOids[oid])) {
-        tmodel = search(tapp.tjRoot);  
+        tmodel = search(tapp.troot);  
         if (tmodel) {
             SearchUtil.foundOids[oid] = tmodel;
         }

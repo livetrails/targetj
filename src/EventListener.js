@@ -40,9 +40,7 @@ function EventListener() {
         orientationchange: 'resize'
     };
     
-    this.lastEvent = undefined;
-    this.eventName = "";
-    this.eventTagName = "";
+    this.lastEvents = [];
     
     this.cursor = { x: 0, y: 0};
     this.start0 = undefined;
@@ -77,48 +75,50 @@ EventListener.prototype.addHandlers = function ($dom) {
 
 EventListener.prototype.captureEvents = function() {
 
-    if (!this.lastEvent) { 
+    if (this.lastEvents.length === 0) { 
         this.currentEvent = "";
-        this.currentKey = "";
+        this.currentKey = "";       
         return;
     }
+    var lastEvent = this.lastEvents.pop();
     
-    this.findEventHandlers(this.lastEvent);
-    this.currentEvent = this.eventName;
-    this.currentKey = this.currentTouch.key;
-    this.eventName = "";
-    this.lastEvent = undefined;
-    this.currentTouch.key = "";
+    if (lastEvent.eventName === 'resize') {
+        tapp.dim.measureScreen();
+    } else {
+        this.findEventHandlers(lastEvent.tmodel);
+        this.currentEvent = lastEvent.eventName;
+        this.currentKey = this.currentTouch.key;
+        this.currentTouch.key = "";        
+    }
+    
 };
     
 EventListener.prototype.handleEvent = function (event) {
-    
-    if (this.eventName && this.eventName !== this.currentEvent) {
-        return;
-    }
-    
-    this.lastEvent = event;
-
-    this.eventTagName = (event.target.tagName || "").toUpperCase();
-    this.eventName = this.eventMap[event.type];
         
-    switch (this.eventName) { 
+    var eventName = this.eventMap[event.type];
+    var tmodel = this.getTModelFromEvent(event);
+            
+    switch (eventName) { 
         
         case 'mousedown':
         case 'touchstart':
+            this.lastEvents.push({ eventName: eventName, tmodel: tmodel });
+            
             this.clear();            
             this.touchCount = this.countTouches(event);
-            if (this.preventDefault(event, this.eventName)) event.preventDefault();
+            if (this.preventDefault(tmodel, eventName)) event.preventDefault();
             this.start(event);
             event.stopPropagation();
             break;
             
         case 'mousemove':
         case 'touchmove':
+            this.lastEvents.push({ eventName: eventName, tmodel: tmodel });
+            
             var touch = this.getTouch(event);
             this.cursor.x = touch.x;
             this.cursor.y = touch.y;
-            if (this.preventDefault(event, this.eventName)) event.preventDefault();
+            if (this.preventDefault(tmodel, eventName)) event.preventDefault();
             if (this.touchCount > 0) {                
                 this.move(event);
                 event.stopPropagation();
@@ -127,32 +127,40 @@ EventListener.prototype.handleEvent = function (event) {
 
         case 'mouseup':
         case 'touchend':
-            if (this.preventDefault(event, this.eventName)) event.preventDefault();
+            this.lastEvents.push({ eventName: eventName, tmodel: tmodel });
+            
+            if (this.preventDefault(tmodel, eventName)) event.preventDefault();
             this.end(event);
             event.stopPropagation();
             break;
 
         case 'wheel':
-            if (this.preventDefault(event, this.eventName)) event.preventDefault();   
+            this.lastEvents.push({ eventName: eventName, tmodel: tmodel });
+            
+            if (this.preventDefault(tmodel, eventName)) event.preventDefault();   
             this.wheel(event);
             break;
 
         case 'key':
+            this.lastEvents.push({ eventName: eventName, tmodel: tmodel });
+            
             this.keyUpHandler(event);
             break;
-
+            
         case 'resize':
-            tapp.dim.measureScreen();
+            if (this.lastEvents.length === 0 || this.lastEvents[this.lastEvents.length - 1].eventName !== 'resize') {
+                this.lastEvents.push({ eventName: eventName, tmodel: tmodel });
+            }
             break;
-
+            
     }
     
-    tapp.manager.scheduleRun(0, this.eventName + '-' + this.eventTagName);   
+    tapp.manager.scheduleRun(0, eventName + '-' + (event.target.tagName || "").toUpperCase()); 
+    tapp.manager.scheduleRun(20, eventName + '-' + (event.target.tagName || "").toUpperCase());   
+    
 };
     
-EventListener.prototype.findEventHandlers = function(event) {
-
-    var tmodel = this.getTModelFromEvent(event);
+EventListener.prototype.findEventHandlers = function(tmodel) {
 
     var touchHandler = tmodel ? SearchUtil.findFirstTouchHandler(tmodel) : null;
     var scrollLeftHandler = tmodel ? SearchUtil.findFirstScrollLeftHandler(tmodel) : null;
@@ -165,8 +173,7 @@ EventListener.prototype.findEventHandlers = function(event) {
     this.currentHandlers.pinch = pinchHandler; 
 };
 
-EventListener.prototype.preventDefault = function(event, eventName) {
-    var tmodel = this.getTModelFromEvent(event);
+EventListener.prototype.preventDefault = function(tmodel, eventName) {
 
     if (tmodel && (tmodel.keepEventDefault() === true || (Array.isArray(tmodel.keepEventDefault()) && tmodel.keepEventDefault().includes(eventName)))) {
         return false;
@@ -233,9 +240,6 @@ EventListener.prototype.resetEvents = function () {
         } 
     
         tapp.manager.scheduleRun(runDelay, "scroll decay"); 
-    } else if (this.eventName || this.lastEvent) {
-        this.eventName = "";
-        tapp.manager.scheduleRun(1, "reseting current event");
     }
 
 };
@@ -413,8 +417,8 @@ EventListener.prototype.end = function (event) {
         } 
     }
            
-    if (!momentum && this.touchCount === 1 && startToEndTime < 300) {
-        this.eventName = 'click';
+    if (!momentum && this.touchCount === 1 && startToEndTime <= 300) {
+        this.lastEvents.push({ eventName: 'click', tmodel: this.getTModelFromEvent(event) });
         this.clear();
         this.currentTouch.timeStamp = 0;
     }

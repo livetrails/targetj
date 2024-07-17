@@ -44,11 +44,11 @@ function AppFn(firstChild) {
         my.targetManager = new TargetManager();
         my.manager = new TModelManager();
         
-        my.tjRootFactory = function() {
+        my.trootFactory = function() {
             
-            var tjRoot = new TModel('targetj');
+            var troot = new TModel('targetj');
                         
-            tjRoot.addChild = function(child, index) {
+            troot.addChild = function(child, index) {
                 if (!TUtil.isDefined(child.targets['domHolder'])) {
                     child.addTarget('domHolder', {
                         value: function() {
@@ -83,26 +83,26 @@ function AppFn(firstChild) {
                     });
                 }
                 
-                TModel.prototype.addChild.call(tjRoot, child, index);  
+                TModel.prototype.addChild.call(troot, child, index);  
             };
                         
-            if (my.tjRoot) {
-                my.tjRoot.getChildren().forEach(function(t, num) {
+            if (my.troot) {
+                my.troot.getChildren().forEach(function(t, num) {
                     var child = new TModel(t.type, t.targets);
                     child.oidNum = num;
                     child.oid = num > 0 ? t.type + num : t.type;
-                    tjRoot.addChild(child);
+                    troot.addChild(child);
                 });
             }
             
-            return tjRoot;
+            return troot;
         };
         
 
-        my.tjRoot = my.tjRootFactory();
+        my.troot = my.trootFactory();
         
         if (firstChild) {
-            my.tjRoot.addChild(firstChild);
+            my.troot.addChild(firstChild);
         }
         
         window.history.pushState({ link: document.URL }, "", document.URL);                
@@ -114,7 +114,7 @@ function AppFn(firstChild) {
         my.runningFlag = false; 
         
         my.events.clear();
-        my.tjRoot.getChildren().forEach(function(child) {
+        my.troot.getChildren().forEach(function(child) {
             child.deleteTargetValue('addEventHandler');
         });        
                         
@@ -131,7 +131,7 @@ function AppFn(firstChild) {
     my.stop = function()    { 
         my.runningFlag = false;
 
-        my.tjRoot.getChildren().forEach(function(child) {
+        my.troot.getChildren().forEach(function(child) {
             if (child.hasDom()) {
                 my.events.removeHandlers(child.$dom);
             }
@@ -188,8 +188,8 @@ function isRunning() {
     return tapp ? tapp.runningFlag : false;
 };
 
-function tjRoot() {
-    return tapp ? tapp.tjRoot : null;
+function troot() {
+    return tapp ? tapp.troot : null;
 }
 
 function getEvents() {
@@ -228,4 +228,4 @@ App.getOid = function(type) {
     return { oid: num > 0 ? type + num : type, num: num };
 };
 
-export { tapp, App, tjRoot, isRunning, getEvents, getPager, getLoader, getManager, $Dom, getScreenWidth, getScreenHeight };
+export { tapp, App, troot, isRunning, getEvents, getPager, getLoader, getManager, $Dom, getScreenWidth, getScreenHeight };
