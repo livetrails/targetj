@@ -116,7 +116,10 @@ function AppFn(firstChild) {
         my.events.clear();
         my.troot.getChildren().forEach(function(child) {
             child.deleteTargetValue('addEventHandler');
-        });        
+        }); 
+
+        my.events.removeWindowHandlers();
+        my.events.addWindowHandlers();
                         
         my.dim.measureScreen();    
         my.resetRuns();
@@ -131,6 +134,7 @@ function AppFn(firstChild) {
     my.stop = function()    { 
         my.runningFlag = false;
 
+        my.events.removeWindowHandlers();
         my.troot.getChildren().forEach(function(child) {
             if (child.hasDom()) {
                 my.events.removeHandlers(child.$dom);
