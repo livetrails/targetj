@@ -9,8 +9,8 @@ function Dim()  {
     };
   
     my.measureScreen = function() {
-        my.screen.width = Math.min(window.outerWidth, window.innerWidth) || document.documentElement.clientWidth || document.body.clientWidth;
-        my.screen.height = window.innerHeight || document.documentElement.clientHeight || document.body.clientHeight; 
+        my.screen.width = document.documentElement.clientWidth || document.body.clientWidth;
+        my.screen.height = document.documentElement.clientHeight || document.body.clientHeight; 
 
         return my;
     };
