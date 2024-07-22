@@ -15,48 +15,55 @@ function EventListener() {
         manualMomentumFlag: false, 
         orientation: "none" ,
         dir: "",
-        source: "",
-        timeStamp: 0
+        source: ""
     };
     
-    this.bindedHandleEvent = this.bindedHandleEvent ? this.bindedHandleEvent : this.handleEvent.bind(this);
-    
-    this.eventMap = {
-        touchstart: { to: 'touchstart', windowEvent: false },
-        touchmove: { to: 'touchmove', windowEvent: false },
-        touchend: { to: 'touchend', windowEvent: false },
-        touchcancel: { to: 'touchend', windowEvent: false },
-        mousedown: { to: 'mousedown', windowEvent: false },
-        mousemove: { to: 'mousemove', windowEvent: false },               
-        pointerup: { to: 'mouseup', windowEvent: false },
-        MSPointerUp: { to: 'mouseup', windowEvent: false },
-        mouseup: { to: 'mouseup', windowEvent: false },
-        pointercancel:  { to: 'mouseup', windowEvent: false },
-        MSPointerCancel:  { to: 'mouseup', windowEvent: false },
-        mousecancel:  { to: 'mouseup', windowEvent: false },
-        wheel:  { to: 'wheel', windowEvent: false },
-        DOMMouseScroll:  { to: 'wheel', windowEvent: false },
-        mousewheel:  { to: 'wheel', windowEvent: false },
-        keyup: { to: 'key', windowEvent: true },
-        resize: { to: 'resize', windowEvent: true },
-        orientationchange: { to: 'resize', windowEvent: true }
-    };
-    
-    var self = this;
-    this.domEvents = Object.keys(this.eventMap).filter(function(key) { return self.eventMap[key].windowEvent === false; });
-    this.windowEvents = Object.keys(this.eventMap).filter(function(key) { return self.eventMap[key].windowEvent; });
-    
-    this.lastEvents = [];
-    
+    this.touchTimeStamp = 0;
+
     this.cursor = { x: 0, y: 0};
     this.start0 = undefined;
     this.start1 = undefined;    
     this.end0 = undefined;
     this.end1 = undefined;
-    this.touchCount = 0;
+    this.touchCount = 0;    
         
     this.currentEvent = "";
     this.currentHandlers = { touch: null, scrollLeft: null, scrollTop: null, pinch: null };
+    
+    this.eventQueue = [];
+    
+    this.eventMap = {
+        touchstart: { to: 'touchstart', inputType: 'touch', eventType: 'start', order: 1, windowEvent: false },
+        touchmove: { to: 'touchmove', inputType: 'touch', eventType: 'move', order: 1, windowEvent: false },
+        touchend: { to: 'touchend', inputType: 'touch', eventType: 'end', order: 1, windowEvent: false },
+        touchcancel: { to: 'touchend', inputType: 'touch', eventType: 'cancel', order: 1, windowEvent: false },
+        
+        mousedown: { to: 'mousedown', inputType: 'mouse', eventType: 'start', order: 2, windowEvent: false },
+        mousemove: { to: 'mousemove', inputType: 'mouse', eventType: 'move', order: 2, windowEvent: false },
+        mouseup: { to: 'mouseup', inputType: 'mouse', eventType: 'end', order: 2, windowEvent: false },
+        mousecancel:  { to: 'mouseup', inputType: 'mouse', eventType: 'cancel', order: 2, windowEvent: false },
+        
+        pointerdown: { to: 'mousedown', inputType: 'pointer', eventType: 'start', order: 3, windowEvent: false },    
+        pointermove: { to: 'mousemove', inputType: 'pointer', eventType: 'move', order: 3, windowEvent: false },
+        pointerup: { to: 'mouseup', inputType: 'pointer', eventType: 'end', order: 3, windowEvent: false },
+        pointercancel:  { to: 'mousecancel', inputType: 'pointer', eventType: 'cancel', order: 3, windowEvent: false },
+
+        wheel:  { to: 'wheel', inputType: '', eventType: 'wheel', order: 1, windowEvent: false },
+        DOMMouseScroll:  { to: 'wheel', inputType: '', eventType: 'wheel', order: 1, windowEvent: false },
+        mousewheel:  { to: 'wheel', inputType: '', eventType: 'wheel', order: 1, windowEvent: false },
+        
+        keyup: { to: 'key', inputType: '', eventType: 'key', order: 1, windowEvent: true },
+        keydown: { to: 'key', inputType: '', eventType: 'key', order: 1, windowEvent: true },        
+        resize: { to: 'resize', inputType: '', eventType: 'resize', order: 1, windowEvent: true },
+        orientationchange: { to: 'resize', inputType: '', eventType: 'resize', order: 1, windowEvent: true }
+    };
+    
+    var self = this;
+    this.domEvents = Object.keys(this.eventMap).filter(function(key) { return self.eventMap[key].windowEvent === false; });
+    this.windowEvents = Object.keys(this.eventMap).filter(function(key) { return self.eventMap[key].windowEvent; }); 
+    
+    this.bindedHandleEvent = this.bindedHandleEvent ? this.bindedHandleEvent : this.handleEvent.bind(this);
+    
 }
 
 EventListener.prototype.removeHandlers = function ($dom) {
@@ -90,12 +97,12 @@ EventListener.prototype.addWindowHandlers = function () {
 
 EventListener.prototype.captureEvents = function() {
 
-    if (this.lastEvents.length === 0) { 
+    if (this.eventQueue.length === 0) { 
         this.currentEvent = "";
         this.currentKey = "";       
         return;
     }
-    var lastEvent = this.lastEvents.pop();
+    var lastEvent = this.eventQueue.shift();
     
     if (lastEvent.eventName === 'resize') {
         tapp.dim.measureScreen();
@@ -105,29 +112,73 @@ EventListener.prototype.captureEvents = function() {
         this.currentKey = this.currentTouch.key;
         this.currentTouch.key = "";        
     }
+    
+    tapp.manager.scheduleRun(10, 'captureEvents' + '-' + lastEvent);   
+    
 };
     
 EventListener.prototype.handleEvent = function (event) {
+    if (!event) return;
     
-    var eventName = this.eventMap[event.type] ? this.eventMap[event.type].to : null;
+    var eventName, inputType, eventType, eventOrder;
+    
+    var originalName = event.type;
+    var eventItem = this.eventMap[originalName];
+
+    if (eventItem) {
+        eventName = eventItem.to;
+        inputType = eventItem.inputType;
+        eventType = eventItem.eventType;  
+        eventOrder = eventItem.order;
+    }
+    
+    var now = browser.now();
+    this.touchTimeStamp = now > this.touchTimeStamp ? now : this.touchTimeStamp;
+
     var tmodel = this.getTModelFromEvent(event);
-            
+
+    var lastEvent = this.eventQueue.length > 0 ? this.eventQueue[this.eventQueue.length - 1] : null;
+    
+    if (lastEvent) {
+
+        var lastEventItem = lastEvent.eventItem;
+        var rate  = now - lastEvent.timeStamp; 
+
+        if ((inputType && lastEventItem.inputType && lastEventItem.inputType !== inputType && eventOrder > lastEventItem.order)) {
+            return;
+        } else if (this.eventQueue.length > 10 && rate < 50) {
+            var capacity = 0, i;
+            for (i = this.eventQueue.length - 1; i >= 0 && this.eventQueue[i].eventItem.eventType === eventType; i--) {
+                if (++capacity > 5) {
+                    return;
+                }
+            }
+        } 
+    }
+
+    this.eventQueue.push({ eventName: eventName, eventItem: eventItem, originalName: originalName, tmodel: tmodel, timeStamp: now });
+        
     switch (eventName) { 
         
         case 'mousedown':
-        case 'touchstart':
-            this.lastEvents.push({ eventName: eventName, tmodel: tmodel });
+        case 'touchstart':  
+            this.clearStart();            
+            this.clearTouch(); 
             
-            this.clear();            
             this.touchCount = this.countTouches(event);
             if (this.preventDefault(tmodel, eventName)) event.preventDefault();
-            this.start(event);
+            
+            this.start0 = this.getTouch(event);
+            this.start1 = this.getTouch(event, 1);
+
+            this.cursor.x = this.start0.x;
+            this.cursor.y = this.start0.y;
+            
             event.stopPropagation();
             break;
             
         case 'mousemove':
         case 'touchmove':
-            this.lastEvents.push({ eventName: eventName, tmodel: tmodel });
             
             var touch = this.getTouch(event);
             this.cursor.x = touch.x;
@@ -141,37 +192,42 @@ EventListener.prototype.handleEvent = function (event) {
 
         case 'mouseup':
         case 'touchend':
-            this.lastEvents.push({ eventName: eventName, tmodel: tmodel });
-            
+                        
             if (this.preventDefault(tmodel, eventName)) event.preventDefault();
             this.end(event);
+                        
+            if (this.start0) {
+                var deltaX = 0, deltaY = 0, period = now - this.start0.timeStamp;
+                
+                if (this.end0) {
+                    deltaX = Math.abs(this.end0.originalX - this.start0.originalX);
+                    deltaY = Math.abs(this.end0.originalY - this.start0.originalY);
+                    period = Math.abs(this.end0.timeStamp - this.start0.timeStamp);
+                }
+                                
+                if (deltaX <= 1 && deltaY <= 1 && period <= 300) {
+                    this.eventQueue.push({ eventName: 'click', eventItem: eventItem, originalName: originalName, tmodel: tmodel, timeStamp: now });
+                }     
+            }
+            
+            this.clearStart();
+            this.touchCount = 0;
+                
             event.stopPropagation();
             break;
 
         case 'wheel':
-            this.lastEvents.push({ eventName: eventName, tmodel: tmodel });
             
             if (this.preventDefault(tmodel, eventName)) event.preventDefault();   
             this.wheel(event);
             break;
 
         case 'key':
-            this.lastEvents.push({ eventName: eventName, tmodel: tmodel });
-            
-            this.keyUpHandler(event);
-            break;
-            
-        case 'resize':
-            if (this.lastEvents.length === 0 || this.lastEvents[this.lastEvents.length - 1].eventName !== 'resize') {
-                this.lastEvents.push({ eventName: eventName, tmodel: tmodel });
-            }
-            break;
-            
+            this.currentTouch.key = event.which || event.keyCode;
+            break;  
     }
     
-    tapp.manager.scheduleRun(0, event.type + '-' + eventName + '-' + (event.target.tagName || "").toUpperCase()); 
-    tapp.manager.scheduleRun(20, event.type + '-' + eventName + '-' + (event.target.tagName || "").toUpperCase());   
-    
+    tapp.manager.scheduleRun(0, originalName + '-' + eventName + '-' + (event.target.tagName || "").toUpperCase());     
 };
     
 EventListener.prototype.findEventHandlers = function(tmodel) {
@@ -206,16 +262,15 @@ EventListener.prototype.getTModelFromEvent = function(event) {
     return tapp.manager.visibleOidMap[oid];
 };
 
-EventListener.prototype.clear = function () {
+EventListener.prototype.clearStart = function() {
     this.start0 = undefined;
     this.start1 = undefined;
     this.end0 = undefined;
     this.end1 = undefined;
     this.touchCount = 0;   
-    this.resetCurrentTouch();
 };
 
-EventListener.prototype.resetCurrentTouch = function() {
+EventListener.prototype.clearTouch = function() {
     this.currentTouch.deltaY = 0;
     this.currentTouch.deltaX = 0;
     this.currentTouch.pinchDelta = 0;
@@ -226,12 +281,19 @@ EventListener.prototype.resetCurrentTouch = function() {
     this.currentTouch.source = '';
 };
 
-EventListener.prototype.resetEvents = function () {
-    if (this.currentTouch.timeStamp > 0) {
-    
-        var diff = browser.now() - this.currentTouch.timeStamp;
-        var runDelay = 0;
+EventListener.prototype.clearAll = function() {
+    this.clearStart();
+    this.clearTouch();
+    this.eventQueue.length = 0;
+    this.touchTimeStamp = 0;
+};
 
+EventListener.prototype.resetEventsOnTimeout = function () {
+    if (this.touchTimeStamp > 0) {
+    
+        var diff = browser.now() - this.touchTimeStamp;
+        var runDelay = 0;
+        
         if (Math.abs(this.currentTouch.deltaY) > 0.001 
                 || Math.abs(this.currentTouch.deltaX) > 0.001 
                 || Math.abs(this.currentTouch.pinchDelta) > 0.001)
@@ -242,15 +304,15 @@ EventListener.prototype.resetEvents = function () {
                 this.currentTouch.source = '';
                 this.currentTouch.pinchDelta = 0;                
             } else if (this.currentTouch.manualMomentumFlag) {
-                this.currentTouch.deltaY *= 0.95;
-                this.currentTouch.deltaX *= 0.95;
+                this.currentTouch.deltaY *= 0.85;
+                this.currentTouch.deltaX *= 0.85;
                 this.currentTouch.source = '';
                 
                 runDelay = 10;
             }
         } else if (diff > 600) {
-            this.clear();
-            this.currentTouch.timeStamp = 0;
+            this.clearTouch();
+            this.touchTimeStamp = 0;
         } 
     
         tapp.manager.scheduleRun(runDelay, "scroll decay"); 
@@ -335,36 +397,21 @@ EventListener.prototype.countTouches = function(event)   {
 
     return count;
 };
-      
-EventListener.prototype.keyUpHandler = function (e) {
-    e = e || window.event;
-    var key = e.which || e.keyCode;
-        
-    this.currentTouch.key = key;
-};
 
-EventListener.prototype.getTouch = function (event, index) {
-    if (!event)  return undefined;
+EventListener.prototype.getTouch = function (event, index) {    
     index = index || 0;
-    var e = event.touches && event.touches[index] ? event.touches[index] : event;
-    if (e.originalEvent && e.originalEvent.touches) {
-        e = e.originalEvent.touches[index];
-    }
-    
+    var e = event.touches && event.touches[index] ? event.touches[index] : event.originalEvent && event.originalEvent.touches && event.originalEvent.touches[index] ? event.originalEvent.touches[index] : event;
+
+    var x = TUtil.isDefined(e.clientX) ? e.clientX : e.pageX || 0;
+    var y = TUtil.isDefined(e.clientY) ? e.clientY : e.pageY || 0;
     return { 
-        x: e.pageX || e.clientX || 0,
-        y: e.pageY || e.clientY || 0,
+        x: x,
+        y: y,
+        originalX: x,
+        originalY: y,
         target: e.target,
         timeStamp: browser.now()
     };
-};
-
-EventListener.prototype.start = function (event) {
-    this.start0 = this.getTouch(event);
-    this.start1 = this.getTouch(event, 1);
-    
-    this.cursor.x = this.start0.x;
-    this.cursor.y = this.start0.y;             
 };
 
 EventListener.prototype.move = function (event) {
@@ -394,50 +441,39 @@ EventListener.prototype.move = function (event) {
         var length1 = TUtil.distance(this.start0.x,  this.start0.y, this.start1.x, this.start1.y);        
         var length2 = TUtil.distance(this.end0.x,  this.end0.y, this.end1.x, this.end1.y);
 
-        this.currentTouch.diff = length2 - length1;
+        var diff = length2 - length1;
 
-        this.setCurrentTouchParam('pinchDelta', this.currentTouch.diff > 0 ? 0.3 : this.currentTouch.diff  < 0 ? -0.3 : 0);
+        this.currentTouch.pinchDelta = diff > 0 ? 0.3 : diff < 0 ? -0.3 : 0;
     }
 };
 
-EventListener.prototype.end = function (event) {
-    var momentum;
-            
-    if (!TUtil.isDefined(this.end0)) {
-        this.end0 = this.getTouch(event);
-    }
-    
-    var startToEndTime = TUtil.isDefined(this.end0) && TUtil.isDefined(this.start0) ? this.end0.timeStamp - this.start0.timeStamp : 0;
+EventListener.prototype.end = function () {
+               
+    if (this.touchCount <= 1 && this.start0) {
         
-    if (this.touchCount <= 1) {
+        var deltaX = 0, deltaY = 0, period = 0;
+        
+        if (this.end0) {
+            deltaX = this.start0.x - this.end0.x;
+            deltaY = this.start0.y - this.end0.y;
+            period = this.end0.timeStamp - this.start0.timeStamp;
+        }
 
-        if (TUtil.isDefined(this.end0) && TUtil.isDefined(this.start0)) {
+        var momentum;
 
-            var deltaX = this.start0.x - this.end0.x;
-            var deltaY = this.start0.y - this.end0.y;
-            
-            var period = this.end0.timeStamp - this.start0.timeStamp;
-            
-                            
-            if (this.currentTouch.orientation === "horizontal" && Math.abs(deltaX) > 1) {
-                momentum = TUtil.momentum(0, deltaX, period); 
-                this.setCurrentTouchParam('deltaX', momentum.distance, browser.now() + momentum.duration);
-                this.currentTouch.manualMomentumFlag = true;
-            } else if (this.currentTouch.orientation === "vertical" && Math.abs(deltaY) > 1)  {
-                momentum = TUtil.momentum(0, deltaY, period);
-                this.setCurrentTouchParam('deltaY', momentum.distance,  browser.now() + momentum.duration);
-                this.currentTouch.manualMomentumFlag = true;                     
-            }
-        } 
+        if (this.currentTouch.orientation === "horizontal" && Math.abs(deltaX) > 1) {
+            momentum = TUtil.momentum(0, deltaX, period);
+            this.currentTouch.deltaX = momentum.distance;
+            this.currentTouch.manualMomentumFlag = true;  
+            this.touchTimeStamp =  browser.now() + momentum.duration;
+        } else if (this.currentTouch.orientation === "vertical" && Math.abs(deltaY) > 1)  {                
+            momentum = TUtil.momentum(0, deltaY, period);
+            this.currentTouch.deltaY = momentum.distance;
+            this.currentTouch.manualMomentumFlag = true;                
+            this.touchTimeStamp =  browser.now() + momentum.duration;
+        }
+         
     }
-           
-    if (!momentum && this.touchCount === 1 && startToEndTime <= 300) {
-        this.lastEvents.push({ eventName: 'click', tmodel: this.getTModelFromEvent(event) });
-        this.clear();
-        this.currentTouch.timeStamp = 0;
-    }
-     
-    this.touchCount = 0;
 };
 
 EventListener.prototype.setDeltaXDeltaY = function(deltaX, deltaY, source) {
@@ -448,24 +484,19 @@ EventListener.prototype.setDeltaXDeltaY = function(deltaX, deltaY, source) {
             this.currentTouch.orientation = "horizontal";
             this.currentTouch.dir = deltaX <= -1 ? "left" : deltaX >= 1 ? "right" : this.currentTouch.dir;
             this.currentTouch.source = source;
-            this.setCurrentTouchParam('deltaX', deltaX);
+            this.currentTouch.deltaX = deltaX;
             this.currentTouch.deltaY = 0;
         }
     } else if (this.currentTouch.orientation === "none" || (this.currentTouch.orientation === "horizontal" && diff < -3) || this.currentTouch.orientation === "vertical") {
             this.currentTouch.orientation = "vertical";
             this.currentTouch.dir = deltaY <= -1 ? "up" : deltaY >= 1 ? "down" : this.currentTouch.dir;
             this.currentTouch.source = source;            
-            this.setCurrentTouchParam('deltaY', deltaY);
+            this.currentTouch.deltaY = deltaY;
             this.currentTouch.deltaX = 0;
     } else {
-        this.currentTouch.deltaX = 0;
         this.currentTouch.deltaY = 0;
+        this.currentTouch.deltaX = 0;
     }     
-};
-
-EventListener.prototype.setCurrentTouchParam = function(name, value, timeStamp) {
-    this.currentTouch[name] = value;
-    this.currentTouch.timeStamp = TUtil.isDefined(timeStamp) ? timeStamp :  Math.max(this.currentTouch.timeStamp, browser.now());
 };
 
 EventListener.prototype.wheel = function (event) {
@@ -476,7 +507,7 @@ EventListener.prototype.wheel = function (event) {
     this.start0 = this.getTouch(event);
 
     if (event.ctrlKey && 'deltaY' in event) {
-        this.setCurrentTouchParam('pinchDelta', -event.deltaY / 10);
+        this.currentTouch.pinchDelta = -event.deltaY / 10;
     } else if ('deltaX' in event) {
         deltaX = event.deltaX;
         deltaY = event.deltaY;

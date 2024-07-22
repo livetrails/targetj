@@ -38,7 +38,7 @@ TargetUtil.getValueStepsCycles = function(tmodel, key) {
     var _target = tmodel.targets[key];
     var valueOnly = _target && _target.valueOnly ? true : false;
     var cycle = tmodel.getTargetCycle(key);
-    var value = undefined, steps = 0, stepInterval = 0, cycles = 0;
+    var value, steps = 0, stepInterval = 0, cycles = 0;
     var lastValue = tmodel.getValue(key);
     
     function getValue(target) {             

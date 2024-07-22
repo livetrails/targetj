@@ -78,7 +78,7 @@ TUtil.momentum = function (past, current, time) {
       distance -= momentumDistance;
     }    
     
-    return {distance: Math.round(distance) / 50, duration: duration, momentumDistance: momentumDistance, time: time * 5 };
+    return {distance: Math.round(distance) / 50, duration: Math.floor(duration), momentumDistance: momentumDistance, time: time * 5 };
 };
 
 TUtil.isDefined = function (obj) {

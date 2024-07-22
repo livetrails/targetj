@@ -345,7 +345,7 @@ TModelManager.prototype.run = function(oid, delay) {
                         });
                     }                    
 
-                    tapp.events.resetEvents();
+                    tapp.events.resetEventsOnTimeout();
 
                     break;
                     

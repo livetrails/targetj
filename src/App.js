@@ -113,7 +113,7 @@ function AppFn(firstChild) {
     my.start = function () {
         my.runningFlag = false; 
         
-        my.events.clear();
+        my.events.clearAll();
         my.troot.getChildren().forEach(function(child) {
             child.deleteTargetValue('addEventHandler');
         }); 
@@ -141,7 +141,7 @@ function AppFn(firstChild) {
             }
         });
 
-        my.events.clear();
+        my.events.clearAll();
         
         my.resetRuns();
                 
@@ -190,7 +190,7 @@ function App(tmodel) {
 
 function isRunning() {
     return tapp ? tapp.runningFlag : false;
-};
+}
 
 function troot() {
     return tapp ? tapp.troot : null;

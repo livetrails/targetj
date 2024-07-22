@@ -155,7 +155,7 @@ Viewport.prototype.appendNewLine = function() {
     var height = this.currentChild.getHeight() * this.currentChild.getMeasuringScale();
 
     this.xNext = this.xOverflow;
-    this.yNext =  this.ySouth + height + this.currentChild.getTopMargin() + this.currentChild.getBottomMargin() + this.currentChild.getValue('appendNewLine');
+    this.yNext =  this.ySouth + height + this.currentChild.getValue('appendNewLine');
     
     this.yEast = this.yNext;
     this.xSouth = this.xNext;

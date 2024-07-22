@@ -8,9 +8,9 @@ function TargetManager() {
 }
 
 TargetManager.prototype.setTargetValues = function(tmodel, activeKeys) {
-        tmodel.targetUpdatingMap = {};
-        tmodel.targetUpdatingList = [];
-        tmodel.targetMethodMap = {};
+    tmodel.targetUpdatingMap = {};
+    tmodel.targetUpdatingList = [];
+    tmodel.targetMethodMap = {};
 
     for (var i = 0; i < activeKeys.length; i++) {
         var key = activeKeys[i];
