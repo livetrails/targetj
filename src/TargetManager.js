@@ -58,6 +58,10 @@ TargetManager.prototype.setTargetValue = function(tmodel, key) {
         return;
     }
 
+    if (typeof target.enabledOn === 'function') {
+        tmodel.setTargetMethodName(key, 'enabledOn');
+    }
+
     if (tmodel.isTargetEnabled(key)) {
         if (tmodel.getScheduleTimeStamp(key) && tmodel.isTargetActive(key) && tmodel.getTargetStepInterval(key) > 0
                 && tmodel.getScheduleTimeStamp(key) + tmodel.getTargetStepInterval(key) <= browser.now()) {
@@ -69,6 +73,7 @@ TargetManager.prototype.setTargetValue = function(tmodel, key) {
             if (!newChange) {
                 tmodel.targetValues[key].executionCount++;
             }
+
             tmodel.setTargetMethodName(key, 'value');
         }
                     
@@ -76,8 +81,6 @@ TargetManager.prototype.setTargetValue = function(tmodel, key) {
         if (schedulePeriod > 0) {
             tapp.manager.scheduleRun(schedulePeriod, "actualInterval__" + tmodel.oid + "__" + key); 
         }
-    } else {
-        tmodel.setTargetMethodName(key, 'enabledOn');
     }
 };
 

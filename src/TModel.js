@@ -548,7 +548,7 @@ TModel.prototype.updateTargetStatus = function(key) {
 };
 
 TModel.prototype.getTargetStatus = function(key) {   
-    return this.targetValues[key] ? this.targetValues[key].status : 0;
+    return this.targetValues[key] ? this.targetValues[key].status : '';
 };
 
 TModel.prototype.isTargetActive = function(key) {
