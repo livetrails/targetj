@@ -156,7 +156,7 @@ LocationManager.prototype.calculateContainer = function(container) {
 LocationManager.prototype.calculateTargets = function(tmodel) {
     if (this.resizeFlag && Array.isArray(tmodel.getValue('onResize'))) {
         tmodel.getValue('onResize').forEach(function(key) {
-            if (tmodel.targets[key] && !tmodel.targets[key] !== 'number' && tmodel.targetValues[key] && !tmodel.isTargetActive(key)) {
+            if (tmodel.targets[key] && typeof tmodel.targets[key] !== 'number' && tmodel.targetValues[key] && !tmodel.isTargetActive(key)) {
                 tmodel.activeTargetMap[key] = true;
                 tmodel.targetValues[key].status = '';
             }            

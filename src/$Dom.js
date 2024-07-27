@@ -54,7 +54,7 @@ $Dom.prototype.value = function(value) {
     if (!this.element) return;
     
     if (TUtil.isDefined(value)) {
-        this.element.value = value
+        this.element.value = value;
     } else {
         return this.element.value;
     }    
