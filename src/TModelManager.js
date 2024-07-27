@@ -366,11 +366,11 @@ TModelManager.prototype.run = function(oid, delay) {
                         var tmodel = tapp.manager.lists.visible[i];
                         if (tmodel.hasDom()) {
                             tmodel.fixXYRotateScale();
-                            tmodel.fixOpacity();
-                            tmodel.fixZIndex();
                             tmodel.fixCss();
                             tmodel.fixStyle();
                             tmodel.fixDim();
+                            tmodel.fixStyleAttributes();
+                            
                         }
 
                     }                    

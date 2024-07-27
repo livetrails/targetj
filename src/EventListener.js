@@ -140,7 +140,6 @@ EventListener.prototype.handleEvent = function (event) {
     var lastEvent = this.eventQueue.length > 0 ? this.eventQueue[this.eventQueue.length - 1] : null;
     
     if (lastEvent) {
-
         var lastEventItem = lastEvent.eventItem;
         var rate  = now - lastEvent.timeStamp; 
 
@@ -237,6 +236,10 @@ EventListener.prototype.findEventHandlers = function(tmodel) {
     var scrollTopHandler = tmodel ? SearchUtil.findFirstScrollTopHandler(tmodel) : null;
     var pinchHandler = tmodel ? SearchUtil.findFirstPinchHandler(tmodel) : null;
 
+    if (this.currentHandlers.scrollLeft !== scrollLeftHandler || this.currentHandlers.scrollTop !== scrollTopHandler) {
+        this.clearTouch();
+    }
+
     this.currentHandlers.touch = touchHandler;
     this.currentHandlers.scrollLeft = scrollLeftHandler;
     this.currentHandlers.scrollTop = scrollTopHandler; 
@@ -318,6 +321,34 @@ EventListener.prototype.resetEventsOnTimeout = function () {
         tapp.manager.scheduleRun(runDelay, "scroll decay"); 
     }
 
+};
+
+EventListener.prototype.deltaX = function()  {
+    return this.currentTouch.deltaX;
+};
+
+EventListener.prototype.deltaY = function()  {
+    return this.currentTouch.deltaY;
+};
+
+EventListener.prototype.pinchDelta = function()  {
+    return this.currentTouch.pinchDelta;
+};
+
+EventListener.prototype.dir = function()  {
+    return this.currentTouch.dir;
+};
+
+EventListener.prototype.getScrollLeftHandler = function()  {
+    return this.currentHandlers.scrollLeft;
+};
+
+EventListener.prototype.getScrollTopHandler = function()  {
+    return this.currentHandlers.scrollTop;
+};
+
+EventListener.prototype.getPinchHandler = function()  {
+    return this.currentHandlers.pinch;
 };
 
 EventListener.prototype.getTouchHandler = function() {

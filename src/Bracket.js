@@ -7,7 +7,7 @@ function Bracket(parent) {
 
     var tm = new TModel("BI", {
         canHaveDom: false,
-        outerXEast: 0        
+        outerXEast: 0
     });
     
     tm.parent = parent;
@@ -43,6 +43,17 @@ function Bracket(parent) {
         return this.getRealParent().getScrollLeft();
     };
     
+    tm.getBoundingRect = function() {
+        this.initParents();                
+        return TUtil.getBoundingRect(this.getRealParent());
+    };
+    
+    tm.calculateAbsolutePosition = function(x, y) {
+        var rect = this.getBoundingRect();
+        this.absX = rect.left + x;
+        this.absY = rect.top + y;
+    };
+
     tm.isVisible = function () {
         return this.yVisible;
     };

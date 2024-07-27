@@ -35,7 +35,7 @@ SearchUtil.findEventHandler = function(tmodel, eventName) {
     }
 };
 
-SearchUtil.findParentWithType = function(child, type) {
+SearchUtil.findParentByType = function(child, type) {
     var parent;
       
     function search() {
@@ -61,7 +61,7 @@ SearchUtil.findParentWithType = function(child, type) {
     return SearchUtil.foundParentWithType[indexKey];
 };
 
-SearchUtil.findParentWithTarget = function(child, targetName) {
+SearchUtil.findParentByTarget = function(child, targetName) {
     var parent;
       
     function search() {

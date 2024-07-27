@@ -16,12 +16,13 @@ function TModel(type, targets) {
     this.type = type ? type : 'blank';
     this.targets = Object.assign({}, targets);
     this.activeTargetMap = {};
-    this.resetActiveTargetMap();
+    this.styleTargets = [];
+    this.initTargets();
     
     var uniqueId = App.getOid(this.type);
     this.oid = uniqueId.oid;
     this.oidNum = uniqueId.num;
-
+    
     this.targetValues = {};
     
     this.actualValues = {
@@ -58,7 +59,8 @@ function TModel(type, targets) {
         canBeBracketed: true,      
         isDomDeletable: true,
         calculateChildren: undefined,
-        isVisible: undefined
+        isVisible: undefined,
+        onResize: undefined
     };
         
     this.targetUpdatingMap = {};
@@ -87,8 +89,6 @@ function TModel(type, targets) {
     this.y = 0;
     this.absX = 0;
     this.absY = 0;
-    this.deepY = 0;
-    this.deepX = 0;
     
     this.inFlowVisibles = [];
                
@@ -108,20 +108,26 @@ TModel.prototype.getDomParent = function() {
 };
 
 TModel.prototype.getDomHolder = function() {
-    return this.actualValues.domHolder ? this.actualValues.domHolder : this.getDomParent() ? this.getDomParent().$dom : SearchUtil.findParentWithTarget(this, 'domHolder') ? SearchUtil.findParentWithTarget(this, 'domHolder').$dom : null;
+    return this.actualValues.domHolder ? this.actualValues.domHolder : this.getDomParent() ? this.getDomParent().$dom : SearchUtil.findParentByTarget(this, 'domHolder') ? SearchUtil.findParentByTarget(this, 'domHolder').$dom : null;
 };
 
-TModel.prototype.resetActiveTargetMap = function() {
+TModel.prototype.addToStyleTargets = function(key) {
+    if (TargetUtil.styleTargetMap[key] && !this.styleTargets.includes(key)) {
+        this.styleTargets.push(key);
+    }
+};
+
+TModel.prototype.initTargets = function() {
     var self = this;
     this.targetValues = {};
     this.activeTargetMap = {};
     Object.keys(this.targets).forEach(function(key) {
         self.activeTargetMap[key] = true;
+        self.addToStyleTargets(key);
     });    
 };
 
 TModel.prototype.hasDomHolderChanged = function() {
-
     return this.getDomHolder() && this.getDomHolder().exists() && this.$dom.parent().getAttribute("id") !== this.getDomHolder().attr("id");
 };
 
@@ -211,7 +217,7 @@ TModel.prototype.findLastChild = function(type) {
 };
 
 TModel.prototype.getParentValue = function(targetName) {
-    var parent =  SearchUtil.findParentWithTarget(this, targetName);
+    var parent =  SearchUtil.findParentByTarget(this, targetName);
     return parent ? parent.getValue(targetName) : undefined;
 };
 
@@ -292,23 +298,16 @@ TModel.prototype.createViewport = function() {
 TModel.prototype.setLocation = function(viewport) {
     this.x = viewport.getXNext();
     this.y = viewport.getYNext();
-
-    this.absX = this.getDomParent() ? this.getDomParent().absX + this.x : this.x;
-    this.absY = this.getDomParent() ? this.getDomParent().absY + this.y : this.y;
-     
-    var scrollTopHandler = SearchUtil.findFirstScrollTopHandler(this);
-    var scrollLeftHandler = SearchUtil.findFirstScrollLeftHandler(this);    
-
-    this.deepX = this.absX + (scrollTopHandler ? scrollTopHandler.getScrollTop() : 0);
-    this.deepY = this.absY + (scrollLeftHandler ? scrollLeftHandler.getScrollLeft() : 0);   
 };
 
-TModel.prototype.fixOpacity = function () {
-    var opacity = this.getOpacity() ? this.getOpacity().toFixed(2) : 0;
-    
-    if (this.$dom.opacity() !== opacity) {
-        this.$dom.opacity(opacity); 
-    }
+TModel.prototype.calculateAbsolutePosition = function(x, y) {
+    var rect = this.getBoundingRect();
+    this.absX = rect.left + x;
+    this.absY = rect.top + y;
+};
+
+TModel.prototype.getBoundingRect = function() {              
+    return TUtil.getBoundingRect(this);
 };
 
 TModel.prototype.fixCss = function () {
@@ -323,7 +322,7 @@ TModel.prototype.fixStyle = function () {
     if (TUtil.isDefined(style) && this.domValues.style !== style) {
         this.$dom.setStyleByMap(style);
         this.domValues.style = style;
-    }  
+    }
 };
 
 TModel.prototype.fixXYRotateScale = function () {
@@ -349,12 +348,13 @@ TModel.prototype.fixDim = function () {
     }
 };
 
-TModel.prototype.fixZIndex = function () {
-
-    var zIndex = Math.floor(this.getZIndex());
-    if (this.$dom.zIndex() !== zIndex) {
-        this.$dom.zIndex(zIndex);
-    }
+TModel.prototype.fixStyleAttributes = function() {
+    var self = this;
+    this.styleTargets.forEach(function(key) {
+        if (TUtil.isDefined(self.getValue(key)) && self.$dom.style(key) !== self.getValue(key)) {
+            self.$dom.style(key, self.getValue(key));
+        }
+    });
 };
 
 TModel.prototype.isMarkedDeleted = function() {
@@ -773,13 +773,18 @@ TModel.prototype.removeUpdatingChild = function(child) {
 TModel.prototype.removeTarget = function(key) {
     delete this.targets[key];
     delete this.activeTargetMap[key];
-    delete this.targetValues[key]; 
+    delete this.targetValues[key];
+    var index = this.styleTargets.indexOf(key);
+    if (index !== -1) {
+        this.styleTargets.splice(index, 1);
+    }    
 };
 
 TModel.prototype.addTarget = function(key, target) {
     this.targets[key] = target;
     this.activeTargetMap[key] = true;
     delete this.targetValues[key];
+    this.addToStyleTargets(key);    
             
     tapp.manager.scheduleRun(10, 'addTarget-' + this.oid + "-" + key);
 };
@@ -787,8 +792,13 @@ TModel.prototype.addTarget = function(key, target) {
 TModel.prototype.addTargets = function(targets) {
     var self = this;
     Object.keys(targets).forEach(function(key) {
-        self.addTarget(key, targets[key]);
+        self.targets[key] = targets[key];
+        self.activeTargetMap[key] = true;
+        delete self.targetValues[key];
+        self.addToStyleTargets(key);
     });
+    
+    tapp.manager.scheduleRun(10, 'addTargets-' + this.oid);    
 };
 
 TModel.prototype.deleteTargetValue = function(key)   {
@@ -796,6 +806,17 @@ TModel.prototype.deleteTargetValue = function(key)   {
     this.activeTargetMap[key] = true;
 
     tapp.manager.scheduleRun(10, 'deleteTargetValue-' + this.oid + "-" + key);    
+};
+
+TModel.prototype.deleteTargetValues = function(keys) {
+    var self = this;
+    keys.forEach(function(key) {
+        delete self.targetValues[key];
+        self.activeTargetMap[key] = true;
+    });
+    
+    tapp.manager.scheduleRun(10, 'deleteTargetValues-' + this.oid);    
+    
 };
 
 TModel.prototype.setTargetMethodName = function(targetName, methodName) {

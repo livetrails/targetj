@@ -4,6 +4,16 @@ import { TUtil } from "./TUtil.js";
 
 function TargetUtil() {}
 
+TargetUtil.styleTargetMap = {
+    'opacity': true,
+    'zIndex': true,
+    'fontSize': true,
+    'borderRadius': true,
+    'padding': true,
+    'background': true,
+    'color': true
+};
+
 TargetUtil.extractInvisibles = function(tmodel, target, key) {
     if (typeof target === 'object' && target) {
         Object.keys(target).forEach(function(k) {
@@ -34,6 +44,20 @@ TargetUtil.emptyValue = function() {
     };
 };
 
+TargetUtil.isValueStepsCycleArray = function(arr) {
+    if (arr.length > 4) {
+        return false;
+    }
+  
+    for (var i = 0; i < arr.length; i++) {
+        if (typeof arr[i] !== 'number') {
+            return false;
+        }
+    }
+    
+    return true;
+};
+
 TargetUtil.getValueStepsCycles = function(tmodel, key) {
     var _target = tmodel.targets[key];
     var valueOnly = _target && _target.valueOnly ? true : false;
@@ -43,7 +67,7 @@ TargetUtil.getValueStepsCycles = function(tmodel, key) {
     
     function getValue(target) {             
         if (Array.isArray(target)) {                      
-            if (valueOnly) {
+            if (valueOnly || !TargetUtil.isValueStepsCycleArray(target)) {
                 return [target, steps, stepInterval, cycles];
             } else {
                 if (typeof target[0] === 'function') {
@@ -64,7 +88,7 @@ TargetUtil.getValueStepsCycles = function(tmodel, key) {
             stepInterval = typeof target.stepInterval === 'function' ? target.stepInterval.call(tmodel, key, cycle, tmodel.getTargetStepInterval(key)) : TUtil.isDefined(target.stepInterval) ? target.stepInterval : 0;            
             cycles = typeof target.cycles === 'function' ? target.cycles.call(tmodel, key, cycle, tmodel.getTargetCycles(key)) : TUtil.isDefined(target.cycles) ? target.cycles : 0;
 
-            if (Array.isArray(value) && valueOnly === false) {
+            if (Array.isArray(value)) {
                 return getValue(value);
             } else {
                 return [value, steps, stepInterval, cycles];

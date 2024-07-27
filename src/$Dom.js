@@ -50,12 +50,21 @@ $Dom.prototype.attr = function(name, value) {
     }
 };
 
-$Dom.prototype.opacity = function(opacity) {
-    if (TUtil.isDefined(opacity)) {
-        this.element.style.opacity = opacity;        
+$Dom.prototype.value = function(value) {
+    if (!this.element) return;
+    
+    if (TUtil.isDefined(value)) {
+        this.element.value = value
     } else {
-        return this.element.style.opacity;        
-    }       
+        return this.element.value;
+    }    
+};
+
+$Dom.prototype.select = function() {
+    if (!this.element || typeof this.element.select !== 'function') return;
+    
+    
+    this.element.select();
 };
 
 $Dom.prototype.width = function(width) {
@@ -72,14 +81,6 @@ $Dom.prototype.height = function(height) {
     } else {
         return this.element.offsetHeight;        
     }
-};
-
-$Dom.prototype.zIndex = function(zIndex) {
-    if (TUtil.isDefined(zIndex)) {
-        this.element.style.zIndex = zIndex;
-    }
-    
-    return this.element.style.zIndex;
 };
 
 $Dom.prototype.css = function(css) {
@@ -106,33 +107,29 @@ $Dom.prototype.setStyleByMap = function(attrMap) {
             case 'height': 
                 self.height(value);
                 break;
-                        
-            case 'zIndex': 
-                self.zIndex(value);
-                break;
-                
-            case 'opacity':
-                self.opacity(value);
-                break;
 
             default: 
-                self.setStyle(key, value);
+                self.style(key, value);
         }
     });
 };
 
-$Dom.prototype.setStyle = function(name, value) {
-    this.element.style[name] = value;
-};
-
-$Dom.prototype.getStyle = function(name) {
-    return this.element.style[name];
+$Dom.prototype.style = function(name, value) {
+    if (TUtil.isDefined(value)) {
+        this.element.style[name] = value;
+    } else {
+        return this.element.style[name];
+    }  
 };
 
 $Dom.prototype.getStyleValue = function(name) {
-    var styleValue = this.getStyle(name);
+    var styleValue = this.style(name);
     var numericValue = TUtil.isDefined(styleValue) ? styleValue.replace(/[^-\d.]/g, '') : 0;
     return parseFloat(numericValue);    
+};
+
+$Dom.prototype.getBoundingClientRect = function() {
+    return this.element.getBoundingClientRect();
 };
 
 $Dom.prototype.parent = function() {

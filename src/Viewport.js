@@ -1,6 +1,7 @@
 import { browser } from "./Browser.js";
 import { TUtil } from "./TUtil.js";
 import { tapp } from "./App.js";
+import { getScreenWidth, getScreenHeight } from "./App.js";
 
 function Viewport(tmodel) {
     
@@ -90,51 +91,30 @@ Viewport.prototype.getYNext = function() {
     return this.yNext + this.currentChild.getTopMargin() + this.yOffset - this.tmodel.getScrollTop();
 };
 
-Viewport.prototype.isXVisible = function(child, x1, x2, minX, maxX) {
+Viewport.prototype.isXVisible = function(x1, x2, minX, maxX) {
     return x1 <= maxX && x2 >= minX;
 };
 
-Viewport.prototype.isYVisible = function(child, y1, y2, minY, maxY) {
+Viewport.prototype.isYVisible = function(y1, y2, minY, maxY) {
     return y1 <= maxY && y2 >= minY;
 };
 
 Viewport.prototype.isVisible = function(child) {
     
+    var x = child.absX;
+    var y = child.absY;
+      
     var parentScale = child.getDomParent() ? child.getDomParent().getMeasuringScale() : 1;
-
-    var minX = tapp.dim.screen.x;
-    var minY = tapp.dim.screen.y;
-    var maxX = tapp.dim.screen.width;
-    var maxY = tapp.dim.screen.height;
-         
-    var x = child.getX();
-    var y = child.getY();
-    
-    var domHolder = child.type === 'BI' ? child.getRealParent().getDomHolder() : child.getDomHolder();
-    var domParent = child.type === 'BI' ? child.getRealParent().getDomParent() : child.getDomParent();
-
-    if (domParent) { 
-        minX = domParent.isInFlow() ? domParent.absX : domParent.getX();
-        minY = domParent.isInFlow() ? domParent.absY : domParent.getY();       
-                
-        x = minX + child.getX();
-        y = minY + child.getY();
-        
-        maxX = Math.min(maxX, minX + domParent.getWidth());
-        maxY = Math.min(maxY, minY + domParent.getHeight());
-        minX = Math.max(0, minX);
-        minY = Math.max(0, minY);              
-    } 
-   
     var scale = parentScale * child.getMeasuringScale();
     var maxWidth = TUtil.isDefined(child.getWidth()) ? scale * child.getWidth() : 0;
     var maxHeight = TUtil.isDefined(child.getHeight()) ? scale * child.getHeight() : 0;
 
-    child.xVisible = this.isXVisible(child, x, x + maxWidth, minX, maxX);
-    child.yVisible = this.isYVisible(child, y, y + maxHeight, minY, maxY);
+    var rect = child.getBoundingRect();
+    child.xVisible = this.isXVisible(x, x + maxWidth, rect.left, rect.right);
+    child.yVisible = this.isYVisible(y, y + maxHeight, rect.top, rect.bottom);
         
-    //browser.log(child.oid === 'BI199')("oid: " + child.oid + " in " + this.tmodel.oid + " min-maxX:" + Math.round(minX) + "-" + Math.round(maxX) + " x:" + Math.round(x) + " w:" + Math.floor(maxWidth) +  " sc:" + scale +  " vx:" + child.xVisible);
-    //browser.log(child.oid === 'BI199')("oid: " + child.oid + " in " + this.tmodel.oid + " min-maxY:" + Math.round(minY) + "-" + Math.round(maxY) + " y:" + Math.round(y) + " h:" + Math.floor(maxHeight) + " sc:" + scale + " vy:" + child.yVisible);
+    //browser.log(child.oid === 'num')("oid: " + child.oid + " in " + this.tmodel.oid + " min-maxX:" + Math.round(rect.left) + "-" + Math.round(rect.right) + " x:" + Math.round(x) + " w:" + Math.floor(maxWidth) +  " sc:" + scale +  " vx:" + child.xVisible);
+    //browser.log(child.oid === 'docsPanel')("oid: " + child.oid + " in " + this.tmodel.oid + " min-maxY:" + Math.round(rect.top) + "-" + Math.round(rect.bottom) + " y:" + Math.round(y) + " h:" + Math.floor(maxHeight) + " sc:" + scale + " vy:" + child.yVisible);
 
     return child.isVisible();    
 };

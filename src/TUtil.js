@@ -1,6 +1,37 @@
 import { $Dom } from "./$Dom.js";
+import { getScreenWidth, getScreenHeight } from "./App.js";
+import { SearchUtil } from "./SearchUtil.js";
 
 function TUtil() {}
+
+TUtil.getBoundingRect = function(tmodel) {
+    var left, top, right, bottom;
+    
+    if (tmodel.actualValues.domHolder && tmodel.actualValues.domHolder.exists()) {
+        var rect = tmodel.actualValues.domHolder.getBoundingClientRect();
+        left = rect.left;
+        top = rect.top;
+        right = rect.right;
+        bottom = rect.bottom;
+    } else {
+        var parent = tmodel.getDomParent() ? tmodel.getDomParent() : SearchUtil.findParentByTarget(tmodel, 'domHolder');
+
+        if (parent) {
+            left = parent.absX;
+            top = parent.absY;
+            right = left + parent.getWidth();
+            bottom = top + parent.getHeight();
+        } else {
+            left = 0;
+            top = 0;
+            right = getScreenWidth();
+            bottom = getScreenHeight();
+        }
+    }
+    
+    return { left: left, top: top, right: right, bottom: bottom };
+};
+
 
 TUtil.initDoms = function(visibleList) {
     
