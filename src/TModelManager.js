@@ -23,6 +23,8 @@ TModelManager.prototype.init = function()   {
     this.visibleTypeMap = {};
     this.visibleOidMap = {};
     this.targetMethodMap = {};
+    
+    this.doneTargets = [];
             
     this.nextRuns = [];
     this.runningStep = 0;
@@ -85,9 +87,9 @@ TModelManager.prototype.analyze = function()    {
             this.needsRestyle(tmodel);
             this.needsReattach(tmodel);
             
-            if (tmodel.targetUpdatingList.length > 0) {
+            if (tmodel.updatingTargetList.length > 0) {
                 this.lists.updatingTModels.push(tmodel);
-                this.lists.updatingTargets = this.lists.updatingTargets.concat((tmodel.targetUpdatingList));
+                this.lists.updatingTargets = this.lists.updatingTargets.concat((tmodel.updatingTargetList));
             }
             
             var activeTargets = Object.keys(tmodel.activeTargetMap);
@@ -417,14 +419,14 @@ TModelManager.prototype.run = function(oid, delay) {
                                         
                     tapp.events.captureEvents();
                     
-                    tapp.targetManager.doneTargets.length = 0;
+                    tapp.manager.doneTargets.length = 0;
 
                     tapp.locationManager.calculateTargets(tapp.troot);
 
                     tapp.locationManager.calculateAll();
                     
-                    if (tapp.targetManager.doneTargets.length > 0) {
-                        tapp.targetManager.doneTargets.forEach(function(target) {
+                    if (tapp.manager.doneTargets.length > 0) {
+                        tapp.manager.doneTargets.forEach(function(target) {
                             //imperative call is possible till this gets executed so we need to make sure that it is still done
                             if (target.tmodel.isTargetDone(target.key)) {
                                 target.tmodel.setTargetComplete(target.key);

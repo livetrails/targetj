@@ -92,7 +92,7 @@ LocationManager.prototype.calculateContainer = function(container) {
             this.addToLocationList(child);          
         }
 
-        if (!child.targetUpdatingMap.x) {
+        if (!child.isTargetUpdating('x') && !child.isTargetImperative('x')) {
             if (child.isTargetEnabled('x')) {
                 TargetUtil.assignValueArray(child, 'x');
                 tapp.targetManager.setJustActualValue(child, 'x');
@@ -101,14 +101,12 @@ LocationManager.prototype.calculateContainer = function(container) {
             }
         }
 
-        if (!child.targetUpdatingMap.y) {
+        if (!child.isTargetUpdating('y') && !child.isTargetImperative('y')) {
             if (child.isTargetEnabled('y')) {
                 TargetUtil.assignValueArray(child, 'y');
                 tapp.targetManager.setJustActualValue(child, 'y');
             } else if (!TUtil.isDefined(child.targetValues.y)) {
                 child.setValue('y', child.y);
-                
-
             }            
         }
         
@@ -127,7 +125,7 @@ LocationManager.prototype.calculateContainer = function(container) {
         }
         
         if (child.isVisible() && child.isIncluded() 
-                && (child.styleTargetList.length > 0 || child.targetUpdatingList.length > 0 || child.updatingChildren.length > 0)) {
+                && (child.styleTargetList.length > 0 || child.updatingTargetMap.length > 0 || child.updatingChildren.length > 0)) {
             container.addToUpdatingChildren(child);
         } 
           
@@ -157,7 +155,7 @@ LocationManager.prototype.calculateContainer = function(container) {
             }
         }
         
-        this.locationCount.push(child.oid + "-" + child.targetUpdatingList.length + "-" + (browser.now() - this.startTime));
+        this.locationCount.push(child.oid + "-" + child.updatingTargetList.length + "-" + (browser.now() - this.startTime));
     }   
     
     viewport.calcContentWidthHeight();
@@ -170,17 +168,18 @@ LocationManager.prototype.calculateTargets = function(tmodel) {
             tmodel.resetTargetStep(key);
             tmodel.resetLastActualValue(key);               
             tmodel.addToActiveTargets(key);
-            tmodel.targetValues[key].status = '';
+            tmodel.updateTargetStatus(key);
         }            
     });
     
-    var onTouchTargets = getEvents().isTouchHandler(tmodel) ? tmodel.targets['onTouch'] || tmodel.getValue('onTouch') : undefined; 
+    var onTouchTargets = getEvents().isTouchHandler(tmodel) ? tmodel.targets['onTouchEvent'] || tmodel.getValue('onTouchEvent') : undefined; 
     onTouchTargets && onTouchTargets.forEach(function(key) {
         if (tmodel.targets[key] && tmodel.targetValues[key] && tmodel.isTargetComplete(key) ) {
             tmodel.resetTargetStep(key);
             tmodel.resetLastActualValue(key);            
-            tmodel.addToActiveTargets(key);
-            tmodel.targetValues[key].status = '';
+            tmodel.updateTargetStatus(key);
+            
+            console.log("onTouchEvent: " + tmodel.oid + ", " + key + ", " + tmodel.getTargetStatus(key));
         }            
     });     
 

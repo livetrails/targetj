@@ -138,18 +138,24 @@ TargetUtil.assignValueArray = function(tmodel, key) {
         var newSteps = valueArray[1] || 0;
         var newStepInterval = valueArray[2] || 0;        
         var newCycles = valueArray[3] || 0;
-               
-        var targetValue = tmodel.targetValues[key];        
-        var theValue = targetValue ? targetValue.value : undefined;
-        var newValueFlag = !TUtil.areEqual(theValue, newValue, tmodel.targets[key] ? !!tmodel.targets[key].deepEquality : false) 
+      
+        var targetValue = tmodel.targetValues[key];  
+        var isNewTargetValue = !targetValue;
+        var theValue = !isNewTargetValue ? targetValue.value : undefined;
+        var isValueUpdated = isNewTargetValue
+                || !TUtil.areEqual(theValue, newValue, tmodel.targets[key] ? !!tmodel.targets[key].deepEquality : false) 
                 || !TUtil.isDefined(targetValue)
                 || (!tmodel.isTargetUpdating(key) && !tmodel.doesTargetEqualActual(key));
-                
-        if (newValueFlag || targetValue.steps !== newSteps || targetValue.cycles !== newCycles || targetValue.stepInterval !== newStepInterval) {
-                     
+           
+        if (isValueUpdated || targetValue.steps !== newSteps || targetValue.cycles !== newCycles || targetValue.stepInterval !== newStepInterval) {
+
             tmodel.setTargetValue(key, newValue, newSteps, newStepInterval, newCycles, key);
+            
+            if (isNewTargetValue) {
+                TargetUtil.extractInvisibles(tmodel, tmodel.targets[key], key);  
+            }
    
-            if (newValueFlag) {
+            if (isValueUpdated) {
                 tmodel.resetTargetStep(key);
                 tmodel.resetLastActualValue(key);
             }
@@ -165,26 +171,24 @@ TargetUtil.getIntervalValue = function(tmodel, key, interval) {
     return TUtil.isNumber(intervalValue) ? intervalValue : 0;
 };
 
-TargetUtil.scheduleExecution = function(tmodel, key) {   
+TargetUtil.scheduleExecution = function(tmodel, key) { 
+    var now = browser.now();    
+    var stepInterval = tmodel.getTargetStepInterval(key);
+    var lastScheduledTime = tmodel.getScheduleTimeStamp(key);
     
     var schedulePeriod = 0;
-    var stepInterval = tmodel.getTargetStepInterval(key);
-    var now = browser.now();
-    
+
     if (stepInterval > 0) {
-        if (TUtil.isDefined(tmodel.getScheduleTimeStamp(key))) {
-            var period = now - tmodel.getScheduleTimeStamp(key);
-            if (period < stepInterval) {
-                schedulePeriod = stepInterval - period;
-            } else {
-                schedulePeriod = 0;
-            }
+        if (TUtil.isDefined(lastScheduledTime)) {
+            var elapsed = now - lastScheduledTime;
+            schedulePeriod = Math.max(stepInterval - elapsed, 0);
         } else {
             schedulePeriod = stepInterval;
+            tmodel.setScheduleTimeStamp(key, now); // Set the schedule timestamp when first scheduled
         }
     }
-    
-    if (schedulePeriod > 0 && !TUtil.isDefined(tmodel.getScheduleTimeStamp(key))) {
+        
+    if (schedulePeriod > 0 && !TUtil.isDefined(lastScheduledTime)) {
         tmodel.setScheduleTimeStamp(key, now);       
     }
 
@@ -236,10 +240,11 @@ TargetUtil.handleValueChange = function(tmodel, key, newValue, lastValue, step, 
 TargetUtil.setWidthFromDom = function(child) {
     var height = TUtil.isDefined(child.domWidth) ? child.domWidth.height : undefined;    
     var width = TUtil.isDefined(child.domWidth) ? child.domWidth.width : undefined;
+    var domParent = child.getDomParent();
     
     if (!TUtil.isDefined(child.domWidth) 
             || height !== child.getHeight()
-            || child.hasTargetUpdatedAfter('width', 'width', child.getParent())) {
+            || (domParent && child.getActualValueLastUpdate('width') <= domParent.getActualValueLastUpdate('width'))) {
         child.$dom.width('auto');
         width = child.$dom.width();
         height = child.$dom.height();
@@ -252,10 +257,11 @@ TargetUtil.setWidthFromDom = function(child) {
 TargetUtil.setHeightFromDom = function(child) {
     var height = TUtil.isDefined(child.domHeight) ? child.domHeight.height : undefined;
     var width = TUtil.isDefined(child.domHeight) ? child.domHeight.width : undefined;
-
+    var domParent = child.getDomParent();
+    
     if (!TUtil.isDefined(child.domHeight) 
             || width !== child.getWidth() 
-            || child.hasTargetUpdatedAfter('height', 'height', child.getParent())) {
+            || (domParent && child.getActualValueLastUpdate('height') <= domParent.getActualValueLastUpdate('height'))) {
         child.$dom.height('auto');
         width =  child.$dom.width();
         height = child.$dom.height();
