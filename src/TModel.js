@@ -135,7 +135,6 @@ TModel.prototype.bug = function() {
         updatingTargetList: this.updatingTargetList,
         activeTargetList: this.activeTargetList,
         styleTargetList: this.styleTargetList,
-        doneTargetList: this.doneTargetList,
         targetValues: this.targetValues
     };
 };

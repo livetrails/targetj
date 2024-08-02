@@ -105,7 +105,7 @@ TargetManager.prototype.setActualValues = function(tmodel) {
     for (i = 0; i < updatingList.length; i++) {
         key = updatingList[i];
         
-        
+        browser.log(tmodel.oid === 'toolItem2')('toolItem: ' + tmodel.oid + ", " + key + ", " + tmodel.getTargetStep(key));
                  
         schedulePeriod = TargetUtil.scheduleExecution(tmodel, key);
               
