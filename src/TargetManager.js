@@ -1,30 +1,33 @@
 import { browser } from "./Browser.js";
 import { TUtil, EasingEffects } from "./TUtil.js";
 import { TargetUtil } from "./TargetUtil.js";
+import { ColorUtil } from "./ColorUtil.js";
+import { Easing } from "./Easing.js";
+
 import { tapp } from "./App.js";
 
 function TargetManager() {
     this.doneTargets = [];
 }
 
-TargetManager.prototype.setTargetValues = function(tmodel, activeKeys) {
-    tmodel.targetUpdatingMap = {};
-    tmodel.targetUpdatingList = [];
+TargetManager.prototype.setTargetValues = function(tmodel) {
     tmodel.targetMethodMap = {};
 
-    for (var i = 0; i < activeKeys.length; i++) {
-        var key = activeKeys[i];
-                                  
-        if (tmodel.targetUpdatingMap[key]) {            
+    for (var i = 0; i < tmodel.activeTargetList.length; i++) {
+        var key = tmodel.activeTargetList[i];
+                
+        tmodel.addToStyleTargetList(key);
+        
+        if (tmodel.targetUpdatingMap[key]) {
+            tmodel.removeFromActiveTargets(key);
             continue;
-        } 
+        }
         
         if (tmodel.isTargetImperative(key)) {
             tmodel.setTargetMethodName(key, 'value');
-            
             if (tmodel.isTargetUpdating(key)) {
-                tmodel.targetUpdatingMap[key] = true;
-                tmodel.targetUpdatingList.push(key);
+                tmodel.addToUpdatingTargets(key);
+                tmodel.removeFromActiveTargets(key);
                 continue;
             }
         }
@@ -32,20 +35,14 @@ TargetManager.prototype.setTargetValues = function(tmodel, activeKeys) {
         if (tmodel.isTargetDone(key)) {
             this.doneTargets.push({ tmodel: tmodel, key: key });
         } else if (tmodel.isTargetComplete(key)) {
-            delete tmodel.activeTargetMap[key];
+            tmodel.removeFromActiveTargets(key);
         } else {
             this.setTargetValue(tmodel, key);
-            tmodel.updateTargetStatus(key);
-
-            if (tmodel.isTargetUpdating(key)) {
-                tmodel.targetUpdatingMap[key] = true;
-                tmodel.targetUpdatingList.push(key);
-            }
         }
        
     }
 
-    if (tmodel.getParent() && tmodel.targetUpdatingList.length === 0) {
+    if (tmodel.getParent() && !tmodel.hasTargetUpdates()) {
         tmodel.getParent().removeUpdatingChild(tmodel);
     }
 };
@@ -54,72 +51,93 @@ TargetManager.prototype.setTargetValue = function(tmodel, key) {
     var target = tmodel.targets[key];
     
     if (!TUtil.isDefined(target)) {
-        delete tmodel.activeTargetMap[key];        
+        tmodel.removeFromActiveTargets(key);        
         return;
     }
 
     if (typeof target.enabledOn === 'function') {
         tmodel.setTargetMethodName(key, 'enabledOn');
     }
+    
+    if (!tmodel.isTargetEnabled(key)) {
+        tapp.manager.scheduleRun(0, "setTargetValue-disabled-" + tmodel.oid + "__" + key);
+        return;
+    }
 
-    if (tmodel.isTargetEnabled(key)) {
-        if (tmodel.getScheduleTimeStamp(key) && tmodel.isTargetActive(key) && tmodel.getTargetStepInterval(key) > 0
-                && tmodel.getScheduleTimeStamp(key) + tmodel.getTargetStepInterval(key) <= browser.now()) {
-            tmodel.resetScheduleTimeStamp(key);
-        }
-        
-        if (!TUtil.isDefined(tmodel.getScheduleTimeStamp(key))) {
-            var newChange = TargetUtil.assignValueArray(tmodel, key);
-            if (!newChange) {
-                tmodel.targetValues[key].executionCount++;
-            }
+    var newChange = TargetUtil.assignValueArray(tmodel, key);
 
-            tmodel.setTargetMethodName(key, 'value');
-        }
-                    
-        var schedulePeriod = TargetUtil.scheduleExecution(tmodel, key);
-        if (schedulePeriod > 0) {
-            tapp.manager.scheduleRun(schedulePeriod, "actualInterval__" + tmodel.oid + "__" + key); 
-        }
+    if (!newChange) {
+        tmodel.targetValues[key].executionCount++;
+    }
+
+    tmodel.updateTargetStatus(key);
+    tmodel.setTargetMethodName(key, 'value');
+
+    if (tmodel.isTargetUpdating(key)) {
+        tmodel.removeFromActiveTargets(key);
+        tmodel.addToUpdatingTargets(key);
+    }
+    
+    var schedulePeriod = TargetUtil.scheduleExecution(tmodel, key);
+    if (schedulePeriod > 0) {
+        tapp.manager.scheduleRun(schedulePeriod, "actualInterval__" + tmodel.oid + "__" + key); 
     }
 };
 
-TargetManager.prototype.setActualValues = function(tmodel, keyList)  { 
+TargetManager.prototype.setActualValues = function(tmodel)  { 
     var i, key; 
-    keyList = !keyList ? tmodel.targetUpdatingList : keyList;
-    var length = keyList.length;
+    var length = tmodel.targetUpdatingList.length;
+    var schedulePeriod = 0;
     
     for (i = 0; i < length; i++) {
-        key = keyList[i];
+        key = tmodel.targetUpdatingList[i];
          
-        var schedulePeriod = TargetUtil.scheduleExecution(tmodel, key);
-        if (schedulePeriod === 0) {
+        if (TUtil.isDefined(tmodel.getScheduleTimeStamp(key))) {
+            schedulePeriod = TargetUtil.scheduleExecution(tmodel, key);
+        }   
+
+        if (schedulePeriod === 0) { 
+            tmodel.addToStyleTargetList(key);   
             this.setActualValue(tmodel, key);            
-        } else { 
-            tapp.manager.scheduleRun(schedulePeriod, "actualInterval__" + tmodel.oid + "__" + key);  
-        }
+        } 
     }
-     
+};
+
+TargetManager.prototype.calculateActualValue = function(tmodel, key, targetValue, lastActualValue, step, steps)  {
+    var easing = TUtil.isDefined(tmodel.getTargetEasing(key)) ? tmodel.getTargetEasing(key) : Easing.linear;
+    var easingStep = easing(tmodel.getTargetStepPercent(key, step, steps)); 
+
+    if (TargetUtil.colorMap[key]) {
+        var targetColors = ColorUtil.color2Integers(targetValue);
+        var lastColors = targetColors ? ColorUtil.color2Integers(lastActualValue) : undefined;
+                
+        if (targetColors && lastColors) {
+            var red = targetColors[0] * easingStep + lastColors[0] * (1 - easingStep);
+            var green = targetColors[1] * easingStep + lastColors[1] * (1 - easingStep);
+            var blue = targetColors[2] * easingStep + lastColors[2] * (1 - easingStep);
+            
+            return 'rgb(' + red + ',' + green +  ',' + blue + ')';
+        } else {
+            return targetValue;
+        }
+        
+    } else {
+        return typeof targetValue  === 'number' ? targetValue * easingStep + lastActualValue * (1 - easingStep) : targetValue;
+    }
 };
 
 TargetManager.prototype.setJustActualValue = function(tmodel, key)  {
     
-    if (!tmodel.targetUpdatingList[key]) {
-        return false;
-    }
-    
     var targetValue = tmodel.getTargetValue(key);
    
     var step = tmodel.getTargetStep(key);
-    var easing = TUtil.isDefined(tmodel.getTargetEasing(key)) ? tmodel.getTargetEasing(key) : EasingEffects.linear;
     var steps = tmodel.getTargetSteps(key);
-    var easingStep = easing(tmodel.getTargetStepPercent(key, step)); 
     
     if (step < steps) {
         if (!TUtil.isDefined(tmodel.getLastActualValue(key))) {
             tmodel.setLastActualValue(key, tmodel.actualValues[key]);
         }
-        tmodel.actualValues[key] = typeof targetValue  === 'number' ? targetValue * easingStep + tmodel.getLastActualValue(key) * (1 - easingStep) : targetValue;
+        tmodel.actualValues[key] = this.calculateActualValue(tmodel, key, targetValue, tmodel.getLastActualValue(key), step, steps);
     } else {          
         tmodel.actualValues[key] = targetValue;
     } 
@@ -132,9 +150,7 @@ TargetManager.prototype.setActualValue = function(tmodel, key) {
     var targetValue = tmodel.getTargetValue(key);
     var step = tmodel.getTargetStep(key);
     var steps = tmodel.getTargetSteps(key);
-    var easing = TUtil.isDefined(tmodel.getTargetEasing(key)) ? tmodel.getTargetEasing(key) : EasingEffects.linear;
     var cycle = tmodel.getTargetCycle(key);
-    var easingStep = easing(tmodel.getTargetStepPercent(key, step)); 
     var stepInterval = tmodel.getTargetStepInterval(key) || 0;  
     var oldValue = tmodel.actualValues[key], oldStep = step, oldCycle = cycle;
           
@@ -142,7 +158,7 @@ TargetManager.prototype.setActualValue = function(tmodel, key) {
         if (!TUtil.isDefined(tmodel.getLastActualValue(key))) {
             tmodel.setLastActualValue(key, tmodel.actualValues[key]);
         }
-        tmodel.actualValues[key] = typeof targetValue  === 'number' ? targetValue * easingStep + tmodel.getLastActualValue(key) * (1 - easingStep) : targetValue;
+        tmodel.actualValues[key] = this.calculateActualValue(tmodel, key, targetValue, tmodel.getLastActualValue(key), step, steps);
        
         tmodel.setActualValueLastUpdate(key);
         
@@ -170,8 +186,16 @@ TargetManager.prototype.setActualValue = function(tmodel, key) {
 
     tmodel.resetScheduleTimeStamp(key);
     tmodel.updateTargetStatus(key);
+    
+    if (tmodel.isTargetUpdating()) {
+        tapp.manager.scheduleRun(stepInterval, tmodel.oid + "---" + key + "-" + step + "/" + steps + "-" + cycle + "-" + stepInterval);  
+    } else {    
+        tmodel.removeFromUpdatingTargets(key);
+        tmodel.addToActiveTargets(key);
+        tapp.manager.scheduleRun(0, tmodel.oid + "---" + key + "-" + step + "/" + steps + "-" + cycle + "-" + stepInterval);  
+        
+    }
 
-    tapp.manager.scheduleRun(stepInterval, tmodel.oid + "---" + key + "-" + step + "/" + steps + "-" + cycle + "-" + stepInterval);      
 };
 
 export { TargetManager };

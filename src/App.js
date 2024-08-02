@@ -157,13 +157,7 @@ function AppFn(firstChild) {
     
     my.reset = function() {
         my.manager.lists.visible.forEach(function(tmodel) { tmodel.domValues = {}; });
-        my.manager.lists.visible.length = 0;
-        my.manager.lists.invisibleDom.length = 0;
-        my.manager.lists.deletedTModel.length = 0; 
-        my.manager.lists.visibleNoDom.length = 0;
-        my.manager.visibleTypeMap = {};
-        my.manager.visibleOidMap = {};
-        my.manager.targetMethodMap = {};
+        my.manager.clear();
         my.locationManager.hasLocationList.length = 0;
         SearchUtil.foundParentWithTarget = {};
         SearchUtil.foundTypeMap = {};

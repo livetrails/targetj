@@ -185,22 +185,4 @@ TUtil.getFullLink = function(link) {
     }
 };
 
-function EasingEffects() {}
-
-EasingEffects.linear =function (t) {
-    return t;
-};
-
-EasingEffects.easeInQuad = function (t) {
-    return t * t;
-};
-
-EasingEffects.easeOutExpo = function (t) {
-    return 1 - (1 - t) * (1 - t);
-};
-  
-EasingEffects.circular = function (t) {
-    return Math.sqrt(1 - (--t * t));
-};
-
-export { TUtil, EasingEffects };
+export { TUtil };

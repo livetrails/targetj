@@ -10,6 +10,9 @@ function TModelManager() {
 TModelManager.prototype.init = function()   {
     this.lists = {
         visible: [],
+        rerender: [],
+        restyle: [],
+        reattach: [],
         invisibleDom: [],
         deletedTModel: [],
         visibleNoDom: [],
@@ -39,20 +42,27 @@ TModelManager.prototype.findVisible = function(type)  {
 TModelManager.prototype.findLastVisible = function(type)  {
     return this.lists.visible.findLast(function(tmodel) { return tmodel.type === type; });
 };
- 
-TModelManager.prototype.analyze = function()    {
-    var i, tmodel;
-        
-    var lastVisibleMap = TUtil.list2map(this.lists.visible);
-    
+
+TModelManager.prototype.clear = function() {
     this.lists.visible.length = 0;
+    this.lists.rerender.length = 0;
+    this.lists.restyle.length = 0;
+    this.lists.reattach.length = 0;    
     this.lists.visibleNoDom.length = 0;
     this.lists.updatingTModels.length = 0;
     this.lists.updatingTargets.length = 0;
     this.lists.activeTargets.length = 0;
     this.visibleTypeMap = {};
     this.visibleOidMap = {};
-    this.targetMethodMap = {};
+    this.targetMethodMap = {};      
+};
+ 
+TModelManager.prototype.analyze = function()    {
+    var i, tmodel;
+        
+    var lastVisibleMap = TUtil.list2map(this.lists.visible);
+    
+    this.clear();
     
     for (i = 0; i < tapp.locationManager.hasLocationList.length; i++) {
         tmodel = tapp.locationManager.hasLocationList[i];
@@ -68,8 +78,12 @@ TModelManager.prototype.analyze = function()    {
             if (tmodel.hasDom() && !tmodel.canHaveDom() && this.lists.invisibleDom.indexOf(tmodel) === -1) {
                 this.lists.invisibleDom.push(tmodel);
             }
-            
+
             this.lists.visible.push(tmodel);
+            
+            this.needsRerender(tmodel);
+            this.needsRestyle(tmodel);
+            this.needsReattach(tmodel);
             
             if (tmodel.targetUpdatingList.length > 0) {
                 this.lists.updatingTModels.push(tmodel);
@@ -104,26 +118,31 @@ TModelManager.prototype.analyze = function()    {
     });
 };
 
+TModelManager.prototype.needsRerender = function(tmodel) {
+    if (tmodel.hasDom()
+            && TUtil.isDefined(tmodel.getHtml())
+            && (tmodel.$dom.html() !== tmodel.getHtml() || tmodel.$dom.textOnly !== tmodel.isTextOnly())) {
+        this.lists.rerender.push(tmodel);
+    }
+};
+
+TModelManager.prototype.needsRestyle = function(tmodel) {
+    if (tmodel.hasDom() && tmodel.styleTargetList.length > 0) {
+        this.lists.restyle.push(tmodel);
+    }
+};
+
+TModelManager.prototype.needsReattach = function(tmodel) {
+    if (tmodel.hasDom() && tmodel.hasDomHolderChanged()) {
+        this.lists.reattach.push(tmodel);
+    }
+};
+
 TModelManager.prototype.renderTModels = function () {
     var i, tmodel;
     
-    var rerendedList = [];
-    var holderChangedList = [];
-    this.lists.visible.forEach(function(tmodel) {          
-        if (tmodel.hasDom() && TUtil.isDefined(tmodel.getHtml())) {
-            
-            if (tmodel.$dom.html() !== tmodel.getHtml() || tmodel.$dom.textOnly !== tmodel.isTextOnly()) {
-                rerendedList.push(tmodel);
-            }
-        } 
-                
-        if (tmodel.hasDom() && tmodel.hasDomHolderChanged()) {
-            holderChangedList.push(tmodel);
-        }
-    });
-    
-    for (i = 0; i < rerendedList.length; i++) { 
-        tmodel = rerendedList[i];
+    for (i = 0; i < this.lists.rerender.length; i++) { 
+        tmodel = this.lists.rerender[i];
         
         tmodel.isTextOnly() ? tmodel.$dom.text(tmodel.getHtml()) : tmodel.$dom.html(tmodel.getHtml());
         tmodel.setActualValueLastUpdate('html');
@@ -132,12 +151,16 @@ TModelManager.prototype.renderTModels = function () {
         tmodel.domHeight = undefined;
         tmodel.domWidth = undefined;
     }
+};
+
+TModelManager.prototype.reattachTModels = function() {
+    var i, tmodel;
     
-    for (i = 0; i < holderChangedList.length; i++) {
-        tmodel = holderChangedList[i];
+    for (i = 0; i < this.lists.reattach.length; i++) {
+        tmodel = this.lists.reattach[i];
         tmodel.$dom.detach();                    
         tmodel.getDomHolder().appendTModel$Dom(tmodel);
-    }
+    }    
 };
 
 TModelManager.prototype.deleteDoms = function () { 
@@ -155,7 +178,7 @@ TModelManager.prototype.deleteDoms = function () {
                 var key = invisible.key;
                 invisible.fn.call(tmodel, key, tmodel.getTargetStep(key), tmodel.getTargetCycle(key), tmodel.getTargetSteps(key), tmodel.getTargetCycles(key));
                 tmodel.setTargetMethodName(key, 'onInvisible');
-                tmodel.activeTargetMap[key] = true;
+                tmodel.addToActiveTargets(key);
             });
         }
         
@@ -186,7 +209,6 @@ TModelManager.prototype.removeTModel = function(tmodel) {
     if (parent && parent.hasChildren()) {
         parent.removeUpdatingChild(tmodel);
 
-        
         childIndex = parent.getValue('children').indexOf(tmodel);
         
         if (childIndex >= 0) {
@@ -208,6 +230,68 @@ TModelManager.prototype.removeTModel = function(tmodel) {
         tmodel.$dom.detach();
         tmodel.$dom = null;
     }  
+};
+
+TModelManager.prototype.fixStyles = function() {
+    var i, tmodel;
+    
+    for (i = 0; i < this.lists.restyle.length; i++) {
+        tmodel = this.lists.restyle[i];
+       
+        tmodel.styleTargetList.forEach(function(key) {
+            switch (key) {
+                case 'transform':
+                    var x = Math.floor(tmodel.getX());
+                    var y = Math.floor(tmodel.getY());
+                    var rotate = Math.floor(tmodel.getRotate());
+                    var scale = TUtil.formatNum(tmodel.getScale(), 2);
+
+                    if (tmodel.domValues.x !== x || tmodel.domValues.y !== y || tmodel.domValues.rotate !== rotate || tmodel.domValues.scale !== scale) {
+                        tmodel.$dom.transform(x, y, rotate, scale);
+                        tmodel.domValues.y = y;
+                        tmodel.domValues.x = x;
+                        tmodel.domValues.rotate = rotate;
+                        tmodel.domValues.scale = scale;
+                    }
+
+                    break;
+
+                case 'dim':
+                    var width = Math.floor(tmodel.getWidth());
+                    var height = Math.floor(tmodel.getHeight());
+
+                    if (tmodel.$dom.width() !== width || tmodel.$dom.height() !== height) { 
+                        tmodel.$dom.width(width);
+                        tmodel.$dom.height(height);
+                    }
+                    break;
+
+                case 'style':
+                    var style = tmodel.getStyle();
+                    if (TUtil.isDefined(style) && tmodel.domValues.style !== style) {
+                        tmodel.$dom.setStyleByMap(tmodel.getStyle());
+                        tmodel.domValues.style = style;
+                    }
+                    break;
+
+                case 'css':
+                    var css = tmodel.getCss();
+                    if (tmodel.$dom.css() !== css) {
+                        tmodel.$dom.css(css);
+                    }
+                    break;
+
+                default: 
+                    if (TUtil.isDefined(tmodel.getValue(key)) && tmodel.domValues[key] !== tmodel.getValue(key)) {
+                        tmodel.$dom.style(key, tmodel.getValue(key));
+                        tmodel.domValues[key] = tmodel.getValue(key);
+                    }                    
+            }
+        });
+        
+        tmodel.styleTargetMap = {};
+        tmodel.styleTargetList.length = 0;
+    };
 };
 
 TModelManager.prototype.createDoms = function () {
@@ -244,7 +328,7 @@ TModelManager.prototype.createDoms = function () {
         var zIndex = Math.floor(tmodel.getZIndex());
         var opacity = tmodel.getOpacity() ? tmodel.getOpacity().toFixed(2) : 0;
         
-        var styles = {
+        var style = {
             position: 'absolute',
             top: 0,
             left: 0,
@@ -254,19 +338,22 @@ TModelManager.prototype.createDoms = function () {
             height: height + "px",
             zIndex: zIndex 
         };
+        
+        Object.assign(style, tmodel.getStyle());
                 
         $dom = new $Dom();
         $dom.create('div');
         $dom.setSelector("#" + tmodel.oid);
         $dom.setId(tmodel.oid);
         $dom.css(tmodel.getCss());
-        $dom.setStyleByMap(styles);
+        $dom.setStyleByMap(style);
 
         tmodel.domValues = {};
         tmodel.domValues.x = x;
         tmodel.domValues.y = y;
         tmodel.domValues.rotate = rotate;
         tmodel.domValues.scale = scale;
+        tmodel.domValues.style = style;
         
         tmodel.$dom = $dom;        
 
@@ -359,24 +446,14 @@ TModelManager.prototype.run = function(oid, delay) {
                     
                 case 3:                    
                     tapp.manager.renderTModels();
+                    tapp.manager.reattachTModels();
                     break;
                     
                 case 4:
-                    for (var i = 0; i <  tapp.manager.lists.visible.length; i++) {
-                        var tmodel = tapp.manager.lists.visible[i];
-                        if (tmodel.hasDom()) {
-                            tmodel.fixXYRotateScale();
-                            tmodel.fixCss();
-                            tmodel.fixStyle();
-                            tmodel.fixDim();
-                            tmodel.fixStyleAttributes();
-                            
-                        }
-
-                    }                    
+                    tapp.manager.fixStyles();                  
                     break;
                     
-                case 5:           
+                case 5:   
                     tapp.manager.deleteDoms();
                     break;
                     

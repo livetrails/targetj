@@ -15,8 +15,8 @@ function TModel(type, targets) {
 
     this.type = type ? type : 'blank';
     this.targets = Object.assign({}, targets);
+    this.activeTargetList = [];
     this.activeTargetMap = {};
-    this.styleTargets = [];
     this.initTargets();
     
     var uniqueId = App.getOid(this.type);
@@ -62,11 +62,14 @@ function TModel(type, targets) {
         isVisible: undefined,
         onResize: undefined
     };
-        
-    this.targetUpdatingMap = {};
+
     this.targetUpdatingList = [];
+    this.targetUpdatingMap = {};
     
     this.targetMethodMap = {};
+    
+    this.styleTargetList = [];
+    this.styleTargetMap = {};    
     
     this.updatingChildren = [];
        
@@ -111,19 +114,33 @@ TModel.prototype.getDomHolder = function() {
     return this.actualValues.domHolder ? this.actualValues.domHolder : this.getDomParent() ? this.getDomParent().$dom : SearchUtil.findParentByTarget(this, 'domHolder') ? SearchUtil.findParentByTarget(this, 'domHolder').$dom : null;
 };
 
-TModel.prototype.addToStyleTargets = function(key) {
-    if (TargetUtil.styleTargetMap[key] && !this.styleTargets.includes(key)) {
-        this.styleTargets.push(key);
+TModel.prototype.addToStyleTargetList = function(key) {
+    if (!TargetUtil.styleTargetMap[key]) return;
+    
+    key = TargetUtil.transformMap[key] ? 'transform' : TargetUtil.dimMap[key] ? 'dim' : key;
+    
+    if (!this.styleTargetMap[key]) {
+        this.styleTargetList.push(key);
+        this.styleTargetMap[key] = true;
     }
+};
+
+TModel.prototype.getAll = function() {
+    return {
+        targetUpdatingList: this.targetUpdatingList,
+        activeTargetList: this.activeTargetList,
+        styleTargetList: this.styleTargetList,
+        targetValues: this.targetValues
+    };
 };
 
 TModel.prototype.initTargets = function() {
     var self = this;
     this.targetValues = {};
     this.activeTargetMap = {};
+    this.activeTargetList = [];
     Object.keys(this.targets).forEach(function(key) {
-        self.activeTargetMap[key] = true;
-        self.addToStyleTargets(key);
+        self.addToActiveTargets(key);
     });    
 };
 
@@ -310,53 +327,6 @@ TModel.prototype.getBoundingRect = function() {
     return TUtil.getBoundingRect(this);
 };
 
-TModel.prototype.fixCss = function () {
-    var css = this.getCss();
-    if (this.$dom.css() !== css) {
-        this.$dom.css(css);
-    } 
-};
-
-TModel.prototype.fixStyle = function () {
-    var style = this.getStyle();
-    if (TUtil.isDefined(style) && this.domValues.style !== style) {
-        this.$dom.setStyleByMap(style);
-        this.domValues.style = style;
-    }
-};
-
-TModel.prototype.fixXYRotateScale = function () {
-    var x = Math.floor(this.getX()), y = Math.floor(this.getY()), rotate = Math.floor(this.getRotate()), scale = TUtil.formatNum(this.getScale(), 2);
-
-    if (this.domValues.x !== x || this.domValues.y !== y || this.domValues.rotate !== rotate || this.domValues.scale !== scale) {
-        this.$dom.transform(x, y, rotate, scale);
-
-        this.domValues.y = y;
-        this.domValues.x = x;
-        this.domValues.rotate = rotate;
-        this.domValues.scale = scale;
-    }
-};
-
-TModel.prototype.fixDim = function () {
-    var width = Math.floor(this.getWidth());
-    var height = Math.floor(this.getHeight());
-    
-    if (this.$dom.width() !== width || this.$dom.height() !== height) { 
-        this.$dom.width(width);
-        this.$dom.height(height);
-    }
-};
-
-TModel.prototype.fixStyleAttributes = function() {
-    var self = this;
-    this.styleTargets.forEach(function(key) {
-        if (TUtil.isDefined(self.getValue(key)) && self.$dom.style(key) !== self.getValue(key)) {
-            self.$dom.style(key, self.getValue(key));
-        }
-    });
-};
-
 TModel.prototype.isMarkedDeleted = function() {
     return this.getValue('tmodelDeletedFlag') === true;
 };
@@ -535,7 +505,7 @@ TModel.prototype.updateTargetStatus = function(key) {
     var steps = this.getTargetSteps(key);
     
     this.targetValues[key].status = '';
-   
+    
     if (step < steps || cycle < cycles || !this.doesTargetEqualActual(key)) {
         this.targetValues[key].status = 'updating';
     } else if (!this.hasTargetGotExecuted(key) || this.isTargetInLoop(key)) {
@@ -691,13 +661,12 @@ TModel.prototype.resetCallingTargetKey = function(key)   {
     }
 };
 
-TModel.prototype.setTargetValue = function(key, value, steps, stepInterval, cycles, callingTargetKey) {
-                    
+TModel.prototype.setTargetValue = function(key, value, steps, stepInterval, cycles, callingTargetKey) {          
     steps = steps || 0;
+    stepInterval = stepInterval || 0;    
     cycles = cycles || 0;
-    stepInterval = stepInterval || 0;
 
-    if (this.targetValues[key]) {    
+    if (this.targetValues[key]) {
         if (key !== callingTargetKey && (this.targetValues[key].callingTargetKey !== callingTargetKey || value !== this.targetValues[key].value)) {
             this.resetTargetStep(key);
             this.resetLastActualValue(key);
@@ -726,8 +695,8 @@ TModel.prototype.setTargetValue = function(key, value, steps, stepInterval, cycl
         this.setActualValueLastUpdate(key);
         TargetUtil.handleValueChange(this, key, this.actualValues[key], oldValue, 0, 0); 
     }
-    
-    this.activeTargetMap[key] = true;
+                        
+    this.addToActiveTargets(key);
     this.targetValues[key].executionCount++; 
 
     this.updateTargetStatus(key);
@@ -757,7 +726,7 @@ TModel.prototype.addChild = function(child, index)  {
     return this;
 };
 
-TModel.prototype.addUpdatingChild = function(child) {
+TModel.prototype.addToUpdatingChildren = function(child) {
     if (this.updatingChildren.indexOf(child) === -1) {
         this.updatingChildren.push(child);
     }
@@ -770,21 +739,24 @@ TModel.prototype.removeUpdatingChild = function(child) {
     }
 };
 
+TModel.prototype.hasUpdatingChildren = function() {
+    return this.updatingChildren.length > 0;
+};
+
+TModel.prototype.hasTargetUpdates = function(key) {
+    return key ? this.targetUpdatingMap[key] === true : this.targetUpdatingList.length > 0;
+};
+
 TModel.prototype.removeTarget = function(key) {
     delete this.targets[key];
-    delete this.activeTargetMap[key];
-    delete this.targetValues[key];
-    var index = this.styleTargets.indexOf(key);
-    if (index !== -1) {
-        this.styleTargets.splice(index, 1);
-    }    
+    this.removeFromActiveTargets(key);
+    delete this.targetValues[key];   
 };
 
 TModel.prototype.addTarget = function(key, target) {
     this.targets[key] = target;
-    this.activeTargetMap[key] = true;
+    this.addToActiveTargets(key);
     delete this.targetValues[key];
-    this.addToStyleTargets(key);    
             
     tapp.manager.scheduleRun(10, 'addTarget-' + this.oid + "-" + key);
 };
@@ -793,17 +765,51 @@ TModel.prototype.addTargets = function(targets) {
     var self = this;
     Object.keys(targets).forEach(function(key) {
         self.targets[key] = targets[key];
-        self.activeTargetMap[key] = true;
+        self.addToActiveTargets(key);
         delete self.targetValues[key];
-        self.addToStyleTargets(key);
     });
     
     tapp.manager.scheduleRun(10, 'addTargets-' + this.oid);    
 };
 
+
+TModel.prototype.addToActiveTargets = function(key) {
+    if (!this.activeTargetMap[key]) {
+        this.activeTargetMap[key] = true;
+        this.activeTargetList.push(key);
+    }
+};
+
+TModel.prototype.removeFromActiveTargets = function(key) {
+    if (this.activeTargetMap[key]) {
+        delete this.activeTargetMap[key];
+        var index = this.activeTargetList.indexOf(key);
+        if (index >= 0) {
+            this.activeTargetList.splice(index, 1);
+        }        
+    }    
+};
+
+TModel.prototype.addToUpdatingTargets = function(key) {
+    if (!this.targetUpdatingMap[key]) {
+        this.targetUpdatingMap[key] = true;
+        this.targetUpdatingList.push(key);
+    }
+};
+
+TModel.prototype.removeFromUpdatingTargets = function(key) {
+    if (this.targetUpdatingMap[key]) {
+        delete this.targetUpdatingMap[key];
+        var index = this.targetUpdatingList.indexOf(key);
+        if (index >= 0) {
+            this.targetUpdatingList.splice(index, 1);
+        }        
+    }    
+};
+
 TModel.prototype.deleteTargetValue = function(key)   {
     delete this.targetValues[key];
-    this.activeTargetMap[key] = true;
+    this.addToActiveTargets(key);
 
     tapp.manager.scheduleRun(10, 'deleteTargetValue-' + this.oid + "-" + key);    
 };
@@ -812,7 +818,7 @@ TModel.prototype.deleteTargetValues = function(keys) {
     var self = this;
     keys.forEach(function(key) {
         delete self.targetValues[key];
-        self.activeTargetMap[key] = true;
+        self.addToActiveTargets(key);
     });
     
     tapp.manager.scheduleRun(10, 'deleteTargetValues-' + this.oid);    

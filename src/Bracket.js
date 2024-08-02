@@ -58,8 +58,8 @@ function Bracket(parent) {
         return this.yVisible;
     };
     
-    tm.addUpdatingChild = function(child) {
-        this.getRealParent().addUpdatingChild(child);
+    tm.addToUpdatingChildren = function(child) {
+        this.getRealParent().addToUpdatingChildren(child);
     };
     
     tm.createViewport = function() { 

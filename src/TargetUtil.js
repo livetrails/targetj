@@ -5,13 +5,42 @@ import { TUtil } from "./TUtil.js";
 function TargetUtil() {}
 
 TargetUtil.styleTargetMap = {
-    'opacity': true,
-    'zIndex': true,
-    'fontSize': true,
-    'borderRadius': true,
-    'padding': true,
-    'background': true,
-    'color': true
+    x: true,
+    y: true,
+    width: true,
+    height: true,
+    rotate: true,
+    scale: true,
+    opacity: true,
+    zIndex: true,
+    fontSize: true,
+    borderRadius: true,
+    padding: true,
+    backgroundColor: true,
+    background: true,
+    color: true,
+    css: true,
+    style: true,
+    transform: true,
+    dim: true
+};
+
+TargetUtil.transformMap = {
+    x: true,
+    y: true,
+    rotate: true,
+    scale: true
+};
+
+TargetUtil.dimMap = {
+    width: true,
+    height: true
+};
+
+TargetUtil.colorMap = {
+    color: true,
+    background: true, 
+    backgroundColor: true
 };
 
 TargetUtil.extractInvisibles = function(tmodel, target, key) {
@@ -62,57 +91,43 @@ TargetUtil.getValueStepsCycles = function(tmodel, key) {
     var _target = tmodel.targets[key];
     var valueOnly = _target && _target.valueOnly ? true : false;
     var cycle = tmodel.getTargetCycle(key);
-    var value, steps = 0, stepInterval = 0, cycles = 0;
     var lastValue = tmodel.getValue(key);
+    
+    var value = null, steps = 0, stepInterval = 0, cycles = 0;
     
     function getValue(target) {             
         if (Array.isArray(target)) {                      
             if (valueOnly || !TargetUtil.isValueStepsCycleArray(target)) {
                 return [target, steps, stepInterval, cycles];
+            } else if (Array.isArray(_target)) {
+                return _target;
             } else {
-                if (typeof target[0] === 'function') {
-                    value = target[0].call(tmodel, key, cycle, lastValue);
-                } else {
-                    value = target[0];
-                }
+                value = target[0];
                 steps = target.length >= 2 ? target[1] : steps;
                 stepInterval = target.length >= 3 ? target[2] : stepInterval;                
                 cycles = target.length >= 4 ? target[3] : cycles;
 
                 return [value, steps, stepInterval, cycles];
-            }
-                
-        } else if (typeof target === 'object' && target) {
+            } 
+        }
+        
+        if (typeof target === 'object' && target !== null) {
             value = typeof target.value === 'function' ? target.value.call(tmodel, key, cycle, lastValue) : TUtil.isDefined(target.value) ? target.value : target;
             steps = typeof target.steps === 'function' ? target.steps.call(tmodel, key, cycle) : TUtil.isDefined(target.steps) ? target.steps : 0;
             stepInterval = typeof target.stepInterval === 'function' ? target.stepInterval.call(tmodel, key, cycle, tmodel.getTargetStepInterval(key)) : TUtil.isDefined(target.stepInterval) ? target.stepInterval : 0;            
             cycles = typeof target.cycles === 'function' ? target.cycles.call(tmodel, key, cycle, tmodel.getTargetCycles(key)) : TUtil.isDefined(target.cycles) ? target.cycles : 0;
 
-            if (Array.isArray(value)) {
-                return getValue(value);
-            } else {
-                return [value, steps, stepInterval, cycles];
-            }
-            
-        } else {               
-            if (typeof target === 'function') {
-                return getValue(target.call(tmodel, key, cycle, lastValue));
-            } else if (typeof target === 'number' 
-                    || typeof target === 'string'
-                    || typeof target === 'boolean'            
-                    || (target instanceof TModel)
-                    || (typeof target === 'object')) {
-                
-                return [target, steps, stepInterval, cycles];
-            } else {      
-                return [value, steps, stepInterval, cycles];
-            }
+            return Array.isArray(value) ? getValue(value) : [value, steps, stepInterval, cycles];
         }
+        
+        if (typeof target === 'function') {
+            return getValue(target.call(tmodel, key, cycle, lastValue));
+        } 
+                
+        return [target, steps, stepInterval, cycles];
     }
    
-    var valueArray = getValue(_target);
-      
-    return valueArray;
+    return getValue(_target);
 };
 
 TargetUtil.assignValueArray = function(tmodel, key) {
@@ -120,10 +135,9 @@ TargetUtil.assignValueArray = function(tmodel, key) {
 
     if (Array.isArray(valueArray)) {
         var newValue = valueArray[0];
-        var newSteps = valueArray[1];
-        var newStepInterval = valueArray[2];        
-        var newCycles = valueArray[3];
-        var target = tmodel.targets[key];
+        var newSteps = valueArray[1] || 0;
+        var newStepInterval = valueArray[2] || 0;        
+        var newCycles = valueArray[3] || 0;
                
         var targetValue = tmodel.targetValues[key];        
         var theValue = targetValue ? targetValue.value : undefined;
@@ -154,19 +168,19 @@ TargetUtil.getIntervalValue = function(tmodel, key, interval) {
 TargetUtil.scheduleExecution = function(tmodel, key) {   
     
     var schedulePeriod = 0;
-    var intervalValue = tmodel.getTargetStepInterval(key);
+    var stepInterval = tmodel.getTargetStepInterval(key);
     var now = browser.now();
     
-    if (intervalValue > 0) {
+    if (stepInterval > 0) {
         if (TUtil.isDefined(tmodel.getScheduleTimeStamp(key))) {
             var period = now - tmodel.getScheduleTimeStamp(key);
-            if (period < intervalValue) {
-                schedulePeriod = intervalValue - period;
+            if (period < stepInterval) {
+                schedulePeriod = stepInterval - period;
             } else {
                 schedulePeriod = 0;
             }
         } else {
-            schedulePeriod = intervalValue;
+            schedulePeriod = stepInterval;
         }
     }
     
@@ -234,7 +248,6 @@ TargetUtil.setWidthFromDom = function(child) {
     child.domWidth = { width: width, height: height };
     child.setValue('width', width);
 };
-
 
 TargetUtil.setHeightFromDom = function(child) {
     var height = TUtil.isDefined(child.domHeight) ? child.domHeight.height : undefined;

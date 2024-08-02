@@ -112,7 +112,7 @@ EventListener.prototype.captureEvents = function() {
         this.currentKey = this.currentTouch.key;
         this.currentTouch.key = "";        
     }
-    
+
     tapp.manager.scheduleRun(10, 'captureEvents' + '-' + lastEvent);   
     
 };
@@ -136,7 +136,7 @@ EventListener.prototype.handleEvent = function (event) {
     this.touchTimeStamp = now > this.touchTimeStamp ? now : this.touchTimeStamp;
 
     var tmodel = this.getTModelFromEvent(event);
-
+    
     var lastEvent = this.eventQueue.length > 0 ? this.eventQueue[this.eventQueue.length - 1] : null;
     
     if (lastEvent) {
@@ -384,8 +384,20 @@ EventListener.prototype.isClickHandlerType = function(type) {
     return this.getTouchHandlerType() === type && this.isClickEvent();
 };
 
-EventListener.prototype.isTouchHandler = function(target) {
-    return this.getTouchHandler() === target;
+EventListener.prototype.isTouchHandler = function(handler) {
+    return this.getTouchHandler() === handler;
+};
+
+EventListener.prototype.isScrollLeftHandler = function(handler)  {
+    return this.currentHandlers.scrollLeft === handler;
+};
+
+EventListener.prototype.isScrollTopHandler = function(handler)  {
+    return this.currentHandlers.scrollTop === handler;
+};
+
+EventListener.prototype.isPinchHandler = function(handler)  {
+    return this.currentHandlers.pinch === handler;
 };
 
 EventListener.prototype.isCurrentSource = function(source) {
@@ -408,18 +420,6 @@ EventListener.prototype.isTouchHandlerOrAncestor = function(target) {
     }
     
     return false;
-};
-
-EventListener.prototype.isScrollLeftHandler = function(handler)  {
-    return this.currentHandlers.scrollLeft === handler;
-};
-
-EventListener.prototype.isScrollTopHandler = function(handler)  {
-    return this.currentHandlers.scrollTop === handler;
-};
-
-EventListener.prototype.isPinchHandler = function(handler)  {
-    return this.currentHandlers.pinch === handler;
 };
 
 EventListener.prototype.countTouches = function(event)   {

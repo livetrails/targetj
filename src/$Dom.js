@@ -260,10 +260,14 @@ $Dom.prototype.transform = function(x, y, rotate, scale) {
 };
 
 $Dom.prototype.createTrasformValue = function(x, y, rotate, scale) {
-    rotate = TUtil.isDefined(rotate) && rotate !== 0 ? 'rotate(' + rotate + 'deg)' : '';
-    scale = TUtil.isDefined(scale) && scale !== 1 ? 'scale(' + scale + ')' : '';
-        
-    return 'translate(' + x + 'px,' + y + 'px)' + rotate + scale;
+    var xy = TUtil.isDefined(x) && TUtil.isDefined(y) ? 'translate(' + (x !== 0 ? x + 'px' : '0') + ',' + (y !== 0 ? y + 'px' : '0') + ') ': '';
+    rotate = TUtil.isDefined(rotate) ? 'rotate(' + rotate + 'deg) ' : '';        
+    scale = TUtil.isDefined(scale) ? 'scale(' + scale + ')' : '';
+    return (xy + rotate + scale).trim();
+};
+
+$Dom.prototype.animate = function(keyFrames, options) {
+    return this.element.animate(keyFrames, options);
 };
 
 $Dom.prototype.getContext = function(type, selector) {

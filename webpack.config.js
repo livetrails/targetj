@@ -7,7 +7,7 @@ module.exports = {
       name: 'TargetJ',
       type: 'window'
     },
-    path: path.resolve(__dirname, './dist'),
+    path: path.resolve(__dirname, '../targetj/jslib'),
     filename: 'targetj.js'
   }
 };
