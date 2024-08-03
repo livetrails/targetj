@@ -209,7 +209,7 @@ TModelManager.prototype.removeTModel = function(tmodel) {
     
     var childIndex;
     if (parent && parent.hasChildren()) {
-        parent.removeUpdatingChild(tmodel);
+        parent.removeFromUpdatingChild(tmodel.oid);
 
         childIndex = parent.getValue('children').indexOf(tmodel);
         

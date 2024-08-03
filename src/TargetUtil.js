@@ -130,39 +130,42 @@ TargetUtil.getValueStepsCycles = function(tmodel, key) {
     return getValue(_target);
 };
 
+TargetUtil.executeTarget = function(tmodel, key) {
+    TargetUtil.assignValueArray(tmodel, key);
+    tmodel.targetValues[key].executionCount++;
+    tmodel.setTargetMethodName(key, 'value'); 
+};
+
 TargetUtil.assignValueArray = function(tmodel, key) {
-    var valueArray = TargetUtil.getValueStepsCycles(tmodel, key);               
+    var valueArray = TargetUtil.getValueStepsCycles(tmodel, key);
 
-    if (Array.isArray(valueArray)) {
-        var newValue = valueArray[0];
-        var newSteps = valueArray[1] || 0;
-        var newStepInterval = valueArray[2] || 0;        
-        var newCycles = valueArray[3] || 0;
-      
-        var targetValue = tmodel.targetValues[key];  
-        var isNewTargetValue = !targetValue;
-        var theValue = !isNewTargetValue ? targetValue.value : undefined;
-        var isValueUpdated = isNewTargetValue
-                || !TUtil.areEqual(theValue, newValue, tmodel.targets[key] ? !!tmodel.targets[key].deepEquality : false) 
-                || !TUtil.isDefined(targetValue)
-                || (!tmodel.isTargetUpdating(key) && !tmodel.doesTargetEqualActual(key));
-           
-        if (isValueUpdated || targetValue.steps !== newSteps || targetValue.cycles !== newCycles || targetValue.stepInterval !== newStepInterval) {
+    var newValue = valueArray[0];
+    var newSteps = valueArray[1] || 0;
+    var newStepInterval = valueArray[2] || 0;        
+    var newCycles = valueArray[3] || 0;
 
-            tmodel.setTargetValue(key, newValue, newSteps, newStepInterval, newCycles, key);
-            
-            if (isNewTargetValue) {
-                TargetUtil.extractInvisibles(tmodel, tmodel.targets[key], key);  
-            }
-   
-            if (isValueUpdated) {
-                tmodel.resetTargetStep(key);
-                tmodel.resetLastActualValue(key);
-            }
-            
-            return true;
-        } 
-    }
+    var targetValue = tmodel.targetValues[key];  
+    var isNewTargetValue = !targetValue;
+    var theValue = !isNewTargetValue ? targetValue.value : undefined;
+    var isValueUpdated = isNewTargetValue
+            || !tmodel.hasTargetGotExecuted(key)
+            || !TUtil.areEqual(theValue, newValue, tmodel.targets[key] ? !!tmodel.targets[key].deepEquality : false) 
+            || !TUtil.isDefined(targetValue)
+            || (!tmodel.isTargetUpdating(key) && !tmodel.doesTargetEqualActual(key));
+
+    if (isValueUpdated || targetValue.steps !== newSteps || targetValue.cycles !== newCycles || targetValue.stepInterval !== newStepInterval) {
+
+        tmodel.setTargetValue(key, newValue, newSteps, newStepInterval, newCycles, key);
+
+        if (isNewTargetValue) {
+            TargetUtil.extractInvisibles(tmodel, tmodel.targets[key], key);  
+        }
+
+        if (isValueUpdated) {
+            tmodel.resetTargetStep(key);
+            tmodel.resetLastActualValue(key);
+        }
+    }  
 };
 
 TargetUtil.getIntervalValue = function(tmodel, key, interval) {

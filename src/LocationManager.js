@@ -56,7 +56,7 @@ LocationManager.prototype.calculateContainer = function(container) {
         
     var viewport = container.createViewport();
     container.resetVisibleList();
-                   
+    
     var i = 0, length = allChildren.length;
 
     while (i < length && tapp.isRunning()) {
@@ -123,12 +123,7 @@ LocationManager.prototype.calculateContainer = function(container) {
         if (child.shouldCalculateChildren()) {
             this.calculateContainer(child);  
         }
-        
-        if (child.isVisible() && child.isIncluded() 
-                && (child.styleTargetList.length > 0 || child.updatingTargetMap.length > 0 || child.updatingChildren.length > 0)) {
-            container.addToUpdatingChildren(child);
-        } 
-          
+  
         if (child.isInFlow()) {
             var childLastHeight = child.getHeight();
            
@@ -165,9 +160,7 @@ LocationManager.prototype.calculateTargets = function(tmodel) {
     var onResizeTargets = this.resizeFlag ? tmodel.targets['onResize'] || tmodel.getValue('onResize') : undefined; 
     onResizeTargets && onResizeTargets.forEach(function(key) {
         if (tmodel.targets[key] && tmodel.targetValues[key] && tmodel.isTargetComplete(key)) {
-            tmodel.resetTargetStep(key);
-            tmodel.resetLastActualValue(key);               
-            tmodel.addToActiveTargets(key);
+            tmodel.targetValues[key].executionCount = 0;           
             tmodel.updateTargetStatus(key);
         }            
     });
@@ -175,11 +168,8 @@ LocationManager.prototype.calculateTargets = function(tmodel) {
     var onTouchTargets = getEvents().isTouchHandler(tmodel) ? tmodel.targets['onTouchEvent'] || tmodel.getValue('onTouchEvent') : undefined; 
     onTouchTargets && onTouchTargets.forEach(function(key) {
         if (tmodel.targets[key] && tmodel.targetValues[key] && tmodel.isTargetComplete(key) ) {
-            tmodel.resetTargetStep(key);
-            tmodel.resetLastActualValue(key);            
+            tmodel.targetValues[key].executionCount = 0;           
             tmodel.updateTargetStatus(key);
-            
-            console.log("onTouchEvent: " + tmodel.oid + ", " + key + ", " + tmodel.getTargetStatus(key));
         }            
     });     
 

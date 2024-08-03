@@ -70,7 +70,8 @@ function TModel(type, targets) {
     this.styleTargetList = [];
     this.styleTargetMap = {};
     
-    this.updatingChildren = [];
+    this.updatingChildrenList = [];
+    this.updatingChildrenMap = [];
 
     this.targetMethodMap = {};
 
@@ -135,7 +136,8 @@ TModel.prototype.bug = function() {
         updatingTargetList: this.updatingTargetList,
         activeTargetList: this.activeTargetList,
         styleTargetList: this.styleTargetList,
-        targetValues: this.targetValues
+        targetValues: this.targetValues,
+        actualValues: this.actualValues
     };
 };
 
@@ -685,7 +687,6 @@ TModel.prototype.setTarget = function(key, value, steps, stepInterval, cycles, c
     
     this.setTargetValue(key, value, steps, stepInterval, cycles, callingTargetKey);
     
-    
     this.setTargetMethodName(key, 'value');
     
     this.targetValues[key].executionCount++;
@@ -696,9 +697,7 @@ TModel.prototype.setTargetValue = function(key, value, steps, stepInterval, cycl
     stepInterval = stepInterval || 0;
     cycles = cycles || 0;
 
-    if (!this.targetValues[key]) {
-        this.targetValues[key] = TargetUtil.emptyValue();
-    }
+    this.targetValues[key] = !this.targetValues[key] ? TargetUtil.emptyValue() : this.targetValues[key];
     
     this.targetValues[key].value = value;
     this.targetValues[key].steps = steps;
@@ -706,7 +705,7 @@ TModel.prototype.setTargetValue = function(key, value, steps, stepInterval, cycl
     this.targetValues[key].stepInterval = stepInterval;
     this.targetValues[key].callingTargetKey = callingTargetKey;
 
-    if (steps === 0 && cycles === 0) {
+    if (steps === 0 && cycles === 0) {        
         var oldValue = this.actualValues[key];
         this.actualValues[key] = typeof value === 'function' ? value.call(this) : value;
         this.setActualValueLastUpdate(key);
@@ -741,20 +740,24 @@ TModel.prototype.addChild = function(child, index)  {
 };
 
 TModel.prototype.addToUpdatingChildren = function(child) {
-    if (this.updatingChildren.indexOf(child) === -1) {
-        this.updatingChildren.push(child);
+    if (!this.updatingChildrenMap[child.oid]) {
+        this.updatingChildrenMap[child.oid] = true;
+        this.updatingChildrenList.push(child.oid);
     }
 };
 
-TModel.prototype.removeUpdatingChild = function(child) {
-    var index = this.updatingChildren.indexOf(child);
-    if (index >= 0) {
-        this.updatingChildren.splice(index, 1);
+TModel.prototype.removeFromUpdatingChild = function(child) {
+    if (this.updatingChildrenMap[child.oid]) {
+        delete this.updatingChildrenMap[child.oid];
+        var index = this.activeTargetList.indexOf(child.oid);
+        if (index >= 0) {
+            this.activeTargetList.splice(index, 1);
+        }        
     }
 };
 
 TModel.prototype.hasUpdatingChildren = function() {
-    return this.updatingChildren.length > 0;
+    return this.updatingChildrenList.length > 0;
 };
 
 TModel.prototype.hasTargetUpdates = function(key) {
@@ -793,7 +796,19 @@ TModel.prototype.addTargets = function(targets) {
 TModel.prototype.addToActiveTargets = function(key) {
     if (!this.activeTargetMap[key]) {
         this.activeTargetMap[key] = true;
-        this.activeTargetList.push(key);
+        
+        if (key === 'start') {
+            this.activeTargetList.unshift('start');
+        } else if (key === 'width' || key === 'height') {
+            var startIndex = this.activeTargetList.indexOf('start');
+            if (startIndex !== -1) {
+                this.activeTargetList.splice(1, 0, key);
+            } else {
+                this.activeTargetList.unshift(key);
+            }
+        } else {
+            this.activeTargetList.push(key);
+        }
     }
 };
 
