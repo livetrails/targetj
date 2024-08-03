@@ -840,9 +840,9 @@ TModel.prototype.removeFromUpdatingTargets = function(key) {
 };
 
 TModel.prototype.deleteTargetValue = function(key)   {
-    delete this.targetValues[key];
-    this.addToActiveTargets(key);
-    this.removeFromUpdatingTargets(key);
+    if (this.targetValues[key]) {
+        this.targetValues[key].executionCount = 0; 
+    }
 
     tapp.manager.scheduleRun(10, 'deleteTargetValue-' + this.oid + "-" + key);    
 };
@@ -850,9 +850,9 @@ TModel.prototype.deleteTargetValue = function(key)   {
 TModel.prototype.deleteTargetValues = function(keys) {
     var self = this;
     keys.forEach(function(key) {
-        delete self.targetValues[key];
-        self.addToActiveTargets(key);
-        self.removeFromUpdatingTargets(key);
+        if (self.targetValues[key]) {
+            self.targetValues[key].executionCount = 0; 
+        }
     });
     
     tapp.manager.scheduleRun(10, 'deleteTargetValues-' + this.oid);    
