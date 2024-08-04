@@ -130,8 +130,6 @@ TModel.prototype.addToStyleTargetList = function(key) {
 TModel.prototype.bug = function() {
     return {
         visible: this.isVisible(),
-        visible2: this.visible,
-        visible3: this.actualValues.isVisible,
         visibilityStatus: this.visibilityStatus,
         hasDom: this.hasDom(),
         width: this.getWidth(),
@@ -859,7 +857,8 @@ TModel.prototype.deleteTargetValue = function(key)   {
         targetValue.steps = 0; 
         targetValue.cycle = 0; 
         targetValue.cycles = 0;
-        targetValue.stepInterval = 0;        
+        targetValue.stepInterval = 0; 
+        targetValue.callingTargetKey = key;
         
         this.updateTargetStatus(key);
     }
@@ -880,6 +879,7 @@ TModel.prototype.deleteTargetValues = function(keys) {
             targetValue.cycle = 0; 
             targetValue.cycles = 0;
             targetValue.stepInterval = 0;        
+            targetValue.callingTargetKey = key;
 
             self.updateTargetStatus(key);
         }

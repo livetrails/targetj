@@ -2,6 +2,7 @@ import { browser } from "./Browser.js";
 import { TModel } from "./TModel.js";
 import { TUtil } from "./TUtil.js";
 import { ColorUtil } from "./ColorUtil.js";
+import { Easing } from "./Easing.js";
 
 function TargetUtil() {}
 
@@ -235,12 +236,10 @@ TargetUtil.calculateActualValue = function(tmodel, key, targetValue, lastActualV
         var lastColors = targetColors ? ColorUtil.color2Integers(lastActualValue) : undefined;
                 
         if (targetColors && lastColors) {
-            var red = targetColors[0] * easingStep + lastColors[0] * (1 - easingStep);
-            var green = targetColors[1] * easingStep + lastColors[1] * (1 - easingStep);
-            var blue = targetColors[2] * easingStep + lastColors[2] * (1 - easingStep);
-            
-            browser.log(tmodel.oid === 'scrollItem')('rgb(' + red + ',' + green +  ',' + blue + ')');
-            
+            var red = Math.floor(targetColors[0] * easingStep + lastColors[0] * (1 - easingStep));
+            var green = Math.floor(targetColors[1] * easingStep + lastColors[1] * (1 - easingStep));
+            var blue = Math.floor(targetColors[2] * easingStep + lastColors[2] * (1 - easingStep));
+                        
             return 'rgb(' + red + ',' + green +  ',' + blue + ')';
         } else {
             return targetValue;

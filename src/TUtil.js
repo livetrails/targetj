@@ -98,18 +98,16 @@ TUtil.momentum = function (past, current, time) {
 
     var distance = current - past;
     var speed = Math.abs(distance) / time;
-    var duration = speed * 5000;
-    var initialVelocity = 100;
-    var momentum = initialVelocity * duration;
+    var duration = Math.floor(speed * 5000);
+    var momentumDistance = 5 * duration;
+    var adjustedDistance = distance > 0 ? distance + momentumDistance : distance - momentumDistance;
     
-    var momentumDistance = momentum / 10;
-    if (distance > 0) {
-      distance += momentumDistance;
-    } else {
-      distance -= momentumDistance;
-    }    
-    
-    return {distance: Math.round(distance) / 50, duration: Math.floor(duration), momentumDistance: momentumDistance, time: time * 5 };
+    return {
+        distance: Math.round(adjustedDistance) / 50,
+        duration: duration,
+        momentumDistance: time,
+        time: time * 5
+    };
 };
 
 TUtil.isDefined = function (obj) {

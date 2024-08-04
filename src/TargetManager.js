@@ -1,7 +1,6 @@
 import { browser } from "./Browser.js";
-import { TUtil, EasingEffects } from "./TUtil.js";
+import { TUtil } from "./TUtil.js";
 import { TargetUtil } from "./TargetUtil.js";
-import { Easing } from "./Easing.js";
 
 import { tapp } from "./App.js";
 
