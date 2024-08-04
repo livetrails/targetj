@@ -43,19 +43,6 @@ TargetUtil.colorMap = {
     backgroundColor: true
 };
 
-TargetUtil.extractInvisibles = function(tmodel, target, key) {
-    if (typeof target === 'object' && target) {
-        Object.keys(target).forEach(function(k) {
-            if (k === 'onInvisible') {
-                if (!tmodel.invisibleFunctions) {
-                    tmodel.invisibleFunctions = [];
-                }                         
-                tmodel.invisibleFunctions.push({ fn: target[k], key: key });
-            }
-        });                
-    }
-};
-
 TargetUtil.emptyValue = function() {
     return {
         value: undefined, 
@@ -77,8 +64,8 @@ TargetUtil.isValueStepsCycleArray = function(arr) {
     if (arr.length > 4) {
         return false;
     }
-  
-    for (var i = 0; i < arr.length; i++) {
+    var startIndex = arr.length === 4 ? 1 : 0;
+    for (var i = startIndex; i < arr.length; i++) {
         if (typeof arr[i] !== 'number') {
             return false;
         }
@@ -148,7 +135,7 @@ TargetUtil.assignValueArray = function(tmodel, key) {
     var isNewTargetValue = !targetValue;
     var theValue = !isNewTargetValue ? targetValue.value : undefined;
     var isValueUpdated = isNewTargetValue
-            || !tmodel.hasTargetGotExecuted(key)
+            || !tmodel.isExecuted(key)
             || !TUtil.areEqual(theValue, newValue, tmodel.targets[key] ? !!tmodel.targets[key].deepEquality : false) 
             || !TUtil.isDefined(targetValue)
             || (!tmodel.isTargetUpdating(key) && !tmodel.doesTargetEqualActual(key));
@@ -157,14 +144,12 @@ TargetUtil.assignValueArray = function(tmodel, key) {
 
         tmodel.setTargetValue(key, newValue, newSteps, newStepInterval, newCycles, key);
 
-        if (isNewTargetValue) {
-            TargetUtil.extractInvisibles(tmodel, tmodel.targets[key], key);  
-        }
-
         if (isValueUpdated) {
             tmodel.resetTargetStep(key);
             tmodel.resetLastActualValue(key);
         }
+        
+        return true;
     }  
 };
 
@@ -241,6 +226,8 @@ TargetUtil.handleValueChange = function(tmodel, key, newValue, lastValue, step, 
 };
 
 TargetUtil.setWidthFromDom = function(child) {
+    if (child.$dom.html() === undefined) return;
+    
     var height = TUtil.isDefined(child.domWidth) ? child.domWidth.height : undefined;    
     var width = TUtil.isDefined(child.domWidth) ? child.domWidth.width : undefined;
     var domParent = child.getDomParent();
@@ -258,6 +245,8 @@ TargetUtil.setWidthFromDom = function(child) {
 };
 
 TargetUtil.setHeightFromDom = function(child) {
+    if (child.$dom.html() === undefined) return;
+    
     var height = TUtil.isDefined(child.domHeight) ? child.domHeight.height : undefined;
     var width = TUtil.isDefined(child.domHeight) ? child.domHeight.width : undefined;
     var domParent = child.getDomParent();

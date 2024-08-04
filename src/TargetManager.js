@@ -14,9 +14,11 @@ TargetManager.prototype.setTargetValues = function(tmodel) {
     var activeList = tmodel.activeTargetList.slice(0);
     for (var i = 0; i < activeList.length; i++) {
         var key = activeList[i];
-                                
-        tmodel.addToStyleTargetList(key);
-        this.setTargetValue(tmodel, key);
+             
+        if (!tmodel.isTargetImperative(key)) {
+            tmodel.addToStyleTargetList(key);
+            this.setTargetValue(tmodel, key);
+        }
     }
 };
 
@@ -32,18 +34,19 @@ TargetManager.prototype.setTargetValue = function(tmodel, key) {
         tmodel.setTargetMethodName(key, 'enabledOn');
     }
     
-    if (!tmodel.isTargetEnabled(key)) {
-        tapp.manager.scheduleRun(0, "setTargetValue-disabled-" + tmodel.oid + "__" + key);
+    if (!tmodel.isTargetEnabled(key)) {        
+        tapp.manager.scheduleRun(10, "setTargetValue-disabled-" + tmodel.oid + "__" + key);
         return;
     }
     
     if (TargetUtil.scheduleExecution(tmodel, key) > 0) {
         return;
     }
-        
-    TargetUtil.executeTarget(tmodel, key);
-    tmodel.updateTargetStatus(key);     
 
+    tmodel.resetScheduleTimeStamp(key);
+    TargetUtil.executeTarget(tmodel, key);
+    tmodel.updateTargetStatus(key);  
+    
     var schedulePeriod = TargetUtil.scheduleExecution(tmodel, key);
     if (schedulePeriod > 0) {
         tapp.manager.scheduleRun(schedulePeriod, "actualInterval__" + tmodel.oid + "__" + key); 
@@ -157,14 +160,8 @@ TargetManager.prototype.setActualValue = function(tmodel, key) {
 
 
     tmodel.resetScheduleTimeStamp(key);
-    
-    if (tmodel.targetValues[key]) {
-        tmodel.updateTargetStatus(key);
-    } else {
-        tmodel.addToActiveTargets(key);
-        tmodel.removeFromUpdatingTargets(key);        
-    }
-    
+    tmodel.updateTargetStatus(key);
+
     if (tmodel.isTargetUpdating(key)) {
         tapp.manager.scheduleRun(stepInterval, tmodel.oid + "---" + key + "-" + step + "/" + steps + "-" + cycle + "-" + stepInterval);  
     } else {    

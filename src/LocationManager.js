@@ -117,7 +117,7 @@ LocationManager.prototype.calculateContainer = function(container) {
         child.calculateAbsolutePosition(child.getX(), child.getY());
         
         viewport.isVisible(child);
-                               
+                   
         child.addToParentVisibleList();
        
         if (child.shouldCalculateChildren()) {
@@ -128,11 +128,11 @@ LocationManager.prototype.calculateContainer = function(container) {
             var childLastHeight = child.getHeight();
            
             if (child.hasChildren()) {
-                if (child.isTargetEnabled('width')) {
+                if (child.isTargetEnabled('width') && !child.isTargetImperative('width')) {
                     TargetUtil.assignValueArray(child, 'width');
                     tapp.targetManager.setJustActualValue(child, 'width');
                 }
-                if (child.isTargetEnabled('height')) {
+                if (child.isTargetEnabled('height') && !child.isTargetImperative('height')) {
                     TargetUtil.assignValueArray(child, 'height');
                     tapp.targetManager.setJustActualValue(child, 'height');
                 }
@@ -159,17 +159,23 @@ LocationManager.prototype.calculateContainer = function(container) {
 LocationManager.prototype.calculateTargets = function(tmodel) {
     var onResizeTargets = this.resizeFlag ? tmodel.targets['onResize'] || tmodel.getValue('onResize') : undefined; 
     onResizeTargets && onResizeTargets.forEach(function(key) {
-        if (tmodel.targets[key] && tmodel.targetValues[key] && tmodel.isTargetComplete(key)) {
-            tmodel.targetValues[key].executionCount = 0;           
-            tmodel.updateTargetStatus(key);
+        if (tmodel.targets[key] && tmodel.isTargetComplete(key)) {
+            tmodel.deleteTargetValue(key);
         }            
     });
     
     var onTouchTargets = getEvents().isTouchHandler(tmodel) ? tmodel.targets['onTouchEvent'] || tmodel.getValue('onTouchEvent') : undefined; 
-    onTouchTargets && onTouchTargets.forEach(function(key) {
-        if (tmodel.targets[key] && tmodel.targetValues[key] && tmodel.isTargetComplete(key) ) {
-            tmodel.targetValues[key].executionCount = 0;           
-            tmodel.updateTargetStatus(key);
+    onTouchTargets && onTouchTargets.forEach(function(key) {        
+        if (tmodel.targets[key] && tmodel.isTargetComplete(key) ) {
+            tmodel.deleteTargetValue(key);
+        }            
+    });
+    
+    var onScrollTargets = (getEvents().isScrollLeftHandler(tmodel) && getEvents().deltaX()) 
+            || (getEvents().isScrollTopHandler(tmodel) && getEvents().deltaY()) ? tmodel.targets['onScrollEvent'] || tmodel.getValue('onScrollEvent') : undefined; 
+    onScrollTargets && onScrollTargets.forEach(function(key) {        
+        if (tmodel.targets[key] && tmodel.isTargetComplete(key) ) {
+            tmodel.deleteTargetValue(key);
         }            
     });     
 
@@ -180,8 +186,13 @@ LocationManager.prototype.calculateTargets = function(tmodel) {
         var preWidth = tmodel.getWidth();
         var preHeight = tmodel.getHeight();
         
-        if ((!TUtil.isDefined(tmodel.targetValues.width) && !TUtil.isDefined(tmodel.targets.width)) || tmodel.getTargetValue('widthFromDom')) TargetUtil.setWidthFromDom(tmodel);
-        if ((!TUtil.isDefined(tmodel.targetValues.height) && !TUtil.isDefined(tmodel.targets.height)) || tmodel.getTargetValue('heightFromDom')) TargetUtil.setHeightFromDom(tmodel);
+        
+        if ((!TUtil.isDefined(tmodel.targetValues.width) && !TUtil.isDefined(tmodel.targets.width)) || tmodel.getTargetValue('widthFromDom')) {
+            TargetUtil.setWidthFromDom(tmodel);
+        }
+        if ((!TUtil.isDefined(tmodel.targetValues.height) && !TUtil.isDefined(tmodel.targets.height)) || tmodel.getTargetValue('heightFromDom')) {
+            TargetUtil.setHeightFromDom(tmodel);
+        }
 
         if (preWidth !== tmodel.getWidth() || preHeight !== tmodel.getHeight()) {
             tmodel.addToStyleTargetList('dim');

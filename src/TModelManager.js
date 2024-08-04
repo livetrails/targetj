@@ -172,17 +172,14 @@ TModelManager.prototype.deleteDoms = function () {
         var tmodel = this.lists.invisibleDom[i];
    
         tmodel.domValues = {};
-        tmodel.xVisible = false;
-        tmodel.yVisible = false;
+        tmodel.visible = false;
         
-        if (tmodel.invisibleFunctions)   {
-            tmodel.invisibleFunctions.forEach(function(invisible)  {
-                var key = invisible.key;
-                invisible.fn.call(tmodel, key, tmodel.getTargetStep(key), tmodel.getTargetCycle(key), tmodel.getTargetSteps(key), tmodel.getTargetCycles(key));
-                tmodel.setTargetMethodName(key, 'onInvisible');
-                tmodel.addToActiveTargets(key);
-            });
-        }
+        var resetTargets = tmodel.targets['resetOnInvisible'] || tmodel.getValue('resetOnInvisible'); 
+        resetTargets && resetTargets.forEach(function(key) {
+            if (tmodel.targets[key] && tmodel.isTargetComplete(key)) {
+                tmodel.deleteTargetValue(key);
+            }            
+        });
         
         tmodel.$dom.detach();
         tmodel.$dom = null;   
@@ -209,7 +206,7 @@ TModelManager.prototype.removeTModel = function(tmodel) {
     
     var childIndex;
     if (parent && parent.hasChildren()) {
-        parent.removeFromUpdatingChild(tmodel.oid);
+        parent.removeFromUpdatingChildren(tmodel);
 
         childIndex = parent.getValue('children').indexOf(tmodel);
         
@@ -296,6 +293,21 @@ TModelManager.prototype.fixStyles = function() {
     };
 };
 
+TModelManager.prototype.completeDoneTModels = function() {
+    tapp.manager.doneTargets.forEach(function(target) {
+        var tmodel = target.tmodel;
+        var key = target.key;
+        if (tmodel.isTargetDone(key)) {
+            tmodel.setTargetComplete(key);
+            tmodel.removeFromActiveTargets(tmodel);
+            tmodel.removeFromUpdatingTargets(tmodel);
+            if (tmodel.getParent()) {
+                tmodel.getParent().removeFromUpdatingChildren(tmodel);
+            }                                
+        }
+    });
+};
+
 TModelManager.prototype.createDoms = function () {
     var i;
     var $dom, tmodel;
@@ -323,8 +335,10 @@ TModelManager.prototype.createDoms = function () {
     for (i = 0; i < needsDom.length; i++) {
         tmodel = needsDom[i];
         
-        var x = Math.floor(tmodel.getX()), y = Math.floor(tmodel.getY()), rotate = Math.floor(tmodel.getRotate()), scale = TUtil.formatNum(tmodel.getScale(), 2);
-        
+        var x = Math.floor(tmodel.getX());
+        var y = Math.floor(tmodel.getY());
+        var rotate = Math.floor(tmodel.getRotate());
+        var scale = TUtil.formatNum(tmodel.getScale(), 2);
         var width = Math.floor(tmodel.getWidth());
         var height = Math.floor(tmodel.getHeight());
         var zIndex = Math.floor(tmodel.getZIndex());
@@ -336,11 +350,25 @@ TModelManager.prototype.createDoms = function () {
             left: 0,
             transform: [ x, y, rotate, scale ],
             width: width + "px",
+            height: height + "px",            
             opacity: opacity,
-            height: height + "px",
             zIndex: zIndex 
         };
         
+        ['fontSize', 'borderRadius', 'padding'].forEach(function(prop) {
+            var value = tmodel.getValue(prop);
+            if (value) {
+                style[prop] = value + 'px';
+            }
+        }); 
+        
+        ['backgroundColor', 'background', 'color'].forEach(function(prop) {
+            var value = tmodel.getValue(prop);
+            if (value) {
+                style[prop] = value;
+            }
+        });          
+                 
         Object.assign(style, tmodel.getStyle());
                 
         $dom = new $Dom();
@@ -419,20 +447,15 @@ TModelManager.prototype.run = function(oid, delay) {
                                         
                     tapp.events.captureEvents();
                     
-                    tapp.manager.doneTargets.length = 0;
+                    if (tapp.manager.doneTargets.length > 0) {
+                        tapp.manager.completeDoneTModels();
+                        tapp.manager.doneTargets.length = 0;
+                    }
 
                     tapp.locationManager.calculateTargets(tapp.troot);
 
                     tapp.locationManager.calculateAll();
-                    
-                    if (tapp.manager.doneTargets.length > 0) {
-                        tapp.manager.doneTargets.forEach(function(target) {
-                            //imperative call is possible till this gets executed so we need to make sure that it is still done
-                            if (target.tmodel.isTargetDone(target.key)) {
-                                target.tmodel.setTargetComplete(target.key);
-                            }
-                        });
-                    }                    
+                                    
 
                     tapp.events.resetEventsOnTimeout();
 

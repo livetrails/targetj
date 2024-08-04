@@ -91,14 +91,6 @@ Viewport.prototype.getYNext = function() {
     return this.yNext + this.currentChild.getTopMargin() + this.yOffset - this.tmodel.getScrollTop();
 };
 
-Viewport.prototype.isXVisible = function(x1, x2, minX, maxX) {
-    return x1 <= maxX && x2 >= minX;
-};
-
-Viewport.prototype.isYVisible = function(y1, y2, minY, maxY) {
-    return y1 <= maxY && y2 >= minY;
-};
-
 Viewport.prototype.isVisible = function(child) {
     
     var x = child.absX;
@@ -109,10 +101,24 @@ Viewport.prototype.isVisible = function(child) {
     var maxWidth = TUtil.isDefined(child.getWidth()) ? scale * child.getWidth() : 0;
     var maxHeight = TUtil.isDefined(child.getHeight()) ? scale * child.getHeight() : 0;
 
+    var status = child.visibilityStatus;
+
     var rect = child.getBoundingRect();
-    child.xVisible = this.isXVisible(x, x + maxWidth, rect.left, rect.right);
-    child.yVisible = this.isYVisible(y, y + maxHeight, rect.top, rect.bottom);
-        
+
+    if (!child.hasChildren()) {
+        status.right = x <= getScreenWidth() && x <= rect.right;
+        status.left = x + maxWidth >= 0 && x + maxWidth >= rect.left;
+        status.bottom = y <= getScreenHeight() && y <= rect.bottom;
+        status.top = y + maxHeight >= 0 && y + maxHeight >= rect.top; 
+    } else {
+        status.right = x <= rect.right;
+        status.left = x + maxWidth >= rect.left;
+        status.bottom = y <= rect.bottom;
+        status.top = y + maxHeight >= rect.top;
+    }
+    
+    child.visible = status.left && status.right && status.top && status.bottom;
+    
     //browser.log(child.oid === 'num')("oid: " + child.oid + " in " + this.tmodel.oid + " min-maxX:" + Math.round(rect.left) + "-" + Math.round(rect.right) + " x:" + Math.round(x) + " w:" + Math.floor(maxWidth) +  " sc:" + scale +  " vx:" + child.xVisible);
     //browser.log(child.oid === 'docsPanel')("oid: " + child.oid + " in " + this.tmodel.oid + " min-maxY:" + Math.round(rect.top) + "-" + Math.round(rect.bottom) + " y:" + Math.round(y) + " h:" + Math.floor(maxHeight) + " sc:" + scale + " vy:" + child.yVisible);
 

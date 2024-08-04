@@ -55,7 +55,7 @@ function Bracket(parent) {
     };
 
     tm.isVisible = function () {
-        return this.yVisible;
+        return this.visibilityStatus.top && this.visibilityStatus.bottom;
     };
     
     tm.addToUpdatingChildren = function(child) {
