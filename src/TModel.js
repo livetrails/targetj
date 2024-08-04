@@ -17,11 +17,10 @@ function TModel(type, targets) {
     this.targets = Object.assign({}, targets);
     this.activeTargetList = [];
     this.activeTargetMap = {};
-    this.initTargets();
-    
+
     var uniqueId = App.getOid(this.type);
     this.oid = uniqueId.oid;
-    this.oidNum = uniqueId.num;
+    this.oidNum = uniqueId.num;  
     
     this.targetValues = {};
     
@@ -98,6 +97,8 @@ function TModel(type, targets) {
     this.inFlowVisibles = [];
                
     this.domValues = {};
+    
+    this.initTargets();    
 }
 
 TModel.prototype.getParent = function()  {
@@ -128,20 +129,20 @@ TModel.prototype.addToStyleTargetList = function(key) {
 };
 
 TModel.prototype.bug = function() {
-    return {
-        visible: this.isVisible(),
-        visibilityStatus: this.visibilityStatus,
-        hasDom: this.hasDom(),
-        width: this.getWidth(),
-        height: this.getHeight(),
-        x: this.getX(),
-        y: this.getY(),
-        updatingTargetList: this.updatingTargetList,
-        activeTargetList: this.activeTargetList,
-        styleTargetList: this.styleTargetList,
-        targetValues: this.targetValues,
-        actualValues: this.actualValues
-    };
+    return [
+        { visible: this.isVisible() },
+        { visibilityStatus: this.visibilityStatus },
+        { hasDom: this.hasDom() },
+        { x: this.getX() },
+        { y: this.getY() },        
+        { width: this.getWidth() },
+        { height: this.getHeight() },
+        { activeTargetList: this.activeTargetList },        
+        { updatingTargetList: this.updatingTargetList },
+        { styleTargetList: this.styleTargetList },
+        { targetValues: this.targetValues },
+        { actualValues: this.actualValues }
+    ];
 };
 
 TModel.prototype.initTargets = function() {
@@ -150,12 +151,7 @@ TModel.prototype.initTargets = function() {
     this.activeTargetMap = {};
     this.activeTargetList = [];
     Object.keys(this.targets).forEach(function(key) {
-        var target = this.targets[key];
-        if (typeof target === 'object' && typeof target.value === 'function') {
-            target.value = target.value.bind({ _key: key });
-        } else if (typeof target === 'function') {
-            target = target.bind({ _key: key });
-        }
+        TargetUtil.bindTargetName(self.targets, key);
         self.addToActiveTargets(key);
     });    
 };
@@ -317,7 +313,6 @@ TModel.prototype.addToParentVisibleList = function() {
 TModel.prototype.isVisible = function () {
     return TUtil.isDefined(this.actualValues.isVisible) ? this.actualValues.isVisible : this.visible;
 };
-
 
 TModel.prototype.shouldCalculateChildren = function() {
     return TUtil.isDefined(this.actualValues.calculateChildren) ?this.actualValues.calculateChildren : this.isVisible() && this.isIncluded() && (this.hasChildren() || this.getContentHeight() > 0);
@@ -506,7 +501,7 @@ TModel.prototype.updateTargetStatus = function(key) {
     var step = this.getTargetStep(key);
     var steps = this.getTargetSteps(key);
         
-    if (this.isExecuted(key) && (step < steps || !this.doesTargetEqualActual(key))) {
+    if (this.isExecuted(key) && step < steps) {
         this.targetValues[key].status = 'updating';
     } else if (!this.isExecuted(key) || this.isTargetInLoop(key) || cycle < cycles) {
         this.targetValues[key].status = 'active';        
@@ -564,7 +559,7 @@ TModel.prototype.isExecuted = function(key) {
 };
 
 TModel.prototype.isTargetImperative = function(key) {
-    return this.targetValues[key] ? this.targetValues[key] && this.targetValues[key].callingTargetKey !== key : false;    
+    return this.targetValues[key] ? this.targetValues[key].isImperative: false;    
 };
 
 TModel.prototype.getTargetExecutionCount = function(key) {
@@ -679,54 +674,43 @@ TModel.prototype.getTargetEventFunctions = function(key)   {
     return this.targetValues[key] ? this.targetValues[key].events: undefined;
 };
 
-TModel.prototype.getCallingTargetKey = function(key)   {
-    return this.targetValues[key] ? this.targetValues[key].callingTargetKey: undefined;
-};
+TModel.prototype.setTarget = function(key, value, steps, stepInterval, cycles) {  
 
-TModel.prototype.resetCallingTargetKey = function(key)   {
-    if (this.targetValues[key]) {
-        this.targetValues[key].callingTargetKey = key;
-    }
-};
-
-TModel.prototype.setTarget = function(key, value, steps, stepInterval, cycles, callingTargetKey) {        
+    this.targetValues[key] = !this.targetValues[key] ? TargetUtil.emptyValue() : this.targetValues[key];
+        
     var targetValue = this.targetValues[key];
 
-    if (key !== callingTargetKey && targetValue &&
-        (targetValue.callingTargetKey !== callingTargetKey || value !== targetValue.value)) {
+    if (value !== targetValue.value) {
         this.resetTargetStep(key);
         this.resetLastActualValue(key);
     }
+
+    targetValue.value = value;
+    targetValue.steps = steps || 0;
+    targetValue.cycles = cycles || 0;
+    targetValue.stepInterval = stepInterval || 0;
+    targetValue.isImperative = true
+    targetValue.originalTargetName = this.key;
+    targetValue.executionCount++;
     
-    this.setTargetValue(key, value, steps, stepInterval, cycles, callingTargetKey);
     this.addToStyleTargetList(key);
     this.setTargetMethodName(key, 'value');
+    TargetUtil.snapToTarget(this, key);
+    this.updateTargetStatus(key);
     
-    this.targetValues[key].executionCount++;
+    browser.log(this.oid === 'docsPage')("setTarget: " + this.oid + ", " + key + ', ' + this.getTargetStatus(key) + ', ' + steps);
 };
 
-TModel.prototype.setTargetValue = function(key, value, steps, stepInterval, cycles, callingTargetKey) {          
-    steps = steps || 0;
-    stepInterval = stepInterval || 0;
-    cycles = cycles || 0;
+TModel.prototype.setTargetValue = function(key, value, steps, stepInterval, cycles) {          
 
     this.targetValues[key] = !this.targetValues[key] ? TargetUtil.emptyValue() : this.targetValues[key];
-    
-    this.targetValues[key].value = value;
-    this.targetValues[key].steps = steps;
-    this.targetValues[key].cycles = cycles;
-    this.targetValues[key].stepInterval = stepInterval;
-    this.targetValues[key].callingTargetKey = callingTargetKey;
 
-    if (steps === 0 && cycles === 0 && stepInterval === 0) {        
-        var oldValue = this.actualValues[key];
-        this.actualValues[key] = typeof value === 'function' ? value.call(this) : value;
-        this.setActualValueLastUpdate(key);
-        TargetUtil.handleValueChange(this, key, this.actualValues[key], oldValue, 0, 0);
-    } else {
-        this.updateTargetStatus(key);
-    }
+    var targetValue = this.targetValues[key];
 
+    targetValue.value = value;
+    targetValue.steps = steps || 0;
+    targetValue.cycles = cycles || 0;
+    targetValue.stepInterval = stepInterval || 0;
 };
 
 TModel.prototype.setValue = function(key, value) {
@@ -787,6 +771,7 @@ TModel.prototype.removeTarget = function(key) {
 
 TModel.prototype.addTarget = function(key, target) {
     this.targets[key] = target;
+    TargetUtil.bindTargetName(this.targets, key);
     this.addToActiveTargets(key);
     this.removeFromUpdatingTargets(key);    
     delete this.targetValues[key];
@@ -798,6 +783,7 @@ TModel.prototype.addTargets = function(targets) {
     var self = this;
     Object.keys(targets).forEach(function(key) {
         self.targets[key] = targets[key];
+        TargetUtil.bindTargetName(self.targets, key);   
         self.addToActiveTargets(key);
         self.removeFromUpdatingTargets(key);
         delete self.targetValues[key];
@@ -853,26 +839,25 @@ TModel.prototype.removeFromUpdatingTargets = function(key) {
     }    
 };
 
-TModel.prototype.deleteTargetValue = function(key)   {
-    var targetValue = this.targetValues[key];
+TModel.prototype.deleteTargetValue = function(key) {
+    delete this.targetValues[key];
+    this.addToActiveTargets(key);
+    this.removeFromUpdatingTargets(key);
     
-    if (targetValue) {
-        targetValue.executionCount = 0;
-        targetValue.scheduleTimeStamp = undefined;
-        targetValue.step = 0;
-        targetValue.steps = 0; 
-        targetValue.cycle = 0; 
-        targetValue.cycles = 0;
-        targetValue.stepInterval = 0; 
-        targetValue.callingTargetKey = key;
-        
-        this.updateTargetStatus(key);
-    }
+    tapp.manager.scheduleRun(10, 'deleteTargetValue-' + this.oid + "-" + key);        
+}
 
-    tapp.manager.scheduleRun(10, 'deleteTargetValue-' + this.oid + "-" + key);    
+TModel.prototype.resetTargetValue = function(key)   {
+    this.resetTargetValues([key]);
 };
 
-TModel.prototype.deleteTargetValues = function(keys) {
+TModel.prototype.resetImperative = function(key) {
+    if (this.targetValues[key]) {
+        this.targetValues[key].isImperative = false;
+    }
+};
+
+TModel.prototype.resetTargetValues = function(keys) {
     var self = this;
     keys.forEach(function(key) {
         var targetValue = self.targetValues[key];
@@ -881,17 +866,13 @@ TModel.prototype.deleteTargetValues = function(keys) {
             targetValue.executionCount = 0;
             targetValue.scheduleTimeStamp = undefined;
             targetValue.step = 0;
-            targetValue.steps = 0; 
             targetValue.cycle = 0; 
-            targetValue.cycles = 0;
-            targetValue.stepInterval = 0;        
-            targetValue.callingTargetKey = key;
 
             self.updateTargetStatus(key);
         }
     });
     
-    tapp.manager.scheduleRun(10, 'deleteTargetValues-' + this.oid);    
+    tapp.manager.scheduleRun(10, 'resetTargetValues-' + this.oid);    
 };
 
 TModel.prototype.setTargetMethodName = function(targetName, methodName) {

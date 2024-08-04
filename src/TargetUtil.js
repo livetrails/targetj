@@ -58,8 +58,32 @@ TargetUtil.emptyValue = function() {
         actualValueLastUpdate: 0,
         status: '',
         executionCount: 0,
-        callingTargetKey: undefined
+        isImperative: false,
+        originalTargetName: undefined
     };
+};
+
+TargetUtil.bindTargetName = function(targetInstance, key) {
+    var target = targetInstance[key];
+    
+    if (typeof target === 'object') {
+        ['value', 'onStepsEnd', 'onValueChange', 'loop', 'onImperativeEnds'].forEach(function(method) {
+            if (typeof target[method] === 'function') {
+                var originalMethod = target[method];
+                // Create a wrapper function to bind the key
+                target[method] = function() {
+                    this.key = key;  // Assign the key to `this`
+                    return originalMethod.apply(this, arguments);  // Call the original method
+                };
+            }
+        });
+    } else if (typeof target === 'function') {
+        var originalFunction = target;
+        targetInstance[key] = function() {
+            this.key = key;  // Assign the key to `this`
+            return originalFunction.apply(this, arguments);  // Call the original function
+        };
+    }
 };
 
 TargetUtil.isValueStepsCycleArray = function(arr) {
@@ -125,6 +149,16 @@ TargetUtil.executeTarget = function(tmodel, key) {
     tmodel.setTargetMethodName(key, 'value'); 
 };
 
+TargetUtil.snapToTarget = function(tmodel, key) {
+    if (tmodel.getTargetSteps(key) === 0) {
+        var oldValue = tmodel.actualValues[key];
+        var value = tmodel.targetValues[key].value;
+        tmodel.actualValues[key] = typeof value === 'function' ? value.call(tmodel) : value;
+        tmodel.setActualValueLastUpdate(key);
+        TargetUtil.handleValueChange(tmodel, key, tmodel.actualValues[key], oldValue, 0, 0);
+    }
+};
+
 TargetUtil.assignValueArray = function(tmodel, key) {
     var valueArray = TargetUtil.getValueStepsCycles(tmodel, key);
 
@@ -144,7 +178,7 @@ TargetUtil.assignValueArray = function(tmodel, key) {
 
     if (isValueUpdated || targetValue.steps !== newSteps || targetValue.cycles !== newCycles || targetValue.stepInterval !== newStepInterval) {
 
-        tmodel.setTargetValue(key, newValue, newSteps, newStepInterval, newCycles, key);
+        tmodel.setTargetValue(key, newValue, newSteps, newStepInterval, newCycles);
 
         if (isValueUpdated) {
             tmodel.resetTargetStep(key);

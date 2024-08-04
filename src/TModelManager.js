@@ -174,10 +174,10 @@ TModelManager.prototype.deleteDoms = function () {
         tmodel.domValues = {};
         tmodel.visible = false;
         
-        var resetTargets = tmodel.targets['resetOnInvisible'] || tmodel.getValue('resetOnInvisible'); 
+        var resetTargets = tmodel.targets['resetOnInvisible'] || tmodel.getValue('resetOnInvisible');
         resetTargets && resetTargets.forEach(function(key) {
             if (tmodel.targets[key] && tmodel.isTargetComplete(key)) {
-                tmodel.deleteTargetValue(key);
+                tmodel.resetTargetValue(key);
             }            
         });
         

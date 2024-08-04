@@ -160,14 +160,14 @@ LocationManager.prototype.calculateTargets = function(tmodel) {
     var onResizeTargets = this.resizeFlag ? tmodel.targets['onResize'] || tmodel.getValue('onResize') : undefined; 
     onResizeTargets && onResizeTargets.forEach(function(key) {
         if (tmodel.targets[key] && tmodel.isTargetComplete(key)) {
-            tmodel.deleteTargetValue(key);
+            tmodel.resetTargetValue(key);
         }            
     });
     
     var onTouchTargets = getEvents().isTouchHandler(tmodel) ? tmodel.targets['onTouchEvent'] || tmodel.getValue('onTouchEvent') : undefined; 
     onTouchTargets && onTouchTargets.forEach(function(key) {        
         if (tmodel.targets[key] && tmodel.isTargetComplete(key) ) {
-            tmodel.deleteTargetValue(key);
+            tmodel.resetTargetValue(key);
         }            
     });
     
@@ -175,7 +175,7 @@ LocationManager.prototype.calculateTargets = function(tmodel) {
             || (getEvents().isScrollTopHandler(tmodel) && getEvents().deltaY()) ? tmodel.targets['onScrollEvent'] || tmodel.getValue('onScrollEvent') : undefined; 
     onScrollTargets && onScrollTargets.forEach(function(key) {        
         if (tmodel.targets[key] && tmodel.isTargetComplete(key) ) {
-            tmodel.deleteTargetValue(key);
+            tmodel.resetTargetValue(key);
         }            
     });     
 

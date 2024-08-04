@@ -43,6 +43,7 @@ TargetManager.prototype.setTargetValue = function(tmodel, key) {
 
     tmodel.resetScheduleTimeStamp(key);
     TargetUtil.executeTarget(tmodel, key);
+    TargetUtil.snapToTarget(tmodel, key);    
     tmodel.updateTargetStatus(key);  
     
     var schedulePeriod = TargetUtil.scheduleExecution(tmodel, key);
@@ -125,7 +126,7 @@ TargetManager.prototype.setActualValue = function(tmodel, key) {
             tmodel.setTargetCycle(key, tmodel.getTargetCycle(key) + 1);
 
             TargetUtil.executeTarget(tmodel, key);
-            
+    
             tmodel.resetTargetStep(key);
             tmodel.resetLastActualValue(key);
         }        
@@ -139,7 +140,13 @@ TargetManager.prototype.setActualValue = function(tmodel, key) {
 
     if (tmodel.isTargetUpdating(key)) {
         tapp.manager.scheduleRun(stepInterval, tmodel.oid + "---" + key + "-" + step + "/" + steps + "-" + cycle + "-" + stepInterval);  
-    } else {    
+    } else {
+        if (tmodel.isTargetImperative(key)) {
+            var originalName = tmodel.targetValues[key].originalTargetName;
+            if (tmodel.targets[originalName] && typeof tmodel.targets[originalName].onImperativeEnds === 'function') {
+                tmodel.targets[originalName].onImperativeEnds.call(tmodel, key);
+            }
+        }
         tapp.manager.scheduleRun(0, tmodel.oid + "---" + key + "-" + step + "/" + steps + "-" + cycle + "-" + stepInterval);  
     }
 
