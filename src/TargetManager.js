@@ -1,7 +1,6 @@
 import { browser } from "./Browser.js";
 import { TUtil, EasingEffects } from "./TUtil.js";
 import { TargetUtil } from "./TargetUtil.js";
-import { ColorUtil } from "./ColorUtil.js";
 import { Easing } from "./Easing.js";
 
 import { tapp } from "./App.js";
@@ -53,29 +52,6 @@ TargetManager.prototype.setTargetValue = function(tmodel, key) {
     }
 };
 
-TargetManager.prototype.calculateActualValue = function(tmodel, key, targetValue, lastActualValue, step, steps)  {
-    var easing = TUtil.isDefined(tmodel.getTargetEasing(key)) ? tmodel.getTargetEasing(key) : Easing.linear;
-    var easingStep = easing(tmodel.getTargetStepPercent(key, step, steps)); 
-
-    if (TargetUtil.colorMap[key]) {
-        var targetColors = ColorUtil.color2Integers(targetValue);
-        var lastColors = targetColors ? ColorUtil.color2Integers(lastActualValue) : undefined;
-                
-        if (targetColors && lastColors) {
-            var red = targetColors[0] * easingStep + lastColors[0] * (1 - easingStep);
-            var green = targetColors[1] * easingStep + lastColors[1] * (1 - easingStep);
-            var blue = targetColors[2] * easingStep + lastColors[2] * (1 - easingStep);
-            
-            return 'rgb(' + red + ',' + green +  ',' + blue + ')';
-        } else {
-            return targetValue;
-        }
-        
-    } else {
-        return typeof targetValue  === 'number' ? targetValue * easingStep + lastActualValue * (1 - easingStep) : targetValue;
-    }
-};
-
 TargetManager.prototype.setJustActualValue = function(tmodel, key)  {
     
     var targetValue = tmodel.getTargetValue(key);
@@ -87,7 +63,7 @@ TargetManager.prototype.setJustActualValue = function(tmodel, key)  {
         if (!TUtil.isDefined(tmodel.getLastActualValue(key))) {
             tmodel.setLastActualValue(key, tmodel.actualValues[key]);
         }
-        tmodel.actualValues[key] = this.calculateActualValue(tmodel, key, targetValue, tmodel.getLastActualValue(key), step, steps);
+        tmodel.actualValues[key] = TargetUtil.calculateActualValue(tmodel, key, targetValue, tmodel.getLastActualValue(key), step, steps);
     } else {          
         tmodel.actualValues[key] = targetValue;
     } 
@@ -130,7 +106,7 @@ TargetManager.prototype.setActualValue = function(tmodel, key) {
         if (!TUtil.isDefined(tmodel.getLastActualValue(key))) {
             tmodel.setLastActualValue(key, tmodel.actualValues[key]);
         }
-        tmodel.actualValues[key] = this.calculateActualValue(tmodel, key, targetValue, tmodel.getLastActualValue(key), step, steps);
+        tmodel.actualValues[key] = TargetUtil.calculateActualValue(tmodel, key, targetValue, tmodel.getLastActualValue(key), step, steps);
              
         tmodel.setActualValueLastUpdate(key);
         

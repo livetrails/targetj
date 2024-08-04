@@ -1,6 +1,7 @@
 import { browser } from "./Browser.js";
 import { TModel } from "./TModel.js";
 import { TUtil } from "./TUtil.js";
+import { ColorUtil } from "./ColorUtil.js";
 
 function TargetUtil() {}
 
@@ -223,6 +224,31 @@ TargetUtil.handleValueChange = function(tmodel, key, newValue, lastValue, step, 
             tmodel.setTargetMethodName(key, 'onValueChange');
         }
     }    
+};
+
+TargetUtil.calculateActualValue = function(tmodel, key, targetValue, lastActualValue, step, steps)  {
+    var easing = TUtil.isDefined(tmodel.getTargetEasing(key)) ? tmodel.getTargetEasing(key) : Easing.linear;
+    var easingStep = easing(tmodel.getTargetStepPercent(key, step, steps)); 
+
+    if (TargetUtil.colorMap[key]) {
+        var targetColors = ColorUtil.color2Integers(targetValue);
+        var lastColors = targetColors ? ColorUtil.color2Integers(lastActualValue) : undefined;
+                
+        if (targetColors && lastColors) {
+            var red = targetColors[0] * easingStep + lastColors[0] * (1 - easingStep);
+            var green = targetColors[1] * easingStep + lastColors[1] * (1 - easingStep);
+            var blue = targetColors[2] * easingStep + lastColors[2] * (1 - easingStep);
+            
+            browser.log(tmodel.oid === 'scrollItem')('rgb(' + red + ',' + green +  ',' + blue + ')');
+            
+            return 'rgb(' + red + ',' + green +  ',' + blue + ')';
+        } else {
+            return targetValue;
+        }
+        
+    } else {
+        return typeof targetValue  === 'number' ? targetValue * easingStep + lastActualValue * (1 - easingStep) : targetValue;
+    }
 };
 
 TargetUtil.setWidthFromDom = function(child) {
