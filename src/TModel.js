@@ -150,6 +150,12 @@ TModel.prototype.initTargets = function() {
     this.activeTargetMap = {};
     this.activeTargetList = [];
     Object.keys(this.targets).forEach(function(key) {
+        var target = this.targets[key];
+        if (typeof target === 'object' && typeof target.value === 'function') {
+            target.value = target.value.bind({ _key: key });
+        } else if (typeof target === 'function') {
+            target = target.bind({ _key: key });
+        }
         self.addToActiveTargets(key);
     });    
 };
