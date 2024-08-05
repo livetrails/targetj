@@ -495,7 +495,9 @@ TModel.prototype.resetLastActualValue = function(key)   {
     }
 };
 
-TModel.prototype.updateTargetStatus = function(key) {  
+TModel.prototype.updateTargetStatus = function(key) {
+    if (!this.targetValues[key]) return;
+    
     var cycle = this.getTargetCycle(key);
     var cycles = this.getTargetCycles(key);
     var step = this.getTargetStep(key);
@@ -680,11 +682,9 @@ TModel.prototype.setTarget = function(key, value, steps, stepInterval, cycles) {
         
     var targetValue = this.targetValues[key];
 
-    if (value !== targetValue.value) {
-        this.resetTargetStep(key);
-        this.resetLastActualValue(key);
-    }
-
+    this.resetTargetStep(key);
+    this.resetLastActualValue(key);
+    
     targetValue.value = value;
     targetValue.steps = steps || 0;
     targetValue.cycles = cycles || 0;
@@ -696,9 +696,7 @@ TModel.prototype.setTarget = function(key, value, steps, stepInterval, cycles) {
     this.addToStyleTargetList(key);
     this.setTargetMethodName(key, 'value');
     TargetUtil.snapToTarget(this, key);
-    this.updateTargetStatus(key);
-    
-    browser.log(this.oid === 'docsPage')("setTarget: " + this.oid + ", " + key + ', ' + this.getTargetStatus(key) + ', ' + steps);
+    this.updateTargetStatus(key);    
 };
 
 TModel.prototype.setTargetValue = function(key, value, steps, stepInterval, cycles) {          
@@ -847,14 +845,23 @@ TModel.prototype.deleteTargetValue = function(key) {
     tapp.manager.scheduleRun(10, 'deleteTargetValue-' + this.oid + "-" + key);        
 }
 
-TModel.prototype.resetTargetValue = function(key)   {
-    this.resetTargetValues([key]);
+TModel.prototype.resetImperative = function(key) {
+    var targetValue = this.targetValues[key];
+    
+    if (targetValue) {
+        targetValue.isImperative = false;
+        targetValue.executionCount = 0;
+        targetValue.scheduleTimeStamp = undefined;
+        targetValue.step = 0;
+        targetValue.cycle = 0; 
+        targetValue.steps = 0;
+        targetValue.cycles = 0;
+        targetValue.stepInterval = 0;          
+    }
 };
 
-TModel.prototype.resetImperative = function(key) {
-    if (this.targetValues[key]) {
-        this.targetValues[key].isImperative = false;
-    }
+TModel.prototype.resetTargetValue = function(key)   {
+    this.resetTargetValues([key]);
 };
 
 TModel.prototype.resetTargetValues = function(keys) {

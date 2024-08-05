@@ -125,7 +125,6 @@ LocationManager.prototype.calculateContainer = function(container) {
         }
   
         if (child.isInFlow()) {
-            var childLastHeight = child.getHeight();
            
             if (child.hasChildren()) {
                 if (child.isTargetEnabled('width') && !child.isTargetImperative('width')) {
@@ -137,11 +136,6 @@ LocationManager.prototype.calculateContainer = function(container) {
                     tapp.targetManager.setJustActualValue(child, 'height');
                 }
             }
-
-            if (child.getHeight() !== childLastHeight && getEvents().isScrollTopHandler(child.getParent())
-                        && getEvents().dir() === 'up') {
-                this.calculateContainer(child); 
-            } 
             
             if (TUtil.isNumber(child.getValue('appendNewLine'))) {
                 viewport.appendNewLine();
@@ -157,28 +151,7 @@ LocationManager.prototype.calculateContainer = function(container) {
 };
 
 LocationManager.prototype.calculateTargets = function(tmodel) {
-    var onResizeTargets = this.resizeFlag ? tmodel.targets['onResize'] || tmodel.getValue('onResize') : undefined; 
-    onResizeTargets && onResizeTargets.forEach(function(key) {
-        if (tmodel.targets[key] && tmodel.isTargetComplete(key)) {
-            tmodel.resetTargetValue(key);
-        }            
-    });
-    
-    var onTouchTargets = getEvents().isTouchHandler(tmodel) ? tmodel.targets['onTouchEvent'] || tmodel.getValue('onTouchEvent') : undefined; 
-    onTouchTargets && onTouchTargets.forEach(function(key) {        
-        if (tmodel.targets[key] && tmodel.isTargetComplete(key) ) {
-            tmodel.resetTargetValue(key);
-        }            
-    });
-    
-    var onScrollTargets = (getEvents().isScrollLeftHandler(tmodel) && getEvents().deltaX()) 
-            || (getEvents().isScrollTopHandler(tmodel) && getEvents().deltaY()) ? tmodel.targets['onScrollEvent'] || tmodel.getValue('onScrollEvent') : undefined; 
-    onScrollTargets && onScrollTargets.forEach(function(key) {        
-        if (tmodel.targets[key] && tmodel.isTargetComplete(key) ) {
-            tmodel.resetTargetValue(key);
-        }            
-    });     
-
+    this.resetTargetsOnEvents(tmodel);
     tapp.targetManager.setTargetValues(tmodel);        
     tapp.targetManager.setActualValues(tmodel);
    
@@ -198,6 +171,35 @@ LocationManager.prototype.calculateTargets = function(tmodel) {
             tmodel.addToStyleTargetList('dim');
         }    
     }
+};
+
+LocationManager.prototype.resetTargetsOnEvents = function(tmodel) {
+    var resetTargets = [];
+
+    if (this.resizeFlag && tmodel.targets['onResize']) {
+        resetTargets = resetTargets.concat(tmodel.targets['onResize']);
+    }
+
+    if (getEvents().isTouchHandler(tmodel) && tmodel.targets['onTouchEvent']) {
+        resetTargets = resetTargets.concat(tmodel.targets['onTouchEvent']);
+    }
+
+    if ((getEvents().isScrollLeftHandler(tmodel) && getEvents().deltaX()) 
+        || (getEvents().isScrollTopHandler(tmodel) && getEvents().deltaY())) {
+        if (tmodel.targets['onScrollEvent']) {
+            resetTargets = resetTargets.concat(tmodel.targets['onScrollEvent']);
+        }
+    }
+
+    if (TargetJ.getEvents().currentKey && tmodel.targets['onKeyEvent']) {
+        resetTargets = resetTargets.concat(tmodel.targets['onKeyEvent']);
+    }
+
+    resetTargets.forEach(function(key) {        
+        if (tmodel.targets[key] && tmodel.isTargetComplete(key)) {
+            tmodel.resetTargetValue(key);
+        }            
+    });    
 };
 
 LocationManager.prototype.addToLocationList = function(child)   {
