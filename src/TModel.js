@@ -182,8 +182,12 @@ TModel.prototype.getChildren = function() {
                 return !a.canBeBracketed() && b.canBeBracketed() ? -1 : 1; 
             });
         }
-        
-        this.targetValues['allChildren'] ? this.setActualValueLastUpdate('allChildren') : this.setTargetValue('allChildren', this.actualValues.allChildren);
+        if (this.targetValues['allChildren']) {
+            this.setActualValueLastUpdate('allChildren')
+        } else {
+            this.setTargetValue('allChildren', this.actualValues.allChildren);
+            this.updateTargetStatus('allChildren');
+        }
     }
     
     return this.actualValues.allChildren;
@@ -728,7 +732,12 @@ TModel.prototype.addChild = function(child, index)  {
     }
         
     this.setActualValueLastUpdate('children');
-    this.targetValues['addedChildren'] ? this.setActualValueLastUpdate('addedChildren') : this.setTargetValue('addedChildren', addedChildren);
+    if (this.targetValues['addedChildren']) {
+        this.setActualValueLastUpdate('addedChildren');
+    } else {
+        this.setTargetValue('addedChildren', addedChildren);
+        this.updateTargetStatus('addedChildren');
+    }
     
     tapp.manager.scheduleRun(10, 'addChild-' + this.oid + "-" + child.oid);
      
