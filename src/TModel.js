@@ -186,6 +186,7 @@ TModel.prototype.getChildren = function() {
             this.setActualValueLastUpdate('allChildren')
         } else {
             this.setTargetValue('allChildren', this.actualValues.allChildren);
+            this.setActualValueLastUpdate('allChildren');
             this.updateTargetStatus('allChildren');
         }
     }
@@ -736,6 +737,7 @@ TModel.prototype.addChild = function(child, index)  {
         this.setActualValueLastUpdate('addedChildren');
     } else {
         this.setTargetValue('addedChildren', addedChildren);
+        this.setActualValueLastUpdate('addedChildren');
         this.updateTargetStatus('addedChildren');
     }
     
