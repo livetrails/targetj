@@ -67,13 +67,12 @@ TargetUtil.bindTargetName = function(targetInstance, key) {
     var target = targetInstance[key];
     
     if (typeof target === 'object') {
-        ['value', 'onStepsEnd', 'onValueChange', 'loop', 'onImperativeEnds'].forEach(function(method) {
+        ['value', 'enabledOn', 'onStepsEnd', 'onValueChange', 'loop', 'onImperativeEnds'].forEach(function(method) {
             if (typeof target[method] === 'function') {
                 var originalMethod = target[method];
-                // Create a wrapper function to bind the key
                 target[method] = function() {
-                    this.key = key;  // Assign the key to `this`
-                    return originalMethod.apply(this, arguments);  // Call the original method
+                    this.key = key;
+                    return originalMethod.apply(this, arguments);
                 };
             }
         });
@@ -125,16 +124,16 @@ TargetUtil.getValueStepsCycles = function(tmodel, key) {
         }
         
         if (typeof target === 'object' && target !== null) {
-            value = typeof target.value === 'function' ? target.value.call(tmodel, key, cycle, lastValue) : TUtil.isDefined(target.value) ? target.value : target;
-            steps = typeof target.steps === 'function' ? target.steps.call(tmodel, key, cycle) : TUtil.isDefined(target.steps) ? target.steps : 0;
-            stepInterval = typeof target.stepInterval === 'function' ? target.stepInterval.call(tmodel, key, cycle, tmodel.getTargetStepInterval(key)) : TUtil.isDefined(target.stepInterval) ? target.stepInterval : 0;            
-            cycles = typeof target.cycles === 'function' ? target.cycles.call(tmodel, key, cycle, tmodel.getTargetCycles(key)) : TUtil.isDefined(target.cycles) ? target.cycles : 0;
+            value = typeof target.value === 'function' ? target.value.call(tmodel, cycle, lastValue) : TUtil.isDefined(target.value) ? target.value : target;
+            steps = typeof target.steps === 'function' ? target.steps.call(tmodel, cycle) : TUtil.isDefined(target.steps) ? target.steps : 0;
+            stepInterval = typeof target.stepInterval === 'function' ? target.stepInterval.call(tmodel, cycle, tmodel.getTargetStepInterval(key)) : TUtil.isDefined(target.stepInterval) ? target.stepInterval : 0;            
+            cycles = typeof target.cycles === 'function' ? target.cycles.call(tmodel, cycle, tmodel.getTargetCycles(key)) : TUtil.isDefined(target.cycles) ? target.cycles : 0;
 
             return Array.isArray(value) ? getValue(value) : [value, steps, stepInterval, cycles];
         }
         
         if (typeof target === 'function') {
-            return getValue(target.call(tmodel, key, cycle, lastValue));
+            return getValue(target.call(tmodel, cycle, lastValue));
         } 
                 
         return [target, steps, stepInterval, cycles];
@@ -143,7 +142,7 @@ TargetUtil.getValueStepsCycles = function(tmodel, key) {
     return getValue(_target);
 };
 
-TargetUtil.executeTarget = function(tmodel, key) {
+TargetUtil.executeTarget = function(tmodel, key) {    
     TargetUtil.assignValueArray(tmodel, key);
     tmodel.targetValues[key].executionCount++;
     tmodel.setTargetMethodName(key, 'value'); 
@@ -253,32 +252,34 @@ TargetUtil.handleValueChange = function(tmodel, key, newValue, lastValue, step, 
         
         var valueChanged = !TUtil.areEqual(newValue, lastValue, tmodel.targets[key].deepEquality);
         if (valueChanged) {
-            tmodel.targets[key].onValueChange.call(tmodel, key, newValue, lastValue, cycle); 
+            tmodel.targets[key].onValueChange.call(tmodel, newValue, lastValue, cycle); 
             tmodel.setTargetMethodName(key, 'onValueChange');
         }
     }    
 };
 
-TargetUtil.calculateActualValue = function(tmodel, key, targetValue, lastActualValue, step, steps)  {
+TargetUtil.morph = function(tmodel, key, fromValue, toValue, step, steps)  {
+    
     var easing = TUtil.isDefined(tmodel.getTargetEasing(key)) ? tmodel.getTargetEasing(key) : Easing.linear;
     var easingStep = easing(tmodel.getTargetStepPercent(key, step, steps)); 
 
     if (TargetUtil.colorMap[key]) {
-        var targetColors = ColorUtil.color2Integers(targetValue);
-        var lastColors = targetColors ? ColorUtil.color2Integers(lastActualValue) : undefined;
-                
+        
+        var targetColors = ColorUtil.color2Integers(toValue);
+        var lastColors = fromValue ? ColorUtil.color2Integers(fromValue) : ColorUtil.color2Integers('#fff');
+
         if (targetColors && lastColors) {
             var red = Math.floor(targetColors[0] * easingStep + lastColors[0] * (1 - easingStep));
             var green = Math.floor(targetColors[1] * easingStep + lastColors[1] * (1 - easingStep));
             var blue = Math.floor(targetColors[2] * easingStep + lastColors[2] * (1 - easingStep));
-                        
+                              
             return 'rgb(' + red + ',' + green +  ',' + blue + ')';
         } else {
-            return targetValue;
+            return toValue;
         }
         
     } else {
-        return typeof targetValue  === 'number' ? targetValue * easingStep + lastActualValue * (1 - easingStep) : targetValue;
+        return typeof toValue  === 'number' ? toValue * easingStep + fromValue * (1 - easingStep) : toValue;
     }
 };
 

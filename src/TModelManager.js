@@ -30,19 +30,7 @@ TModelManager.prototype.init = function()   {
     this.runningStep = 0;
     this.runningFlag = false;
     this.rerunFlag = false;
-};
- 
-TModelManager.prototype.visibles = function(type, list) {
-    list = !list ? this.lists.visible : list;
-    return this.lists.visible.filter(function(tmodel) { return tmodel.type === type || !type ; }).map(function(tmodel) { return tmodel.oid; });
-};
-  
-TModelManager.prototype.findVisible = function(type)  {
-    return this.lists.visible.find(function(tmodel) { return tmodel.type === type; });
-};
-
-TModelManager.prototype.findLastVisible = function(type)  {
-    return this.lists.visible.findLast(function(tmodel) { return tmodel.type === type; });
+    this.cycleDuration = 0;
 };
 
 TModelManager.prototype.clear = function() {
@@ -58,6 +46,20 @@ TModelManager.prototype.clear = function() {
     this.visibleOidMap = {};
     this.targetMethodMap = {};      
 };
+ 
+TModelManager.prototype.visibles = function(type, list) {
+    list = !list ? this.lists.visible : list;
+    return this.lists.visible.filter(function(tmodel) { return tmodel.type === type || !type ; }).map(function(tmodel) { return tmodel.oid; });
+};
+  
+TModelManager.prototype.findVisible = function(type)  {
+    return this.lists.visible.find(function(tmodel) { return tmodel.type === type; });
+};
+
+TModelManager.prototype.findLastVisible = function(type)  {
+    return this.lists.visible.findLast(function(tmodel) { return tmodel.type === type; });
+};
+
  
 TModelManager.prototype.analyze = function()    {
     var i, tmodel;
@@ -177,7 +179,7 @@ TModelManager.prototype.deleteDoms = function () {
         var resetTargets = tmodel.targets['resetOnInvisible'] || tmodel.getValue('resetOnInvisible');
         resetTargets && resetTargets.forEach(function(key) {
             if (tmodel.targets[key] && tmodel.isTargetComplete(key)) {
-                tmodel.resetTargetValue(key);
+                tmodel.resetTarget(key);
             }            
         });
         
@@ -440,8 +442,9 @@ TModelManager.prototype.run = function(oid, delay) {
     tapp.manager.runningFlag = true;
                 
     window.requestAnimationFrame(function () {
-        var frameTime = browser.now();
-        while((browser.now() - frameTime) < 25 && tapp.manager.runningStep < 7 && tapp.isRunning()) {
+        var startTime = browser.now();
+        tapp.manager.cycleDuration = 0;
+        while(tapp.manager.cycleDuration < 25 && tapp.manager.runningStep < 7 && tapp.isRunning()) {
             switch(tapp.manager.runningStep) {
                 case 0:
                                         
@@ -490,11 +493,12 @@ TModelManager.prototype.run = function(oid, delay) {
             }
             
             tapp.manager.runningStep++;
+            tapp.manager.cycleDuration = browser.now() - startTime;
         }
         
         if (tapp.debugLevel > 0) {
-            browser.log(tapp.debugLevel > 0 && browser.now() - frameTime > 10)("it took: " + (browser.now() - frameTime) + ", " + oid);
-            browser.log(tapp.debugLevel > 0 && browser.now() - frameTime > 10)("count: " + tapp.locationManager.locationCount);
+            browser.log(tapp.debugLevel > 0 && tapp.manager.cycleDuration > 10)("it took: " + tapp.manager.cycleDuration + ", " + oid);
+            browser.log(tapp.debugLevel > 0 && tapp.manager.cycleDuration > 10)("count: " + tapp.locationManager.locationCount);
             browser.log(tapp.debugLevel > 1)("request from: " + oid + " delay:  " + delay);
         }
         

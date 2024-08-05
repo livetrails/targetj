@@ -183,6 +183,10 @@ LocationManager.prototype.resetTargetsOnEvents = function(tmodel) {
     if (getEvents().isTouchHandler(tmodel) && tmodel.targets['onTouchEvent']) {
         resetTargets = resetTargets.concat(tmodel.targets['onTouchEvent']);
     }
+    
+    if (getEvents().isClickHandler(tmodel) && tmodel.targets['onClickEvent']) {
+        resetTargets = resetTargets.concat(tmodel.targets['onClickEvent']);
+    }
 
     if ((getEvents().isScrollLeftHandler(tmodel) && getEvents().deltaX()) 
         || (getEvents().isScrollTopHandler(tmodel) && getEvents().deltaY())) {
@@ -194,10 +198,10 @@ LocationManager.prototype.resetTargetsOnEvents = function(tmodel) {
     if (TargetJ.getEvents().currentKey && tmodel.targets['onKeyEvent']) {
         resetTargets = resetTargets.concat(tmodel.targets['onKeyEvent']);
     }
-
+    
     resetTargets.forEach(function(key) {        
         if (tmodel.targets[key] && tmodel.isTargetComplete(key)) {
-            tmodel.resetTargetValue(key);
+            tmodel.resetTarget(key);
         }            
     });    
 };

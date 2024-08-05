@@ -145,15 +145,16 @@ ColorUtil.colors = {
 };
 
 ColorUtil.color2Integers = function(color) {
+    color = color || '';
+    color = ColorUtil.colors[color.toLowerCase()] ? ColorUtil.colors[color.toLowerCase()] : color;
+        
     if (!color) return;
-    
-    color = ColorUtil.colors[color] ? ColorUtil.colors[color] : color;
     
     if (color.startsWith('#')) {
         color = color.slice(1);
         color = color.length === 3 ? color = color.split('').map(function(char) { return char + char; }).join('') : color;
         var bigint = parseInt(color, 16);
-        return [(bigint >> 16) & 255, (bigint >> 8) & 255, bigint & 25]    
+        return [(bigint >> 16) & 255, (bigint >> 8) & 255, bigint & 255];  
     } else {
         var rgbArray = color.match(/\d+/g);
         return rgbArray && rgbArray.length === 3 ? rgbArray.map(Number) : undefined;

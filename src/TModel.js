@@ -509,7 +509,7 @@ TModel.prototype.updateTargetStatus = function(key) {
     var cycles = this.getTargetCycles(key);
     var step = this.getTargetStep(key);
     var steps = this.getTargetSteps(key);
-        
+      
     if (this.isExecuted(key) && step < steps) {
         this.targetValues[key].status = 'updating';
     } else if (!this.isExecuted(key) || this.isTargetInLoop(key) || cycle < cycles) {
@@ -539,7 +539,7 @@ TModel.prototype.updateTargetStatus = function(key) {
             parent.removeFromUpdatingChildren(this);
         }
         tapp.manager.doneTargets.push({ tmodel: this, key: key });
-    }
+    }    
     return this.targetValues[key].status;
 };
 
@@ -592,7 +592,7 @@ TModel.prototype.isTargetEnabled = function(key) {
         return false;
     }
 
-    return typeof target.enabledOn === 'function' ? target.enabledOn.call(this, key) : true;
+    return typeof target.enabledOn === 'function' ? target.enabledOn.call(this) : true;
 };
 
 TModel.prototype.isTargetInLoop = function(key) {            
@@ -653,6 +653,13 @@ TModel.prototype.setTargetCycle = function(key, value)   {
     }
 };
 
+TModel.prototype.setTargetStepInterval = function(key, value)  {
+    if (this.targetValues[key]) {
+        this.targetValues[key].stepInterval = value;
+    }
+    return this.targetValues[key].stepInterval;
+};
+
 TModel.prototype.setScheduleTimeStamp = function(key, value)   {
     if (this.targetValues[key]) {
         this.targetValues[key].scheduleTimeStamp = value;
@@ -683,20 +690,20 @@ TModel.prototype.getTargetEventFunctions = function(key)   {
     return this.targetValues[key] ? this.targetValues[key].events: undefined;
 };
 
-TModel.prototype.setTarget = function(key, value, steps, stepInterval, cycles) {  
+TModel.prototype.setTarget = function(key, value, steps, stepInterval) {  
 
     this.targetValues[key] = !this.targetValues[key] ? TargetUtil.emptyValue() : this.targetValues[key];
         
     var targetValue = this.targetValues[key];
 
-    this.resetTargetStep(key);
-    this.resetLastActualValue(key);
-    
+    targetValue.step = 0;
+    targetValue.cycle = 0;
+    targetValue.lastActualValue = undefined;
     targetValue.value = value;
     targetValue.steps = steps || 0;
-    targetValue.cycles = cycles || 0;
-    targetValue.stepInterval = stepInterval || 0;
-    targetValue.isImperative = true
+    targetValue.stepInterval = stepInterval || 0;    
+    targetValue.cycles = 0;
+    targetValue.isImperative = true;
     targetValue.originalTargetName = this.key;
     targetValue.executionCount++;
     
@@ -713,11 +720,14 @@ TModel.prototype.setTargetValue = function(key, value, steps, stepInterval, cycl
     this.targetValues[key] = !this.targetValues[key] ? TargetUtil.emptyValue() : this.targetValues[key];
 
     var targetValue = this.targetValues[key];
+    
+    browser.log(this.oid === 'quickStart')('setTargetValue: ' + key + ", " + cycles + ", " +  this.getTargetCycle(key) + "/" + this.getTargetCycles(key));
+    
 
     targetValue.value = value;
     targetValue.steps = steps || 0;
+    targetValue.stepInterval = stepInterval || 0;    
     targetValue.cycles = cycles || 0;
-    targetValue.stepInterval = stepInterval || 0;
 };
 
 TModel.prototype.setValue = function(key, value) {
@@ -875,11 +885,11 @@ TModel.prototype.resetImperative = function(key) {
     }
 };
 
-TModel.prototype.resetTargetValue = function(key)   {
-    this.resetTargetValues([key]);
+TModel.prototype.resetTarget = function(key)   {
+    this.resetTargets([key]);
 };
 
-TModel.prototype.resetTargetValues = function(keys) {
+TModel.prototype.resetTargets = function(keys) {
     var self = this;
     keys.forEach(function(key) {
         var targetValue = self.targetValues[key];
@@ -894,7 +904,7 @@ TModel.prototype.resetTargetValues = function(keys) {
         }
     });
     
-    tapp.manager.scheduleRun(10, 'resetTargetValues-' + this.oid);    
+    tapp.manager.scheduleRun(10, 'resetTargets-' + this.oid);    
 };
 
 TModel.prototype.setTargetMethodName = function(targetName, methodName) {
