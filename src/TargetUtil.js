@@ -150,13 +150,11 @@ TargetUtil.executeTarget = function(tmodel, key) {
 };
 
 TargetUtil.snapToTarget = function(tmodel, key) {
-    if (tmodel.getTargetSteps(key) === 0) {
-        var oldValue = tmodel.actualValues[key];
-        var value = tmodel.targetValues[key].value;
-        tmodel.actualValues[key] = typeof value === 'function' ? value.call(tmodel) : value;
-        tmodel.setActualValueLastUpdate(key);
-        TargetUtil.handleValueChange(tmodel, key, tmodel.actualValues[key], oldValue, 0, 0);
-    }
+    var oldValue = tmodel.actualValues[key];
+    var value = tmodel.targetValues[key].value;
+    tmodel.actualValues[key] = typeof value === 'function' ? value.call(tmodel) : value;
+    tmodel.setActualValueLastUpdate(key);
+    TargetUtil.handleValueChange(tmodel, key, tmodel.actualValues[key], oldValue, 0, 0);
 };
 
 TargetUtil.assignValueArray = function(tmodel, key) {

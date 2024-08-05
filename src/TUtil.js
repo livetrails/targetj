@@ -126,39 +126,6 @@ TUtil.limit = function (num, low, high) {
     return num;
 };
 
-TUtil.getOptionValue = function(option, defaultValue, tmodel)    {
-    return !TUtil.isDefined(option) ? defaultValue : typeof option === 'function' ? option.call(tmodel) : option;
-};
-
-TUtil.executeFunctionByName = function (functionName, context) {
-    if (!functionName)
-        return null;
-
-    var args = Array.prototype.slice.call(arguments, 2);
-    var namespaces = functionName.split(".");
-    var func = namespaces.pop();
-    for (var i = 0; i < namespaces.length; i++) {
-        context = context[namespaces[i]];
-    }
-
-    if (context && context[func]) {
-        return context[func].apply(context, args);
-    }
-};
-
-TUtil.formatPeriod = function (seconds) {
-    seconds = seconds < 0 ? 0 : seconds;
-    if (seconds < 120) {
-        return seconds + " sec";
-    } else if (seconds < 7200) {
-        return Math.floor(seconds / 60) + " min";
-    } else if (seconds < 172800) {
-        return Math.floor(seconds / 3600) + " hours";
-    } else {
-        return Math.floor(seconds / 86400)  + " days";
-    }
-};
-
 TUtil.formatNum = function (num, precision) {
     if (!num) return 0;
     var s = num.toString();

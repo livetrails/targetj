@@ -60,7 +60,9 @@ function TModel(type, targets) {
         calculateChildren: undefined,
         isVisible: undefined,
         onResize: undefined,
-        onTouchEvent: undefined
+        onTouchEvent: undefined,
+        onScrollEvent: undefined,
+        onKeyEvent: undefined
     };
 
     this.updatingTargetList = [];
@@ -700,7 +702,9 @@ TModel.prototype.setTarget = function(key, value, steps, stepInterval, cycles) {
     
     this.addToStyleTargetList(key);
     this.setTargetMethodName(key, 'value');
-    TargetUtil.snapToTarget(this, key);
+    if (this.getTargetSteps(key) === 0) {    
+        TargetUtil.snapToTarget(this, key);
+    }
     this.updateTargetStatus(key);    
 };
 
