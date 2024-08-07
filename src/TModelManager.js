@@ -127,19 +127,28 @@ TModelManager.prototype.needsRerender = function(tmodel) {
             && TUtil.isDefined(tmodel.getHtml())
             && (tmodel.$dom.html() !== tmodel.getHtml() || tmodel.$dom.textOnly !== tmodel.isTextOnly())) {
         this.lists.rerender.push(tmodel);
+        return true;
     }
+    
+    return false;
 };
 
 TModelManager.prototype.needsRestyle = function(tmodel) {
     if (tmodel.hasDom() && tmodel.styleTargetList.length > 0) {
         this.lists.restyle.push(tmodel);
+        return true;
     }
+    
+    return false;
 };
 
 TModelManager.prototype.needsReattach = function(tmodel) {
     if (tmodel.hasDom() && tmodel.hasDomHolderChanged()) {
         this.lists.reattach.push(tmodel);
+        return true;
     }
+    
+    return false;
 };
 
 TModelManager.prototype.renderTModels = function () {
@@ -279,6 +288,15 @@ TModelManager.prototype.fixStyles = function() {
                     var css = tmodel.getCss();
                     if (tmodel.$dom.css() !== css) {
                         tmodel.$dom.css(css);
+                    }
+                    break;
+                    
+                case 'borderRadius':
+                case 'padding':
+                case 'fontSize':
+                    if (TUtil.isDefined(tmodel.getValue(key)) && tmodel.domValues[key] !== tmodel.getValue(key)) {
+                        tmodel.$dom.style(key, TUtil.isNumber(tmodel.getValue(key)) ? tmodel.getValue(key) + 'px' : tmodel.getValue(key));
+                        tmodel.domValues[key] = tmodel.getValue(key);
                     }
                     break;
 

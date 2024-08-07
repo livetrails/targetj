@@ -6,21 +6,21 @@ import { tapp } from "./App.js";
 
 function TargetManager() {}
 
-TargetManager.prototype.setTargetValues = function(tmodel) {
+TargetManager.prototype.applyTargetValues = function(tmodel) {
     tmodel.targetMethodMap = {};
 
     var activeList = tmodel.activeTargetList.slice(0);
     for (var i = 0; i < activeList.length; i++) {
         var key = activeList[i];
-             
+                     
         if (!tmodel.isTargetImperative(key)) {
             tmodel.addToStyleTargetList(key);
-            this.setTargetValue(tmodel, key);
+            this.applyTargetValues(tmodel, key);
         }
     }
 };
 
-TargetManager.prototype.setTargetValue = function(tmodel, key) {
+TargetManager.prototype.applyTargetValue = function(tmodel, key) {
     var target = tmodel.targets[key];
     
     if (!TUtil.isDefined(target)) {
@@ -33,7 +33,7 @@ TargetManager.prototype.setTargetValue = function(tmodel, key) {
     }
     
     if (!tmodel.isTargetEnabled(key)) {        
-        tapp.manager.scheduleRun(10, "setTargetValue-disabled-" + tmodel.oid + "__" + key);
+        tapp.manager.scheduleRun(10, "applyTargetValue-disabled-" + tmodel.oid + "__" + key);
         return;
     }
     
@@ -45,12 +45,12 @@ TargetManager.prototype.setTargetValue = function(tmodel, key) {
     
     tmodel.resetScheduleTimeStamp(key);
 
-    if (tmodel.isExecuted(key) && tmodel.getTargetCycle(key) < tmodel.getTargetCycles(key)) {
+    if (tmodel.isExecuted(key) && tmodel.getTargetCycle(key) < tmodel.getTargetCycles(key)) {        
         tmodel.setTargetCycle(key, tmodel.getTargetCycle(key) + 1);
         tmodel.resetTargetStep(key);
         tmodel.resetLastActualValue(key);
-    }    
-
+    }   
+    
     TargetUtil.executeTarget(tmodel, key);
 
     if (tmodel.getTargetSteps(key) === 0) {
@@ -58,7 +58,7 @@ TargetManager.prototype.setTargetValue = function(tmodel, key) {
     }
     
     tmodel.updateTargetStatus(key); 
-        
+    
     var schedulePeriod = TargetUtil.scheduleExecution(tmodel, key);
     if (schedulePeriod > 0) {
         tapp.manager.scheduleRun(schedulePeriod, "actualInterval__" + tmodel.oid + "__" + key); 
@@ -86,7 +86,7 @@ TargetManager.prototype.setActualValues = function(tmodel) {
     var i, key;
     var updatingList = tmodel.updatingTargetList.slice(0);
     var schedulePeriod = 0;
-        
+            
     for (i = 0; i < updatingList.length; i++) {
         key = updatingList[i];
                          
@@ -117,10 +117,11 @@ TargetManager.prototype.setActualValue = function(tmodel, key) {
               
     if (step < steps) { 
         if (!TUtil.isDefined(tmodel.getLastActualValue(key))) {
-            tmodel.setLastActualValue(key, tmodel.actualValues[key]);
+            var initialValue = tmodel.targets[key] && TUtil.isDefined(tmodel.targets[key].initial) ? tmodel.targets[key].initial : tmodel.actualValues[key];
+            tmodel.setLastActualValue(key, initialValue);
         }
         tmodel.actualValues[key] = TargetUtil.morph(tmodel, key, tmodel.getLastActualValue(key), targetValue, step, steps);
-             
+                 
         tmodel.setActualValueLastUpdate(key);
         
         step = tmodel.setTargetStep(key, step + 1);  
@@ -139,11 +140,8 @@ TargetManager.prototype.setActualValue = function(tmodel, key) {
 
     tmodel.actualValues[key] = targetValue;      
     tmodel.setActualValueLastUpdate(key);
-
-    if (typeof tmodel.targets[key] === 'object' && typeof tmodel.targets[key].onStepsEnd === 'function') {
-        tmodel.targets[key].onStepsEnd.call(tmodel, cycle);                      
-        tmodel.setTargetMethodName(key, 'onStepsEnd');
-    }
+    
+    TargetUtil.handleValueChange(tmodel, key, tmodel.actualValues[key], oldValue, oldStep, oldCycle);
 
     if (tmodel.isTargetImperative(key)) {
         var originalTargetName = tmodel.targetValues[key].originalTargetName;
@@ -153,14 +151,21 @@ TargetManager.prototype.setActualValue = function(tmodel, key) {
             tmodel.updateTargetStatus(originalTargetName);
             tmodel.setTargetMethodName(originalTargetName, 'onImperativeEnds');
         }
-    } else if (tmodel.getTargetCycle(key) < tmodel.getTargetCycles(key)) {
-        tmodel.setTargetCycle(key, tmodel.getTargetCycle(key) + 1);
-        tmodel.resetTargetStep(key);
-        tmodel.resetLastActualValue(key);
+    } else {
+        if (tmodel.getTargetCycle(key) < tmodel.getTargetCycles(key)) {
+            tmodel.setTargetCycle(key, tmodel.getTargetCycle(key) + 1);
+            tmodel.resetTargetStep(key);
+            tmodel.resetLastActualValue(key);
+
+            TargetUtil.executeTarget(tmodel, key);
+        }
         
-        TargetUtil.executeTarget(tmodel, key);
-    }   
-    
+        if (typeof tmodel.targets[key] === 'object' && typeof tmodel.targets[key].onStepsEnd === 'function') {
+            tmodel.targets[key].onStepsEnd.call(tmodel, cycle);                      
+            tmodel.setTargetMethodName(key, 'onStepsEnd');
+        }
+    } 
+   
     tmodel.updateTargetStatus(key);
 
     tapp.manager.scheduleRun(0, tmodel.oid + "---" + key + "-" + step + "/" + steps + "-" + cycle + "-" + stepInterval);

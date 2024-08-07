@@ -188,8 +188,6 @@ TModel.prototype.getChildren = function() {
             this.setActualValueLastUpdate('allChildren')
         } else {
             this.setTargetValue('allChildren', this.actualValues.allChildren);
-            this.setActualValueLastUpdate('allChildren');
-            this.updateTargetStatus('allChildren');
         }
     }
     
@@ -690,7 +688,7 @@ TModel.prototype.getTargetEventFunctions = function(key)   {
     return this.targetValues[key] ? this.targetValues[key].events: undefined;
 };
 
-TModel.prototype.setTarget = function(key, value, steps, stepInterval) {  
+TModel.prototype.setTarget = function(key, value, steps, stepInterval, easing) {  
 
     this.targetValues[key] = !this.targetValues[key] ? TargetUtil.emptyValue() : this.targetValues[key];
         
@@ -705,6 +703,7 @@ TModel.prototype.setTarget = function(key, value, steps, stepInterval) {
     targetValue.cycles = 0;
     targetValue.isImperative = true;
     targetValue.originalTargetName = this.key;
+    targetValue.easing = easing;
     targetValue.executionCount++;
     
     this.addToStyleTargetList(key);
@@ -719,19 +718,32 @@ TModel.prototype.setTargetValue = function(key, value, steps, stepInterval, cycl
 
     this.targetValues[key] = !this.targetValues[key] ? TargetUtil.emptyValue() : this.targetValues[key];
 
-    var targetValue = this.targetValues[key];
-    
-    browser.log(this.oid === 'quickStart')('setTargetValue: ' + key + ", " + cycles + ", " +  this.getTargetCycle(key) + "/" + this.getTargetCycles(key));
-    
+    var targetValue = this.targetValues[key];    
 
     targetValue.value = value;
     targetValue.steps = steps || 0;
     targetValue.stepInterval = stepInterval || 0;    
     targetValue.cycles = cycles || 0;
+    
+    if (targetValue.steps === 0) {
+        TargetUtil.snapToTarget(this, key);
+    }
+    
+    this.setActualValueLastUpdate(key);
+
+    this.updateTargetStatus(key);
 };
 
 TModel.prototype.setValue = function(key, value) {
     this.actualValues[key] = value;
+};
+
+TModel.prototype.addValue = function(key, value) {
+    this.actualValues[key] += value;
+};
+
+TModel.prototype.multiplyValue = function(key, value) {
+    this.actualValues[key] *= value;
 };
 
 TModel.prototype.addChild = function(child, index)  { 
@@ -751,8 +763,6 @@ TModel.prototype.addChild = function(child, index)  {
         this.setActualValueLastUpdate('addedChildren');
     } else {
         this.setTargetValue('addedChildren', addedChildren);
-        this.setActualValueLastUpdate('addedChildren');
-        this.updateTargetStatus('addedChildren');
     }
     
     tapp.manager.scheduleRun(10, 'addChild-' + this.oid + "-" + child.oid);

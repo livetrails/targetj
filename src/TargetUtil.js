@@ -1,5 +1,6 @@
 import { browser } from "./Browser.js";
 import { TModel } from "./TModel.js";
+import { getManager } from "./App.js";
 import { TUtil } from "./TUtil.js";
 import { ColorUtil } from "./ColorUtil.js";
 import { Easing } from "./Easing.js";
@@ -59,7 +60,8 @@ TargetUtil.emptyValue = function() {
         status: '',
         executionCount: 0,
         isImperative: false,
-        originalTargetName: undefined
+        originalTargetName: undefined,
+        easing: undefined
     };
 };
 
@@ -175,7 +177,12 @@ TargetUtil.assignValueArray = function(tmodel, key) {
 
     if (isValueUpdated || targetValue.steps !== newSteps || targetValue.cycles !== newCycles || targetValue.stepInterval !== newStepInterval) {
 
-        tmodel.setTargetValue(key, newValue, newSteps, newStepInterval, newCycles);
+        tmodel.targetValues[key] = !tmodel.targetValues[key] ? TargetUtil.emptyValue() : tmodel.targetValues[key];
+        var targetValue = tmodel.targetValues[key];    
+        targetValue.value = newValue;
+        targetValue.steps = newSteps;
+        targetValue.stepInterval = newStepInterval;    
+        targetValue.cycles = newCycles;
 
         if (isValueUpdated) {
             tmodel.resetTargetStep(key);
@@ -260,9 +267,11 @@ TargetUtil.handleValueChange = function(tmodel, key, newValue, lastValue, step, 
 
 TargetUtil.morph = function(tmodel, key, fromValue, toValue, step, steps)  {
     
-    var easing = TUtil.isDefined(tmodel.getTargetEasing(key)) ? tmodel.getTargetEasing(key) : Easing.linear;
-    var easingStep = easing(tmodel.getTargetStepPercent(key, step, steps)); 
-
+    var easing = TUtil.isDefined(tmodel.getTargetEasing(key)) ? tmodel.getTargetEasing(key) : 
+            typeof tmodel.targetValues[key].easing === 'function' ? tmodel.targetValues[key].easing : Easing.linear;
+    
+    var easingStep = easing(tmodel.getTargetStepPercent(key, step)); 
+    
     if (TargetUtil.colorMap[key]) {
         
         var targetColors = ColorUtil.color2Integers(toValue);
@@ -283,12 +292,14 @@ TargetUtil.morph = function(tmodel, key, fromValue, toValue, step, steps)  {
     }
 };
 
-TargetUtil.setWidthFromDom = function(child) {
-    if (child.$dom.html() === undefined) return;
-    
+TargetUtil.setWidthFromDom = function(child) {    
     var height = TUtil.isDefined(child.domWidth) ? child.domWidth.height : undefined;    
     var width = TUtil.isDefined(child.domWidth) ? child.domWidth.width : undefined;
     var domParent = child.getDomParent();
+    
+    if (getManager().needsRerender(child)) {
+        child.isTextOnly() ? child.$dom.text(child.getHtml()) : child.$dom.html(child.getHtml());  
+    }
     
     if (!TUtil.isDefined(child.domWidth) 
             || height !== child.getHeight()
@@ -302,12 +313,14 @@ TargetUtil.setWidthFromDom = function(child) {
     child.setValue('width', width);
 };
 
-TargetUtil.setHeightFromDom = function(child) {
-    if (child.$dom.html() === undefined) return;
-    
+TargetUtil.setHeightFromDom = function(child) {    
     var height = TUtil.isDefined(child.domHeight) ? child.domHeight.height : undefined;
     var width = TUtil.isDefined(child.domHeight) ? child.domHeight.width : undefined;
     var domParent = child.getDomParent();
+    
+    if (getManager().needsRerender(child)) {
+        child.isTextOnly() ? child.$dom.text(child.getHtml()) : child.$dom.html(child.getHtml());    
+    }    
     
     if (!TUtil.isDefined(child.domHeight) 
             || width !== child.getWidth() 

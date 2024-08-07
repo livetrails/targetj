@@ -152,7 +152,7 @@ LocationManager.prototype.calculateContainer = function(container) {
 
 LocationManager.prototype.calculateTargets = function(tmodel) {
     this.resetTargetsOnEvents(tmodel);
-    tapp.targetManager.setTargetValues(tmodel);        
+    tapp.targetManager.applyTargetValues(tmodel);        
     tapp.targetManager.setActualValues(tmodel);
    
     if (tmodel.hasDom()) {
