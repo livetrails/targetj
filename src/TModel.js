@@ -187,7 +187,7 @@ TModel.prototype.getChildren = function() {
         if (this.targetValues['allChildren']) {
             this.setActualValueLastUpdate('allChildren')
         } else {
-            this.setTargetValue('allChildren', this.actualValues.allChildren);
+            this.setTarget('allChildren', this.actualValues.allChildren);
         }
     }
     
@@ -693,17 +693,51 @@ TModel.prototype.setTarget = function(key, value, steps, interval, easing) {
     this.targetValues[key] = !this.targetValues[key] ? TargetUtil.emptyValue() : this.targetValues[key];
         
     var targetValue = this.targetValues[key];
+    
+    if (Array.isArray(value) && value.length > 1 && steps > 0) {
+        targetValue.valueList = value;
+        targetValue.stepList = Array.isArray(steps) ? steps : [ steps ];
+        targetValue.intervalList = Array.isArray(interval) ? interval : [ interval ];
+        targetValue.easingList = Array.isArray(easing) ? easing : [ easing ];
+        
+        targetValue.lastActualValue = value[0];
+        targetValue.value = value[1];
+        targetValue.steps = targetValue.stepList[0] || 0;
+        targetValue.interval = targetValue.intervalList[0] || 0;
+        targetValue.easing = targetValue.easingList[0];
+            
+        targetValue.step = 0;
+        targetValue.cycle = 1;
+        
+        targetValue.cycles = 0;
+        targetValue.isImperative = true;
+        targetValue.originalTargetName = this.key;
+        
+        
+    } else {
+        if (targetValue.valueList) {
+            delete targetValue.valueList;
+            delete targetValue.stepList;
+            delete targetValue.intervalList;
+            delete targetValue.easingList;            
+        }
 
-    targetValue.step = 0;
-    targetValue.cycle = 0;
-    targetValue.lastActualValue = undefined;
-    targetValue.value = value;
-    targetValue.steps = steps || 0;
-    targetValue.interval = interval || 0;    
-    targetValue.cycles = 0;
-    targetValue.isImperative = true;
-    targetValue.originalTargetName = this.key;
-    targetValue.easing = easing;
+        targetValue.lastActualValue = undefined;
+        targetValue.value = value;
+        targetValue.step = 0;
+        targetValue.steps = steps || 0;
+        targetValue.interval = interval || 0;  
+        targetValue.easing = easing;
+
+        targetValue.step = 0;
+        targetValue.cycle = 0;
+
+        targetValue.cycles = 0;
+        targetValue.isImperative = true;
+        targetValue.originalTargetName = this.key;
+    }
+    
+
     targetValue.executionCount++;
     
     this.addToStyleTargetList(key);
@@ -711,28 +745,6 @@ TModel.prototype.setTarget = function(key, value, steps, interval, easing) {
     if (this.getTargetSteps(key) === 0) {    
         TargetUtil.snapToTarget(this, key);
     }
-    this.updateTargetStatus(key);
-    
-    return this;
-};
-
-TModel.prototype.setTargetValue = function(key, value, steps, interval, cycles) {          
-
-    this.targetValues[key] = !this.targetValues[key] ? TargetUtil.emptyValue() : this.targetValues[key];
-
-    var targetValue = this.targetValues[key];    
-
-    targetValue.value = value;
-    targetValue.steps = steps || 0;
-    targetValue.interval = interval || 0;    
-    targetValue.cycles = cycles || 0;
-    
-    if (targetValue.steps === 0) {
-        TargetUtil.snapToTarget(this, key);
-    }
-    
-    this.setActualValueLastUpdate(key);
-
     this.updateTargetStatus(key);
     
     return this;
@@ -772,7 +784,7 @@ TModel.prototype.addChild = function(child, index)  {
     if (this.targetValues['addedChildren']) {
         this.setActualValueLastUpdate('addedChildren');
     } else {
-        this.setTargetValue('addedChildren', addedChildren);
+        this.setTarget('addedChildren', addedChildren);
     }
     
     tapp.manager.scheduleRun(10, 'addChild-' + this.oid + "-" + child.oid);
@@ -901,7 +913,7 @@ TModel.prototype.resetImperative = function(key) {
         targetValue.cycle = 0; 
         targetValue.steps = 0;
         targetValue.cycles = 0;
-        targetValue.interval = 0;          
+        targetValue.interval = 0;
     }
     
     return this;

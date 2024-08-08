@@ -48,7 +48,7 @@ TargetUtil.colorMap = {
 
 TargetUtil.emptyValue = function() {
     return {
-        value: undefined, 
+        value: undefined,
         step: 0, 
         steps: 0, 
         cycle: 0, 
@@ -183,6 +183,7 @@ TargetUtil.assignValueArray = function(tmodel, key) {
         targetValue.steps = newSteps;
         targetValue.interval = newInterval;    
         targetValue.cycles = newCycles;
+        targetValue.lastActualValue = TUtil.isDefined(tmodel.targets[key].initial) ?  tmodel.targets[key].initial : undefined;
 
         if (isValueUpdated) {
             tmodel.resetTargetStep(key);
