@@ -63,7 +63,7 @@ Viewport.prototype.reset = function() {
         this.xSouth = x;
         this.xWest = x;
         
-        this.xOverflow = TUtil.isDefined(this.tmodel.getValue('xOverflow')) ? this.tmodel.getValue('xOverflow') : x;
+        this.xOverflow = TUtil.isDefined(this.tmodel.val('xOverflow')) ? this.tmodel.val('xOverflow') : x;
 
 
         this.yNext = y;
@@ -141,7 +141,7 @@ Viewport.prototype.appendNewLine = function() {
     var height = this.currentChild.getHeight() * this.currentChild.getMeasuringScale();
 
     this.xNext = this.xOverflow;
-    this.yNext =  this.ySouth + height + this.currentChild.getValue('appendNewLine');
+    this.yNext =  this.ySouth + height + this.currentChild.val('appendNewLine');
     
     this.yEast = this.yNext;
     this.xSouth = this.xNext;

@@ -185,7 +185,7 @@ TModelManager.prototype.deleteDoms = function () {
         tmodel.domValues = {};
         tmodel.visible = false;
         
-        var resetTargets = tmodel.targets['resetOnInvisible'] || tmodel.getValue('resetOnInvisible');
+        var resetTargets = tmodel.targets['resetOnInvisible'] || tmodel.val('resetOnInvisible');
         resetTargets && resetTargets.forEach(function(key) {
             if (tmodel.targets[key] && tmodel.isTargetComplete(key)) {
                 tmodel.resetTarget(key);
@@ -219,17 +219,17 @@ TModelManager.prototype.removeTModel = function(tmodel) {
     if (parent && parent.hasChildren()) {
         parent.removeFromUpdatingChildren(tmodel);
 
-        childIndex = parent.getValue('children').indexOf(tmodel);
+        childIndex = parent.val('children').indexOf(tmodel);
         
         if (childIndex >= 0) {
-            parent.getValue('children').splice(childIndex, 1);
+            parent.val('children').splice(childIndex, 1);
             parent.setActualValueLastUpdate('children');
         }
          
-        childIndex = parent.getValue('addedChildren').indexOf(tmodel);
+        childIndex = parent.val('addedChildren').indexOf(tmodel);
                 
         if (childIndex >= 0) {
-            parent.getValue('addedChildren').splice(childIndex, 1);
+            parent.val('addedChildren').splice(childIndex, 1);
             parent.setActualValueLastUpdate('addedChildren');
         }
         
@@ -294,16 +294,16 @@ TModelManager.prototype.fixStyles = function() {
                 case 'borderRadius':
                 case 'padding':
                 case 'fontSize':
-                    if (TUtil.isDefined(tmodel.getValue(key)) && tmodel.domValues[key] !== tmodel.getValue(key)) {
-                        tmodel.$dom.style(key, TUtil.isNumber(tmodel.getValue(key)) ? tmodel.getValue(key) + 'px' : tmodel.getValue(key));
-                        tmodel.domValues[key] = tmodel.getValue(key);
+                    if (TUtil.isDefined(tmodel.val(key)) && tmodel.domValues[key] !== tmodel.val(key)) {
+                        tmodel.$dom.style(key, TUtil.isNumber(tmodel.val(key)) ? tmodel.val(key) + 'px' : tmodel.val(key));
+                        tmodel.domValues[key] = tmodel.val(key);
                     }
                     break;
 
                 default: 
-                    if (TUtil.isDefined(tmodel.getValue(key)) && tmodel.domValues[key] !== tmodel.getValue(key)) {
-                        tmodel.$dom.style(key, tmodel.getValue(key));
-                        tmodel.domValues[key] = tmodel.getValue(key);
+                    if (TUtil.isDefined(tmodel.val(key)) && tmodel.domValues[key] !== tmodel.val(key)) {
+                        tmodel.$dom.style(key, tmodel.val(key));
+                        tmodel.domValues[key] = tmodel.val(key);
                     }                    
             }
         });
@@ -376,14 +376,14 @@ TModelManager.prototype.createDoms = function () {
         };
         
         ['fontSize', 'borderRadius', 'padding'].forEach(function(prop) {
-            var value = tmodel.getValue(prop);
+            var value = tmodel.val(prop);
             if (value) {
                 style[prop] = value + 'px';
             }
         }); 
         
         ['backgroundColor', 'background', 'color'].forEach(function(prop) {
-            var value = tmodel.getValue(prop);
+            var value = tmodel.val(prop);
             if (value) {
                 style[prop] = value;
             }

@@ -252,17 +252,17 @@ TModel.prototype.findLastChild = function(type) {
 
 TModel.prototype.getParentValue = function(targetName) {
     var parent =  SearchUtil.findParentByTarget(this, targetName);
-    return parent ? parent.getValue(targetName) : undefined;
+    return parent ? parent.val(targetName) : undefined;
 };
 
 TModel.prototype.getGlobalValue = function(targetName) {
     var tmodel = SearchUtil.findByTarget(targetName);
-    return tmodel ? tmodel.getValue(targetName) : undefined;
+    return tmodel ? tmodel.val(targetName) : undefined;
 };
 
 TModel.prototype.getGlobalValueByType = function(type, targetName) {
     var tmodel = SearchUtil.findByType(type);
-    return tmodel ? tmodel.getValue(targetName) : undefined;
+    return tmodel ? tmodel.val(targetName) : undefined;
 };
 
 TModel.prototype.getContentHeight = function()  {
@@ -344,11 +344,11 @@ TModel.prototype.getBoundingRect = function() {
 };
 
 TModel.prototype.isMarkedDeleted = function() {
-    return this.getValue('tmodelDeletedFlag') === true;
+    return this.val('tmodelDeletedFlag') === true;
 };
 
 TModel.prototype.markAsDeleted = function()   {
-    this.setValue('tmodelDeletedFlag', true);
+    this.val('tmodelDeletedFlag', true);
     this.getChildren().forEach(function(tmodel) {
         tmodel.markAsDeleted();
     });
@@ -414,10 +414,6 @@ TModel.prototype.getMeasuringScale = function() {
     return this.actualValues.scale;
 };
 
-TModel.prototype.getValue = function(key)   {
-    return this.actualValues[key];
-};
-
 TModel.prototype.getTopMargin = function () {
     return this.actualValues.topMargin;
 };
@@ -480,12 +476,16 @@ TModel.prototype.resetTargetStep = function(key)   {
     if (this.targetValues[key]) {
         this.targetValues[key].step = 0;
     }
+    
+    return this;
 };
 
 TModel.prototype.resetTargetCycle = function(key)   {
     if (this.targetValues[key]) {
         this.targetValues[key].cycle = 0;
     }
+    
+    return this;
 };
 
 TModel.prototype.resetScheduleTimeStamp = function(key)   {
@@ -600,7 +600,7 @@ TModel.prototype.isTargetInLoop = function(key) {
 TModel.prototype.doesTargetEqualActual = function(key) {
     if (this.targetValues[key]) {
         var deepEquality =  this.targets[key] ? this.targets[key].deepEquality : false;
-        return deepEquality ? TUtil.areEqual(this.getTargetValue(key), this.getValue(key), deepEquality) : this.getTargetValue(key) === this.getValue(key);
+        return deepEquality ? TUtil.areEqual(this.getTargetValue(key), this.val(key), deepEquality) : this.getTargetValue(key) === this.val(key);
     } 
     
     return false;
@@ -651,11 +651,11 @@ TModel.prototype.setTargetCycle = function(key, value)   {
     }
 };
 
-TModel.prototype.setTargetStepInterval = function(key, value)  {
+TModel.prototype.setTargetInterval = function(key, value)  {
     if (this.targetValues[key]) {
-        this.targetValues[key].stepInterval = value;
+        this.targetValues[key].interval = value;
     }
-    return this.targetValues[key].stepInterval;
+    return this.targetValues[key].interval;
 };
 
 TModel.prototype.setScheduleTimeStamp = function(key, value)   {
@@ -680,15 +680,15 @@ TModel.prototype.getTargetEasing = function(key)   {
     return typeof this.targets[key] === 'object' && this.targets[key].easing ? this.targets[key].easing : undefined;
 };
 
-TModel.prototype.getTargetStepInterval = function(key) {
-    return this.targetValues[key] ? this.targetValues[key].stepInterval : undefined;
+TModel.prototype.getTargetInterval = function(key) {
+    return this.targetValues[key] ? this.targetValues[key].interval : undefined;
 };
 
 TModel.prototype.getTargetEventFunctions = function(key)   {
     return this.targetValues[key] ? this.targetValues[key].events: undefined;
 };
 
-TModel.prototype.setTarget = function(key, value, steps, stepInterval, easing) {  
+TModel.prototype.setTarget = function(key, value, steps, interval, easing) {  
 
     this.targetValues[key] = !this.targetValues[key] ? TargetUtil.emptyValue() : this.targetValues[key];
         
@@ -699,7 +699,7 @@ TModel.prototype.setTarget = function(key, value, steps, stepInterval, easing) {
     targetValue.lastActualValue = undefined;
     targetValue.value = value;
     targetValue.steps = steps || 0;
-    targetValue.stepInterval = stepInterval || 0;    
+    targetValue.interval = interval || 0;    
     targetValue.cycles = 0;
     targetValue.isImperative = true;
     targetValue.originalTargetName = this.key;
@@ -711,10 +711,12 @@ TModel.prototype.setTarget = function(key, value, steps, stepInterval, easing) {
     if (this.getTargetSteps(key) === 0) {    
         TargetUtil.snapToTarget(this, key);
     }
-    this.updateTargetStatus(key);    
+    this.updateTargetStatus(key);
+    
+    return this;
 };
 
-TModel.prototype.setTargetValue = function(key, value, steps, stepInterval, cycles) {          
+TModel.prototype.setTargetValue = function(key, value, steps, interval, cycles) {          
 
     this.targetValues[key] = !this.targetValues[key] ? TargetUtil.emptyValue() : this.targetValues[key];
 
@@ -722,7 +724,7 @@ TModel.prototype.setTargetValue = function(key, value, steps, stepInterval, cycl
 
     targetValue.value = value;
     targetValue.steps = steps || 0;
-    targetValue.stepInterval = stepInterval || 0;    
+    targetValue.interval = interval || 0;    
     targetValue.cycles = cycles || 0;
     
     if (targetValue.steps === 0) {
@@ -732,18 +734,26 @@ TModel.prototype.setTargetValue = function(key, value, steps, stepInterval, cycl
     this.setActualValueLastUpdate(key);
 
     this.updateTargetStatus(key);
+    
+    return this;
 };
 
-TModel.prototype.setValue = function(key, value) {
-    this.actualValues[key] = value;
+TModel.prototype.val = function(key, value) {
+    if (arguments.length === 2) {
+        this.actualValues[key] = value;
+        return this;
+    }
+    return this.actualValues[key];
 };
 
 TModel.prototype.addValue = function(key, value) {
     this.actualValues[key] += value;
+    return this;
 };
 
 TModel.prototype.multiplyValue = function(key, value) {
     this.actualValues[key] *= value;
+    return this;
 };
 
 TModel.prototype.addChild = function(child, index)  { 
@@ -891,12 +901,14 @@ TModel.prototype.resetImperative = function(key) {
         targetValue.cycle = 0; 
         targetValue.steps = 0;
         targetValue.cycles = 0;
-        targetValue.stepInterval = 0;          
+        targetValue.interval = 0;          
     }
+    
+    return this;
 };
 
 TModel.prototype.resetTarget = function(key)   {
-    this.resetTargets([key]);
+    return this.resetTargets([key]);
 };
 
 TModel.prototype.resetTargets = function(keys) {
@@ -915,6 +927,8 @@ TModel.prototype.resetTargets = function(keys) {
     });
     
     tapp.manager.scheduleRun(10, 'resetTargets-' + this.oid);    
+    
+    return this;
 };
 
 TModel.prototype.setTargetMethodName = function(targetName, methodName) {

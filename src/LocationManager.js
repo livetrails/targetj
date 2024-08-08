@@ -78,8 +78,8 @@ LocationManager.prototype.calculateContainer = function(container) {
         child.setLocation(viewport);
         child.calculateAbsolutePosition(child.x, child.y);
         
-        innerXEast = TUtil.isDefined(container.getValue('innerXEast')) ? container.getValue('innerXEast') : container.getInnerXEast();
-        outerXEast = TUtil.isDefined(child.getValue('outerXEast')) ? child.getValue('outerXEast') : child.getOuterXEast();
+        innerXEast = TUtil.isDefined(container.val('innerXEast')) ? container.val('innerXEast') : container.getInnerXEast();
+        outerXEast = TUtil.isDefined(child.val('outerXEast')) ? child.val('outerXEast') : child.getOuterXEast();
         
         if (viewport.isOverflow(outerXEast, innerXEast)) {   
             viewport.overflow();                       
@@ -97,7 +97,7 @@ LocationManager.prototype.calculateContainer = function(container) {
                 TargetUtil.assignValueArray(child, 'x');
                 tapp.targetManager.setJustActualValue(child, 'x');
             } else if (!TUtil.isDefined(child.targetValues.x)) {
-                child.setValue('x', child.x);                
+                child.val('x', child.x);                
             }
         }
 
@@ -106,7 +106,7 @@ LocationManager.prototype.calculateContainer = function(container) {
                 TargetUtil.assignValueArray(child, 'y');
                 tapp.targetManager.setJustActualValue(child, 'y');
             } else if (!TUtil.isDefined(child.targetValues.y)) {
-                child.setValue('y', child.y);
+                child.val('y', child.y);
             }            
         }
         
@@ -137,7 +137,7 @@ LocationManager.prototype.calculateContainer = function(container) {
                 }
             }
             
-            if (TUtil.isNumber(child.getValue('appendNewLine'))) {
+            if (TUtil.isNumber(child.val('appendNewLine'))) {
                 viewport.appendNewLine();
             } else {
                 viewport.nextLocation();             

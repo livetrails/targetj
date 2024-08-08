@@ -53,7 +53,7 @@ TargetUtil.emptyValue = function() {
         steps: 0, 
         cycle: 0, 
         cycles: 0, 
-        stepInterval: 0, 
+        interval: 0, 
         lastActualValue: undefined,
         scheduleTimeStamp: undefined,
         actualValueLastUpdate: 0,
@@ -69,7 +69,7 @@ TargetUtil.bindTargetName = function(targetInstance, key) {
     var target = targetInstance[key];
     
     if (typeof target === 'object') {
-        ['value', 'enabledOn', 'onStepsEnd', 'onValueChange', 'loop', 'onImperativeEnds'].forEach(function(method) {
+        ['value', 'enabledOn', 'onStepsEnd', 'onValueChange', 'loop', 'onImperativeEnd', 'onImperativeStep'].forEach(function(method) {
             if (typeof target[method] === 'function') {
                 var originalMethod = target[method];
                 target[method] = function() {
@@ -105,40 +105,40 @@ TargetUtil.getValueStepsCycles = function(tmodel, key) {
     var _target = tmodel.targets[key];
     var valueOnly = _target && _target.valueOnly ? true : false;
     var cycle = tmodel.getTargetCycle(key);
-    var lastValue = tmodel.getValue(key);
+    var lastValue = tmodel.val(key);
     
-    var value = null, steps = 0, stepInterval = 0, cycles = 0;
+    var value = null, steps = 0, interval = 0, cycles = 0;
     
     function getValue(target) {             
         if (Array.isArray(target)) {                      
             if (valueOnly || !TargetUtil.isValueStepsCycleArray(target)) {
-                return [target, steps, stepInterval, cycles];
+                return [target, steps, interval, cycles];
             } else if (Array.isArray(_target)) {
                 return _target;
             } else {
                 value = target[0];
                 steps = target.length >= 2 ? target[1] : steps;
-                stepInterval = target.length >= 3 ? target[2] : stepInterval;                
+                interval = target.length >= 3 ? target[2] : interval;                
                 cycles = target.length >= 4 ? target[3] : cycles;
 
-                return [value, steps, stepInterval, cycles];
+                return [value, steps, interval, cycles];
             } 
         }
         
         if (typeof target === 'object' && target !== null) {
             value = typeof target.value === 'function' ? target.value.call(tmodel, cycle, lastValue) : TUtil.isDefined(target.value) ? target.value : target;
             steps = typeof target.steps === 'function' ? target.steps.call(tmodel, cycle) : TUtil.isDefined(target.steps) ? target.steps : 0;
-            stepInterval = typeof target.stepInterval === 'function' ? target.stepInterval.call(tmodel, cycle, tmodel.getTargetStepInterval(key)) : TUtil.isDefined(target.stepInterval) ? target.stepInterval : 0;            
+            interval = typeof target.interval === 'function' ? target.interval.call(tmodel, cycle, tmodel.getTargetInterval(key)) : TUtil.isDefined(target.interval) ? target.interval : 0;            
             cycles = typeof target.cycles === 'function' ? target.cycles.call(tmodel, cycle, tmodel.getTargetCycles(key)) : TUtil.isDefined(target.cycles) ? target.cycles : 0;
 
-            return Array.isArray(value) ? getValue(value) : [value, steps, stepInterval, cycles];
+            return Array.isArray(value) ? getValue(value) : [value, steps, interval, cycles];
         }
         
         if (typeof target === 'function') {
             return getValue(target.call(tmodel, cycle, lastValue));
         } 
                 
-        return [target, steps, stepInterval, cycles];
+        return [target, steps, interval, cycles];
     }
    
     return getValue(_target);
@@ -163,7 +163,7 @@ TargetUtil.assignValueArray = function(tmodel, key) {
 
     var newValue = valueArray[0];
     var newSteps = valueArray[1] || 0;
-    var newStepInterval = valueArray[2] || 0;        
+    var newInterval = valueArray[2] || 0;        
     var newCycles = valueArray[3] || 0;
 
     var targetValue = tmodel.targetValues[key];  
@@ -175,13 +175,13 @@ TargetUtil.assignValueArray = function(tmodel, key) {
             || !TUtil.isDefined(targetValue)
             || (!tmodel.isTargetUpdating(key) && !tmodel.doesTargetEqualActual(key));
 
-    if (isValueUpdated || targetValue.steps !== newSteps || targetValue.cycles !== newCycles || targetValue.stepInterval !== newStepInterval) {
+    if (isValueUpdated || targetValue.steps !== newSteps || targetValue.cycles !== newCycles || targetValue.interval !== newInterval) {
 
         tmodel.targetValues[key] = !tmodel.targetValues[key] ? TargetUtil.emptyValue() : tmodel.targetValues[key];
         var targetValue = tmodel.targetValues[key];    
         targetValue.value = newValue;
         targetValue.steps = newSteps;
-        targetValue.stepInterval = newStepInterval;    
+        targetValue.interval = newInterval;    
         targetValue.cycles = newCycles;
 
         if (isValueUpdated) {
@@ -201,17 +201,17 @@ TargetUtil.getIntervalValue = function(tmodel, key, interval) {
 
 TargetUtil.scheduleExecution = function(tmodel, key) { 
     var now = browser.now();    
-    var stepInterval = tmodel.getTargetStepInterval(key);
+    var interval = tmodel.getTargetInterval(key);
     var lastScheduledTime = tmodel.getScheduleTimeStamp(key);
     
     var schedulePeriod = 0;
 
-    if (stepInterval > 0) {
+    if (interval > 0) {
         if (TUtil.isDefined(lastScheduledTime)) {
             var elapsed = now - lastScheduledTime;
-            schedulePeriod = Math.max(stepInterval - elapsed, 0);
+            schedulePeriod = Math.max(interval - elapsed, 0);
         } else {
-            schedulePeriod = stepInterval;
+            schedulePeriod = interval;
             tmodel.setScheduleTimeStamp(key, now); // Set the schedule timestamp when first scheduled
         }
     }
@@ -310,7 +310,7 @@ TargetUtil.setWidthFromDom = function(child) {
     }
     
     child.domWidth = { width: width, height: height };
-    child.setValue('width', width);
+    child.val('width', width);
 };
 
 TargetUtil.setHeightFromDom = function(child) {    
@@ -331,7 +331,7 @@ TargetUtil.setHeightFromDom = function(child) {
     }
     
     child.domHeight = { height: height, width: width };
-    child.setValue('height', height);
+    child.val('height', height);
 };
 
 export { TargetUtil };

@@ -26,7 +26,7 @@ function Bracket(parent) {
     };
     
     tm.getInnerXEast = function() {
-        return TUtil.isDefined(tm.getRealParent().getValue('innerXEast')) ? this.getRealParent().getValue('innerXEast') : this.getRealParent().absX + this.getRealParent().getWidth();        
+        return TUtil.isDefined(tm.getRealParent().val('innerXEast')) ? this.getRealParent().val('innerXEast') : this.getRealParent().absX + this.getRealParent().getWidth();        
     };
     
     tm.getInnerContentHeight = function() {
