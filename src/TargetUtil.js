@@ -54,7 +54,7 @@ TargetUtil.emptyValue = function() {
         cycle: 0, 
         cycles: 0, 
         interval: 0, 
-        lastActualValue: undefined,
+        baseValue: undefined,
         scheduleTimeStamp: undefined,
         actualValueLastUpdate: 0,
         status: '',
@@ -183,11 +183,15 @@ TargetUtil.assignValueArray = function(tmodel, key) {
         targetValue.steps = newSteps;
         targetValue.interval = newInterval;    
         targetValue.cycles = newCycles;
-        targetValue.lastActualValue = TUtil.isDefined(tmodel.targets[key].initial) ?  tmodel.targets[key].initial : undefined;
-
+        targetValue.baseValue = TUtil.isDefined(tmodel.targets[key].baseValue) ?  tmodel.targets[key].baseValue : undefined;
+        delete targetValue.valueList;
+        delete targetValue.stepList;
+        delete targetValue.intervalList;
+        delete targetValue.easingList;
+        
         if (isValueUpdated) {
             tmodel.resetTargetStep(key);
-            tmodel.resetLastActualValue(key);
+            tmodel.resetTargetBaseValue(key);
         }
         
         return true;

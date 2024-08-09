@@ -494,14 +494,16 @@ TModel.prototype.resetScheduleTimeStamp = function(key)   {
     }
 };
 
-TModel.prototype.resetLastActualValue = function(key)   {
+TModel.prototype.resetTargetBaseValue = function(key)   {
     if (this.targetValues[key]) {
-        this.targetValues[key].lastActualValue = undefined;
+        this.targetValues[key].baseValue = undefined;
     }
 };
 
 TModel.prototype.updateTargetStatus = function(key) {
-    if (!this.targetValues[key]) return;
+    var targetValue = this.targetValues[key];
+    
+    if (!targetValue) return;
     
     var cycle = this.getTargetCycle(key);
     var cycles = this.getTargetCycles(key);
@@ -510,6 +512,8 @@ TModel.prototype.updateTargetStatus = function(key) {
       
     if (this.isExecuted(key) && step < steps) {
         this.targetValues[key].status = 'updating';
+    } else if (this.isTargetImperative(key) && Array.isArray(targetValue.valueList) && cycle < targetValue.valueList.length - 1) {
+        this.targetValues[key].status = 'updating';        
     } else if (!this.isExecuted(key) || this.isTargetInLoop(key) || cycle < cycles) {
         this.targetValues[key].status = 'active';        
     } else {   
@@ -622,8 +626,8 @@ TModel.prototype.getScheduleTimeStamp = function(key)  {
     return this.targetValues[key] ? this.targetValues[key].scheduleTimeStamp : undefined;
 };
 
-TModel.prototype.getLastActualValue = function(key)  {
-    return this.targetValues[key] ? this.targetValues[key].lastActualValue : undefined;
+TModel.prototype.getTargetBaseValue = function(key)  {
+    return this.targetValues[key] ? this.targetValues[key].baseValue : undefined;
 };
 
 TModel.prototype.getActualValueLastUpdate = function(key)  {
@@ -664,9 +668,9 @@ TModel.prototype.setScheduleTimeStamp = function(key, value)   {
     }
 };
 
-TModel.prototype.setLastActualValue = function(key, value) {
+TModel.prototype.setTargetBaseValue = function(key, value) {
     if (this.targetValues[key]) {
-        this.targetValues[key].lastActualValue = value;
+        this.targetValues[key].baseValue = value;
     }
 };
 
@@ -688,19 +692,19 @@ TModel.prototype.getTargetEventFunctions = function(key)   {
     return this.targetValues[key] ? this.targetValues[key].events: undefined;
 };
 
-TModel.prototype.setTarget = function(key, value, steps, interval, easing) {  
+TModel.prototype.setTarget = function(key, value, steps, interval, easing, originalTargetName) {  
 
     this.targetValues[key] = !this.targetValues[key] ? TargetUtil.emptyValue() : this.targetValues[key];
-        
+    originalTargetName = originalTargetName || this.key;   
     var targetValue = this.targetValues[key];
     
-    if (Array.isArray(value) && value.length > 1 && steps > 0) {
+    if (Array.isArray(value) && value.length > 1 && TUtil.isDefined(steps)) {
         targetValue.valueList = value;
         targetValue.stepList = Array.isArray(steps) ? steps : [ steps ];
         targetValue.intervalList = Array.isArray(interval) ? interval : [ interval ];
         targetValue.easingList = Array.isArray(easing) ? easing : [ easing ];
         
-        targetValue.lastActualValue = value[0];
+        targetValue.baseValue = value[0];
         targetValue.value = value[1];
         targetValue.steps = targetValue.stepList[0] || 0;
         targetValue.interval = targetValue.intervalList[0] || 0;
@@ -711,18 +715,16 @@ TModel.prototype.setTarget = function(key, value, steps, interval, easing) {
         
         targetValue.cycles = 0;
         targetValue.isImperative = true;
-        targetValue.originalTargetName = this.key;
+        targetValue.originalTargetName = originalTargetName;
         
         
     } else {
-        if (targetValue.valueList) {
-            delete targetValue.valueList;
-            delete targetValue.stepList;
-            delete targetValue.intervalList;
-            delete targetValue.easingList;            
-        }
+        delete targetValue.valueList;
+        delete targetValue.stepList;
+        delete targetValue.intervalList;
+        delete targetValue.easingList;            
 
-        targetValue.lastActualValue = undefined;
+        targetValue.baseValue = undefined;
         targetValue.value = value;
         targetValue.step = 0;
         targetValue.steps = steps || 0;
@@ -734,7 +736,7 @@ TModel.prototype.setTarget = function(key, value, steps, interval, easing) {
 
         targetValue.cycles = 0;
         targetValue.isImperative = true;
-        targetValue.originalTargetName = this.key;
+        targetValue.originalTargetName = originalTargetName;
     }
     
 
