@@ -3,6 +3,7 @@ import { browser } from "./Browser.js";
 import { SearchUtil } from "./SearchUtil.js";
 import { TUtil } from "./TUtil.js";
 import { TargetUtil } from "./TargetUtil.js";
+import { TargetExecutor } from "./TargetExecutor";
 import { Viewport } from "./Viewport.js";
 import { $Dom } from "./$Dom.js";
 
@@ -45,6 +46,7 @@ function TModel(type, targets) {
         html: undefined,
         css: '',
         style: null,
+        borderRadius: 0,    
         children: [],
         addedChildren: [],
         allChildren: [],
@@ -142,6 +144,7 @@ TModel.prototype.bug = function() {
         { activeTargetList: this.activeTargetList },        
         { updatingTargetList: this.updatingTargetList },
         { styleTargetList: this.styleTargetList },
+        { children: this.getChildren() },        
         { targetValues: this.targetValues },
         { actualValues: this.actualValues }
     ];
@@ -480,6 +483,14 @@ TModel.prototype.resetTargetStep = function(key)   {
     return this;
 };
 
+TModel.prototype.resetTargetExecutionCount = function(key)   {
+    if (this.targetValues[key]) {
+        this.targetValues[key].executionCount = 0;
+    }
+    
+    return this;
+};
+
 TModel.prototype.resetTargetCycle = function(key)   {
     if (this.targetValues[key]) {
         this.targetValues[key].cycle = 0;
@@ -492,12 +503,16 @@ TModel.prototype.resetScheduleTimeStamp = function(key)   {
     if (this.targetValues[key]) {
         this.targetValues[key].scheduleTimeStamp = undefined;
     }
+    
+    return this;
 };
 
-TModel.prototype.resetTargetBaseValue = function(key)   {
+TModel.prototype.resetTargetInitialValue = function(key)   {
     if (this.targetValues[key]) {
-        this.targetValues[key].baseValue = undefined;
+        this.targetValues[key].initialValue = undefined;
     }
+    
+    return this;
 };
 
 TModel.prototype.updateTargetStatus = function(key) {
@@ -512,7 +527,7 @@ TModel.prototype.updateTargetStatus = function(key) {
       
     if (this.isExecuted(key) && step < steps) {
         this.targetValues[key].status = 'updating';
-    } else if (this.isTargetImperative(key) && Array.isArray(targetValue.valueList) && cycle < targetValue.valueList.length - 1) {
+    } else if (Array.isArray(targetValue.valueList) && cycle < targetValue.valueList.length - 1) {
         this.targetValues[key].status = 'updating';        
     } else if (!this.isExecuted(key) || this.isTargetInLoop(key) || cycle < cycles) {
         this.targetValues[key].status = 'active';        
@@ -566,7 +581,7 @@ TModel.prototype.isTargetComplete = function(key) {
 };
 
 TModel.prototype.isExecuted = function(key) {
-    return this.targets[key] ? this.targetValues[key] && this.targetValues[key].executionCount > 0 : true;
+    return this.targetValues[key] && this.targetValues[key].executionCount > 0;
 };
 
 TModel.prototype.isTargetImperative = function(key) {
@@ -626,8 +641,8 @@ TModel.prototype.getScheduleTimeStamp = function(key)  {
     return this.targetValues[key] ? this.targetValues[key].scheduleTimeStamp : undefined;
 };
 
-TModel.prototype.getTargetBaseValue = function(key)  {
-    return this.targetValues[key] ? this.targetValues[key].baseValue : undefined;
+TModel.prototype.getTargetInitialValue = function(key)  {
+    return this.targetValues[key] ? this.targetValues[key].initialValue : undefined;
 };
 
 TModel.prototype.getActualValueLastUpdate = function(key)  {
@@ -668,9 +683,9 @@ TModel.prototype.setScheduleTimeStamp = function(key, value)   {
     }
 };
 
-TModel.prototype.setTargetBaseValue = function(key, value) {
+TModel.prototype.setTargetInitialValue = function(key, value) {
     if (this.targetValues[key]) {
-        this.targetValues[key].baseValue = value;
+        this.targetValues[key].initialValue = value;
     }
 };
 
@@ -694,60 +709,8 @@ TModel.prototype.getTargetEventFunctions = function(key)   {
 
 TModel.prototype.setTarget = function(key, value, steps, interval, easing, originalTargetName) {  
 
-    this.targetValues[key] = !this.targetValues[key] ? TargetUtil.emptyValue() : this.targetValues[key];
     originalTargetName = originalTargetName || this.key;   
-    var targetValue = this.targetValues[key];
-    
-    if (Array.isArray(value) && value.length > 1 && TUtil.isDefined(steps)) {
-        targetValue.valueList = value;
-        targetValue.stepList = Array.isArray(steps) ? steps : [ steps ];
-        targetValue.intervalList = Array.isArray(interval) ? interval : [ interval ];
-        targetValue.easingList = Array.isArray(easing) ? easing : [ easing ];
-        
-        targetValue.baseValue = value[0];
-        targetValue.value = value[1];
-        targetValue.steps = targetValue.stepList[0] || 0;
-        targetValue.interval = targetValue.intervalList[0] || 0;
-        targetValue.easing = targetValue.easingList[0];
-            
-        targetValue.step = 0;
-        targetValue.cycle = 1;
-        
-        targetValue.cycles = 0;
-        targetValue.isImperative = true;
-        targetValue.originalTargetName = originalTargetName;
-        
-        
-    } else {
-        delete targetValue.valueList;
-        delete targetValue.stepList;
-        delete targetValue.intervalList;
-        delete targetValue.easingList;            
-
-        targetValue.baseValue = undefined;
-        targetValue.value = value;
-        targetValue.step = 0;
-        targetValue.steps = steps || 0;
-        targetValue.interval = interval || 0;  
-        targetValue.easing = easing;
-
-        targetValue.step = 0;
-        targetValue.cycle = 0;
-
-        targetValue.cycles = 0;
-        targetValue.isImperative = true;
-        targetValue.originalTargetName = originalTargetName;
-    }
-    
-
-    targetValue.executionCount++;
-    
-    this.addToStyleTargetList(key);
-    this.setTargetMethodName(key, 'value');
-    if (this.getTargetSteps(key) === 0) {    
-        TargetUtil.snapToTarget(this, key);
-    }
-    this.updateTargetStatus(key);
+    TargetExecutor.executeImperativeTarget(this, key, value, steps, interval, easing, originalTargetName)
     
     return this;
 };

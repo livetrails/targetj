@@ -1,6 +1,7 @@
 import { Bracket } from "./Bracket.js";
 import { TUtil } from "./TUtil.js";
 import { TargetUtil } from "./TargetUtil.js";
+import { TargetExecutor } from "./TargetExecutor.js";
 import { tapp, getEvents, getScreenWidth, getScreenHeight } from "./App.js";
 import { browser } from "./Browser.js";
 
@@ -58,11 +59,11 @@ LocationManager.prototype.calculateContainer = function(container) {
     container.resetVisibleList();
     
     var i = 0, length = allChildren.length;
-
+   
     while (i < length && tapp.isRunning()) {
         
         var child = allChildren[i++];
-                        
+                      
         var outerXEast = undefined, innerXEast = undefined;
         
         var preX = child.domValues.x;
@@ -92,22 +93,12 @@ LocationManager.prototype.calculateContainer = function(container) {
             this.addToLocationList(child);          
         }
 
-        if (!child.isTargetUpdating('x') && !child.isTargetImperative('x')) {
-            if (child.isTargetEnabled('x')) {
-                TargetUtil.assignValueArray(child, 'x');
-                tapp.targetManager.setJustActualValue(child, 'x');
-            } else if (!TUtil.isDefined(child.targetValues.x)) {
-                child.val('x', child.x);                
-            }
+        if (!TUtil.isDefined(child.targetValues.x)) {
+            child.val('x', child.x);                
         }
 
-        if (!child.isTargetUpdating('y') && !child.isTargetImperative('y')) {
-            if (child.isTargetEnabled('y')) {
-                TargetUtil.assignValueArray(child, 'y');
-                tapp.targetManager.setJustActualValue(child, 'y');
-            } else if (!TUtil.isDefined(child.targetValues.y)) {
-                child.val('y', child.y);
-            }            
+        if (!TUtil.isDefined(child.targetValues.y)) {
+            child.val('y', child.y);          
         }
         
         if (preX !== child.getX() || preY !== child.getY()) {
@@ -119,35 +110,44 @@ LocationManager.prototype.calculateContainer = function(container) {
         viewport.isVisible(child);
                    
         child.addToParentVisibleList();
-       
+               
         if (child.shouldCalculateChildren()) {
             this.calculateContainer(child);  
         }
   
         if (child.isInFlow()) {
-           
-            if (child.hasChildren()) {
-                if (child.isTargetEnabled('width') && !child.isTargetImperative('width')) {
-                    TargetUtil.assignValueArray(child, 'width');
-                    tapp.targetManager.setJustActualValue(child, 'width');
-                }
-                if (child.isTargetEnabled('height') && !child.isTargetImperative('height')) {
-                    TargetUtil.assignValueArray(child, 'height');
-                    tapp.targetManager.setJustActualValue(child, 'height');
-                }
-            }
             
             if (TUtil.isNumber(child.val('appendNewLine'))) {
                 viewport.appendNewLine();
+                viewport.calcContentWidthHeight();
             } else {
-                viewport.nextLocation();             
+                viewport.calcContentWidthHeight();                
+                viewport.nextLocation();
             }
         }
+            
+        if (Array.isArray(child.val('contentHeight'))) {
+            child.val('contentHeight').forEach(function(key) {
+                var preVal = child.val(key);
+                child.val(key, child.getContentHeight());
+                if (preVal !== child.val(key)) child.addToStyleTargetList(key);
+            });
+        }
+
+        if (Array.isArray(child.val('contentWidth'))) {
+            child.val('contentWidth').forEach(function(key) {
+                var preVal = child.val(key);                
+                child.val(key, child.getContentWidth());
+                if (preVal !== child.val(key)) child.addToStyleTargetList(key);                
+            });
+        }
+        
+        viewport.calcContentWidthHeight();
+        
         
         this.locationCount.push(child.oid + "-" + child.updatingTargetList.length + "-" + (browser.now() - this.startTime));
     }   
     
-    viewport.calcContentWidthHeight();
 };
 
 LocationManager.prototype.calculateTargets = function(tmodel) {
@@ -160,11 +160,11 @@ LocationManager.prototype.calculateTargets = function(tmodel) {
         var preHeight = tmodel.getHeight();
         
         
-        if ((!TUtil.isDefined(tmodel.targetValues.width) && !TUtil.isDefined(tmodel.targets.width)) || tmodel.getTargetValue('widthFromDom')) {
+        if ((!TUtil.isDefined(tmodel.targetValues.width) && !TUtil.isDefined(tmodel.targets.width) && !TUtil.isDefined(tmodel.targetValues.contentWidth)) || tmodel.getTargetValue('widthFromDom')) {
             TargetUtil.setWidthFromDom(tmodel);
         }
-        if ((!TUtil.isDefined(tmodel.targetValues.height) && !TUtil.isDefined(tmodel.targets.height)) || tmodel.getTargetValue('heightFromDom')) {
-            TargetUtil.setHeightFromDom(tmodel);
+        if ((!TUtil.isDefined(tmodel.targetValues.height) && !TUtil.isDefined(tmodel.targets.height) && !TUtil.isDefined(tmodel.targetValues.contentHeight)) || tmodel.getTargetValue('heightFromDom')) {
+           TargetUtil.setHeightFromDom(tmodel);
         }
 
         if (preWidth !== tmodel.getWidth() || preHeight !== tmodel.getHeight()) {

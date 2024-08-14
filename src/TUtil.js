@@ -19,8 +19,10 @@ TUtil.getBoundingRect = function(tmodel) {
         if (parent) {
             left = parent.absX;
             top = parent.absY;
-            right = left + parent.getWidth();
-            bottom = top + parent.getHeight();
+            var width = parent.getWidth() === 0 && parent.val('contentWidth') ? Math.max(0, getScreenWidth() - left) : parent.getWidth();
+            var height = parent.getHeight() === 0 && parent.val('contentHeight') ? Math.max(0, getScreenHeight() - top) : parent.getHeight();
+            right = left + width;
+            bottom = top + height;
         } else {
             left = 0;
             top = 0;

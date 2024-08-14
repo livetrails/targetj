@@ -29,7 +29,7 @@ TModelManager.prototype.init = function()   {
     this.nextRuns = [];
     this.runningStep = 0;
     this.runningFlag = false;
-    this.rerunFlag = false;
+    this.rerunOid = '';
     this.cycleDuration = 0;
 };
 
@@ -378,7 +378,7 @@ TModelManager.prototype.createDoms = function () {
         ['fontSize', 'borderRadius', 'padding'].forEach(function(prop) {
             var value = tmodel.val(prop);
             if (value) {
-                style[prop] = value + 'px';
+                style[prop] = TUtil.isNumber(value) ? value + 'px' : value;
             }
         }); 
         
@@ -441,7 +441,7 @@ TModelManager.prototype.scheduleRun = function(delay, oid) {
         if (nextRun && (!lastRun || nextRun.delay > lastRun.delay)) {
             this.nextRuns.push(nextRun);
         } else if (nextRun && lastRun && nextRun.delay <= lastRun.delay && tapp.manager.runningFlag) {
-            tapp.manager.rerunFlag = true;
+            tapp.manager.rerunOid = oid;
         }
     }
 };
@@ -453,7 +453,8 @@ TModelManager.prototype.run = function(oid, delay) {
     }
     
     if (tapp.manager.runningFlag)   {
-        tapp.manager.rerunFlag = true;
+        tapp.manager.rerunOid = oid;
+        
         return;
     }
    
@@ -524,10 +525,11 @@ TModelManager.prototype.run = function(oid, delay) {
 
         if (tapp.manager.runningStep !== 7)  {
             tapp.manager.run("rendering: " + tapp.manager.runningStep);
-        } else if (tapp.manager.rerunFlag) {
+        } else if (tapp.manager.rerunOid) {
             tapp.manager.runningStep = 0;
-            tapp.manager.rerunFlag = false;
-            tapp.manager.run("rerun");
+            var rerunOid = tapp.manager.rerunOid;
+            tapp.manager.rerunOid = '';
+            tapp.manager.run(rerunOid);
         } else {
            tapp.manager.runningStep = 0;
                               

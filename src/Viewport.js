@@ -104,12 +104,12 @@ Viewport.prototype.isVisible = function(child) {
     var status = child.visibilityStatus;
 
     var rect = child.getBoundingRect();
-
+    
     if (!child.hasChildren()) {
         status.right = x <= getScreenWidth() && x <= rect.right;
         status.left = x + maxWidth >= 0 && x + maxWidth >= rect.left;
         status.bottom = y <= getScreenHeight() && y <= rect.bottom;
-        status.top = y + maxHeight >= 0 && y + maxHeight >= rect.top; 
+        status.top = y + maxHeight >= 0 && y + maxHeight >= rect.top;
     } else {
         status.right = x <= rect.right;
         status.left = x + maxWidth >= rect.left;
@@ -138,10 +138,11 @@ Viewport.prototype.overflow = function() {
 
 Viewport.prototype.appendNewLine = function() {
     
-    var height = this.currentChild.getHeight() * this.currentChild.getMeasuringScale();
+    var innerHeight = this.currentChild.getInnerHeight() * this.currentChild.getMeasuringScale();
 
     this.xNext = this.xOverflow;
-    this.yNext =  this.ySouth + height + this.currentChild.val('appendNewLine');
+    var ySouth = this.yNext + innerHeight + this.currentChild.getTopMargin() + this.currentChild.getBottomMargin();
+    this.yNext =  ySouth + this.currentChild.val('appendNewLine');
     
     this.yEast = this.yNext;
     this.xSouth = this.xNext;

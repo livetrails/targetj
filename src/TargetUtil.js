@@ -54,7 +54,7 @@ TargetUtil.emptyValue = function() {
         cycle: 0, 
         cycles: 0, 
         interval: 0, 
-        baseValue: undefined,
+        initialValue: undefined,
         scheduleTimeStamp: undefined,
         actualValueLastUpdate: 0,
         status: '',
@@ -88,17 +88,22 @@ TargetUtil.bindTargetName = function(targetInstance, key) {
 };
 
 TargetUtil.isValueStepsCycleArray = function(arr) {
-    if (arr.length > 4) {
+    if (arr.length > 4 || arr.length === 0) {
         return false;
     }
-    var startIndex = arr.length === 4 ? 1 : 0;
-    for (var i = startIndex; i < arr.length; i++) {
+
+    var result = arr.length >= 2;
+    for (var i = 1; i < arr.length; i++) {
         if (typeof arr[i] !== 'number') {
-            return false;
+            result = false;
         }
     }
-    
-    return true;
+
+    return result && (typeof arr[0] === 'number' || TargetUtil.isListTarget(arr[0]) || typeof arr[0] === 'string') ? true : false;
+};
+
+TargetUtil.isListTarget = function(value) {
+    return typeof value === 'object' && Array.isArray(value.list);
 };
 
 TargetUtil.getValueStepsCycles = function(tmodel, key) {
@@ -142,60 +147,6 @@ TargetUtil.getValueStepsCycles = function(tmodel, key) {
     }
    
     return getValue(_target);
-};
-
-TargetUtil.executeTarget = function(tmodel, key) {    
-    TargetUtil.assignValueArray(tmodel, key);
-    tmodel.targetValues[key].executionCount++;
-    tmodel.setTargetMethodName(key, 'value'); 
-};
-
-TargetUtil.snapToTarget = function(tmodel, key) {
-    var oldValue = tmodel.actualValues[key];
-    var value = tmodel.targetValues[key].value;
-    tmodel.actualValues[key] = typeof value === 'function' ? value.call(tmodel) : value;
-    tmodel.setActualValueLastUpdate(key);
-    TargetUtil.handleValueChange(tmodel, key, tmodel.actualValues[key], oldValue, 0, 0);
-};
-
-TargetUtil.assignValueArray = function(tmodel, key) {
-    var valueArray = TargetUtil.getValueStepsCycles(tmodel, key);
-
-    var newValue = valueArray[0];
-    var newSteps = valueArray[1] || 0;
-    var newInterval = valueArray[2] || 0;        
-    var newCycles = valueArray[3] || 0;
-
-    var targetValue = tmodel.targetValues[key];  
-    var isNewTargetValue = !targetValue;
-    var theValue = !isNewTargetValue ? targetValue.value : undefined;
-    var isValueUpdated = isNewTargetValue
-            || !tmodel.isExecuted(key)
-            || !TUtil.areEqual(theValue, newValue, tmodel.targets[key] ? !!tmodel.targets[key].deepEquality : false) 
-            || !TUtil.isDefined(targetValue)
-            || (!tmodel.isTargetUpdating(key) && !tmodel.doesTargetEqualActual(key));
-
-    if (isValueUpdated || targetValue.steps !== newSteps || targetValue.cycles !== newCycles || targetValue.interval !== newInterval) {
-
-        tmodel.targetValues[key] = !tmodel.targetValues[key] ? TargetUtil.emptyValue() : tmodel.targetValues[key];
-        var targetValue = tmodel.targetValues[key];    
-        targetValue.value = newValue;
-        targetValue.steps = newSteps;
-        targetValue.interval = newInterval;    
-        targetValue.cycles = newCycles;
-        targetValue.baseValue = TUtil.isDefined(tmodel.targets[key].baseValue) ?  tmodel.targets[key].baseValue : undefined;
-        delete targetValue.valueList;
-        delete targetValue.stepList;
-        delete targetValue.intervalList;
-        delete targetValue.easingList;
-        
-        if (isValueUpdated) {
-            tmodel.resetTargetStep(key);
-            tmodel.resetTargetBaseValue(key);
-        }
-        
-        return true;
-    }  
 };
 
 TargetUtil.getIntervalValue = function(tmodel, key, interval) {
@@ -272,9 +223,7 @@ TargetUtil.handleValueChange = function(tmodel, key, newValue, lastValue, step, 
 
 TargetUtil.morph = function(tmodel, key, fromValue, toValue, step, steps)  {
     
-    var easing = TUtil.isDefined(tmodel.getTargetEasing(key)) ? tmodel.getTargetEasing(key) : 
-            typeof tmodel.targetValues[key].easing === 'function' ? tmodel.targetValues[key].easing : Easing.linear;
-    
+    var easing = typeof tmodel.targetValues[key].easing === 'function' ? tmodel.targetValues[key].easing : Easing.linear;
     var easingStep = easing(tmodel.getTargetStepPercent(key, step)); 
     
     if (TargetUtil.colorMap[key]) {
@@ -301,12 +250,15 @@ TargetUtil.setWidthFromDom = function(child) {
     var height = TUtil.isDefined(child.domWidth) ? child.domWidth.height : undefined;    
     var width = TUtil.isDefined(child.domWidth) ? child.domWidth.width : undefined;
     var domParent = child.getDomParent();
+    var rerender = false;
     
     if (getManager().needsRerender(child)) {
-        child.isTextOnly() ? child.$dom.text(child.getHtml()) : child.$dom.html(child.getHtml());  
+        child.isTextOnly() ? child.$dom.text(child.getHtml()) : child.$dom.html(child.getHtml());
+        rerender = true;
     }
     
     if (!TUtil.isDefined(child.domWidth) 
+            || rerender
             || height !== child.getHeight()
             || (domParent && child.getActualValueLastUpdate('width') <= domParent.getActualValueLastUpdate('width'))) {
         child.$dom.width('auto');
@@ -322,12 +274,15 @@ TargetUtil.setHeightFromDom = function(child) {
     var height = TUtil.isDefined(child.domHeight) ? child.domHeight.height : undefined;
     var width = TUtil.isDefined(child.domHeight) ? child.domHeight.width : undefined;
     var domParent = child.getDomParent();
+    var rerender = false;
     
     if (getManager().needsRerender(child)) {
-        child.isTextOnly() ? child.$dom.text(child.getHtml()) : child.$dom.html(child.getHtml());    
+        child.isTextOnly() ? child.$dom.text(child.getHtml()) : child.$dom.html(child.getHtml());
+        rerender = true;
     }    
     
     if (!TUtil.isDefined(child.domHeight) 
+            || rerender
             || width !== child.getWidth() 
             || (domParent && child.getActualValueLastUpdate('height') <= domParent.getActualValueLastUpdate('height'))) {
         child.$dom.height('auto');

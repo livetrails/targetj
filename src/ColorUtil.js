@@ -145,7 +145,7 @@ ColorUtil.colors = {
 };
 
 ColorUtil.color2Integers = function(color) {
-    color = color || '';
+    color = color ? color + '' : '';
     color = ColorUtil.colors[color.toLowerCase()] ? ColorUtil.colors[color.toLowerCase()] : color;
         
     if (!color) return;

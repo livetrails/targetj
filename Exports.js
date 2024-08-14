@@ -1,5 +1,6 @@
 export * from "./src/App.js"
 export * from "./src/TModel.js"
+export * from "./src/Moves.js"
 export * from "./src/SearchUtil.js"
 export * from "./src/TargetUtil.js"
 export * from "./src/TUtil.js"
