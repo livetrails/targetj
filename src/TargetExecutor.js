@@ -17,6 +17,8 @@ TargetExecutor.executeImperativeTarget = function(tmodel, key, value, steps, int
     targetValue.isImperative = true;
     targetValue.originalTargetName = originalTargetName;    
 
+    if (TargetUtil.isAddChildTarget(key, value)) {
+        tmodel.addChild(value);
     if (TargetUtil.isListTarget(value)) {
         TargetExecutor.assignListTarget(targetValue, value.list, value.list[0], steps, interval, easing);
     } else {

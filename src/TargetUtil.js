@@ -106,6 +106,10 @@ TargetUtil.isListTarget = function(value) {
     return typeof value === 'object' && Array.isArray(value.list);
 };
 
+TargetUtil.isAddChildTarget = function(key, value) {
+    return value instanceof TModel && key === 'addChild';
+};
+
 TargetUtil.getValueStepsCycles = function(tmodel, key) {
     var _target = tmodel.targets[key];
     var valueOnly = _target && _target.valueOnly ? true : false;
