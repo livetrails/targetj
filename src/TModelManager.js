@@ -183,9 +183,8 @@ TModelManager.prototype.deleteDoms = function () {
         var tmodel = this.lists.invisibleDom[i];
    
         tmodel.domValues = {};
-        tmodel.visible = false;
         
-        var resetTargets = tmodel.targets['resetOnInvisible'] || tmodel.val('resetOnInvisible');
+        var resetTargets = [].concat(tmodel.targets['resetOnInvisible'], tmodel.targets['onResize']);
         resetTargets && resetTargets.forEach(function(key) {
             if (tmodel.targets[key] && tmodel.isTargetComplete(key)) {
                 tmodel.resetTarget(key);
@@ -522,7 +521,7 @@ TModelManager.prototype.run = function(oid, delay) {
         }
         
         tapp.manager.runningFlag = false;
-
+        
         if (tapp.manager.runningStep !== 7)  {
             tapp.manager.run("rendering: " + tapp.manager.runningStep);
         } else if (tapp.manager.rerunOid) {

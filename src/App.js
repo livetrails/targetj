@@ -159,6 +159,8 @@ function AppFn(firstChild) {
         my.manager.lists.visible.forEach(function(tmodel) { tmodel.domValues = {}; });
         my.manager.clear();
         my.locationManager.hasLocationList.length = 0;
+        my.locationManager.screenWidth = 0;
+        my.locationManager.screenHeight = 0;
         SearchUtil.foundParentWithTarget = {};
         SearchUtil.foundTypeMap = {};
         SearchUtil.foundTargetMap = {}; 

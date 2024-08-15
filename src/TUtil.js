@@ -5,7 +5,7 @@ import { SearchUtil } from "./SearchUtil.js";
 function TUtil() {}
 
 TUtil.getBoundingRect = function(tmodel) {
-    var left, top, right, bottom;
+    var left, top, right, bottom, oid;
     
     if (tmodel.actualValues.domHolder && tmodel.actualValues.domHolder.exists()) {
         var rect = tmodel.actualValues.domHolder.getBoundingClientRect();
@@ -13,25 +13,28 @@ TUtil.getBoundingRect = function(tmodel) {
         top = rect.top;
         right = rect.right;
         bottom = rect.bottom;
+        oid = tmodel.actualValues.domHolder.attr('id');
     } else {
         var parent = tmodel.getDomParent() ? tmodel.getDomParent() : SearchUtil.findParentByTarget(tmodel, 'domHolder');
 
         if (parent) {
             left = parent.absX;
             top = parent.absY;
-            var width = parent.getWidth() === 0 && parent.val('contentWidth') ? Math.max(0, getScreenWidth() - left) : parent.getWidth();
-            var height = parent.getHeight() === 0 && parent.val('contentHeight') ? Math.max(0, getScreenHeight() - top) : parent.getHeight();
+            var width = parent.getWidth();
+            var height =parent.getHeight();
             right = left + width;
             bottom = top + height;
+            oid = parent.oid;
         } else {
             left = 0;
             top = 0;
             right = getScreenWidth();
             bottom = getScreenHeight();
+            oid = 'screen';
         }
     }
     
-    return { left: left, top: top, right: right, bottom: bottom };
+    return { left: left, top: top, right: right, bottom: bottom, oid: oid };
 };
 
 

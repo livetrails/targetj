@@ -93,11 +93,17 @@ LocationManager.prototype.calculateContainer = function(container) {
             this.addToLocationList(child);          
         }
 
-        if (!TUtil.isDefined(child.targetValues.x)) {
+        if (child.isTargetEnabled('x') && !child.isTargetUpdating('x') && !child.isTargetImperative('x') && child.getTargetSteps('x') === 0) {
+            TargetExecutor.resolveTargetValue(child, 'x');
+            TargetExecutor.snapActualToTarget(child, 'x');  
+        } else if (!TUtil.isDefined(child.targetValues.x)) {
             child.val('x', child.x);                
         }
 
-        if (!TUtil.isDefined(child.targetValues.y)) {
+        if (child.isTargetEnabled('y') && !child.isTargetUpdating('y') && !child.isTargetImperative('y') && child.getTargetSteps('y') === 0) {
+            TargetExecutor.resolveTargetValue(child, 'y');
+            TargetExecutor.snapActualToTarget(child, 'y');              
+        } else if (!TUtil.isDefined(child.targetValues.y)) {
             child.val('y', child.y);          
         }
         

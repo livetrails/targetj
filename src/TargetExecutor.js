@@ -91,8 +91,7 @@ TargetExecutor.resolveTargetValue = function(tmodel, key) {
 
     var targetValue = tmodel.targetValues[key] || TargetUtil.emptyValue(); 
     var theValue = targetValue.value;
-    //var isValueUpdated = !tmodel.isExecuted(key);
-
+    
     tmodel.targetValues[key] = targetValue;
     var targetInitial = TUtil.isDefined(tmodel.targets[key].initialValue) ?  tmodel.targets[key].initialValue : undefined;
     var easing = TUtil.isDefined(tmodel.targets[key].easing) ?  tmodel.targets[key].easing : undefined;
