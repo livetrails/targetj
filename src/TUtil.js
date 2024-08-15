@@ -76,7 +76,7 @@ TUtil.getDeepList = function(parent)   {
     var deepList = []; 
     
     function traverse(tmodel) {
-        if (tmodel.hasChildren())  {
+        if (tmodel && tmodel.hasChildren())  {
             var list = tmodel.getChildren();
             deepList = deepList.concat(list);
             list.forEach(function(t) {

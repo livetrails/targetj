@@ -17,6 +17,7 @@ TargetUtil.styleTargetMap = {
     opacity: true,
     zIndex: true,
     fontSize: true,
+    lineHeight: true,
     borderRadius: true,
     padding: true,
     backgroundColor: true,
@@ -272,6 +273,8 @@ TargetUtil.setWidthFromDom = function(child) {
     
     child.domWidth = { width: width, height: height };
     child.val('width', width);
+    
+    return width;
 };
 
 TargetUtil.setHeightFromDom = function(child) {    
@@ -296,6 +299,8 @@ TargetUtil.setHeightFromDom = function(child) {
     
     child.domHeight = { height: height, width: width };
     child.val('height', height);
+    
+    return height;
 };
 
 export { TargetUtil };

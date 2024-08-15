@@ -292,6 +292,7 @@ TModelManager.prototype.fixStyles = function() {
                     
                 case 'borderRadius':
                 case 'padding':
+                case 'lineHeight':                
                 case 'fontSize':
                     if (TUtil.isDefined(tmodel.val(key)) && tmodel.domValues[key] !== tmodel.val(key)) {
                         tmodel.$dom.style(key, TUtil.isNumber(tmodel.val(key)) ? tmodel.val(key) + 'px' : tmodel.val(key));
@@ -374,7 +375,7 @@ TModelManager.prototype.createDoms = function () {
             zIndex: zIndex 
         };
         
-        ['fontSize', 'borderRadius', 'padding'].forEach(function(prop) {
+        ['fontSize', 'borderRadius', 'padding', 'lineHeight'].forEach(function(prop) {
             var value = tmodel.val(prop);
             if (value) {
                 style[prop] = TUtil.isNumber(value) ? value + 'px' : value;

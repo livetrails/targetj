@@ -63,6 +63,7 @@ LocationManager.prototype.calculateContainer = function(container) {
     while (i < length && tapp.isRunning()) {
         
         var child = allChildren[i++];
+        if (!child) continue;
                       
         var outerXEast = undefined, innerXEast = undefined;
         

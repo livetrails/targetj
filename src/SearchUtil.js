@@ -100,6 +100,8 @@ SearchUtil.findByType = function (type) {
         for (var i = 0; children && i < children.length && !found; i++) {
 
             tmodel = children[i];
+            
+            if (!tmodel) continue;
 
             if (tmodel.hasChildren()) {
                 found = search(tmodel);
@@ -135,6 +137,8 @@ SearchUtil.findByTarget = function (target) {
 
             tmodel = children[i];
 
+            if (!tmodel) continue;
+
             if (tmodel.hasChildren()) {
                 found = search(tmodel);
             } else if (tmodel.targets[target]) {
@@ -166,7 +170,10 @@ SearchUtil.find = function (oid) {
         var found;
 
         for (var i = 0; children && i < children.length && !found; i++) {
+            
             tmodel = children[i];
+
+            if (!tmodel) continue;
 
             if (tmodel.hasChildren()) {
                 found = search(tmodel);
