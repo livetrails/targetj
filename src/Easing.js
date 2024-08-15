@@ -24,6 +24,10 @@ Easing.inOutQuad = function (t) {
     return t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t;
 };
 
+Easing.inOut = function (t) {
+    return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+};
+
 Easing.outElastic = function(t) {
     var c4 = (2 * Math.PI) / 3;
 
