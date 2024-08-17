@@ -30,7 +30,27 @@ TModelManager.prototype.init = function()   {
     this.runningStep = 0;
     this.runningFlag = false;
     this.rerunOid = '';
-    this.cycleDuration = 0;
+    this.cycleStats = {
+        duration: 0,
+        count: 0,
+        totalDuration: 0,
+        average : 0
+    };
+};
+
+
+TModelManager.prototype.resetRuns = function() {
+    this.nextRuns = [];
+    this.runningStep = 0;
+    this.runningFlag = false;
+    this.rerunOid = '';
+};
+
+TModelManager.prototype.resetCycle = function() {
+    this.cycleStats.duration = 0;
+    this.cycleStats.count = 0;
+    this.cycleStats.totalDuration = 0;
+    this.cycleStats.average = 0;
 };
 
 TModelManager.prototype.clear = function() {
@@ -46,7 +66,7 @@ TModelManager.prototype.clear = function() {
     this.visibleOidMap = {};
     this.targetMethodMap = {};      
 };
- 
+
 TModelManager.prototype.visibles = function(type, list) {
     list = !list ? this.lists.visible : list;
     return this.lists.visible.filter(function(tmodel) { return tmodel.type === type || !type ; }).map(function(tmodel) { return tmodel.oid; });
@@ -459,11 +479,11 @@ TModelManager.prototype.run = function(oid, delay) {
     }
    
     tapp.manager.runningFlag = true;
-                
+            
     window.requestAnimationFrame(function () {
+        var startStep = tapp.manager.runningStep;
         var startTime = browser.now();
-        tapp.manager.cycleDuration = 0;
-        while(tapp.manager.cycleDuration < 25 && tapp.manager.runningStep < 7 && tapp.isRunning()) {
+        while((browser.now() - startTime) < 25 && tapp.manager.runningStep < 7 && tapp.isRunning()) {
             switch(tapp.manager.runningStep) {
                 case 0:
                                         
@@ -512,28 +532,36 @@ TModelManager.prototype.run = function(oid, delay) {
             }
             
             tapp.manager.runningStep++;
-            tapp.manager.cycleDuration = browser.now() - startTime;
         }
         
+        var cycleDuration = browser.now() - startTime;
+        tapp.manager.cycleStats.duration = startStep === 0 ? cycleDuration : tapp.manager.cycleStats.duration + cycleDuration;
+
         if (tapp.debugLevel > 0) {
-            browser.log(tapp.debugLevel > 0 && tapp.manager.cycleDuration > 10)("it took: " + tapp.manager.cycleDuration + ", " + oid);
-            browser.log(tapp.debugLevel > 0 && tapp.manager.cycleDuration > 10)("count: " + tapp.locationManager.locationCount);
+            browser.log(tapp.debugLevel > 0 && tapp.manager.cycleStats.duration > 10)("it took: " + tapp.manager.cycleStats.duration + ", " + oid);
+            browser.log(tapp.debugLevel > 0 && tapp.manager.cycleStats.duration > 10)("count: " + tapp.locationManager.locationCount);
             browser.log(tapp.debugLevel > 1)("request from: " + oid + " delay:  " + delay);
         }
         
         tapp.manager.runningFlag = false;
         
         if (tapp.manager.runningStep !== 7)  {
-            tapp.manager.run("rendering: " + tapp.manager.runningStep);
-        } else if (tapp.manager.rerunOid) {
+            tapp.manager.run("rendering: " + oid + " " +tapp.manager.runningStep);
+        } else {
+            tapp.manager.cycleStats.count++;
+            tapp.manager.cycleStats.totalDuration += tapp.manager.cycleStats.duration;
+            tapp.manager.cycleStats.average = tapp.manager.cycleStats.totalDuration / tapp.manager.cycleStats.count;
+            
+            if (tapp.manager.rerunOid) {
             tapp.manager.runningStep = 0;
             var rerunOid = tapp.manager.rerunOid;
             tapp.manager.rerunOid = '';
             tapp.manager.run(rerunOid);
-        } else {
-           tapp.manager.runningStep = 0;
-                              
-           tapp.manager.getNextRun();
+            } else {
+               tapp.manager.runningStep = 0;
+
+               tapp.manager.getNextRun();
+            }
         }
     });
 

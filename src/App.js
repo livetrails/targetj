@@ -122,7 +122,7 @@ function AppFn(firstChild) {
         my.events.addWindowHandlers();
                         
         my.dim.measureScreen();    
-        my.resetRuns();
+        my.manager.resetRuns();
 
         my.runningFlag = true;
                         
@@ -143,16 +143,9 @@ function AppFn(firstChild) {
 
         my.events.clearAll();
         
-        my.resetRuns();
+        my.manager.resetRuns();
                 
         return my;
-    };
-   
-    my.resetRuns = function() {
-        my.manager.nextRuns = [];
-        my.manager.runningStep = 0;
-        my.manager.runningFlag = false;
-        my.manager.rerunOid = ''; 
     };
     
     my.reset = function() {

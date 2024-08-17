@@ -144,7 +144,8 @@ TargetManager.prototype.setActualValue = function(tmodel, key) {
 
     tmodel.actualValues[key] = theValue;      
     tmodel.setActualValueLastUpdate(key);
-    
+    step = tmodel.getTargetStep(key);
+
     var scheduleTime = 0;
     
     if (targetValue.valueList && cycle < targetValue.valueList.length - 1) {        
@@ -161,6 +162,10 @@ TargetManager.prototype.setActualValue = function(tmodel, key) {
         if (tmodel.isTargetImperative(key)) {
             var originalTargetName = targetValue.originalTargetName;
             var originalTarget = tmodel.targets[targetValue.originalTargetName];
+            if (originalTarget && typeof originalTarget.onImperativeStep === 'function') {
+                originalTarget.onImperativeStep.call(tmodel, key, tmodel.actualValues[key], step, steps);
+                tmodel.setTargetMethodName(originalTargetName, 'onImperativeStep');
+            }            
             if (originalTarget && typeof originalTarget.onImperativeEnd === 'function') {
                 originalTarget.onImperativeEnd.call(tmodel, key, tmodel.actualValues[key]);
                 tmodel.setTargetMethodName(originalTargetName, 'onImperativeEnd');
