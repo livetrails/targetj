@@ -62,7 +62,8 @@ TargetUtil.emptyValue = function() {
         executionCount: 0,
         isImperative: false,
         originalTargetName: undefined,
-        easing: undefined
+        easing: undefined,
+        creationTime: browser.now()
     };
 };
 

@@ -650,6 +650,10 @@ TModel.prototype.getActualValueLastUpdate = function(key)  {
     return this.targetValues[key] ? this.targetValues[key].actualValueLastUpdate : undefined;
 };
 
+TModel.prototype.getTargetCreationTime = function(key)  {
+    return this.targetValues[key] ? this.targetValues[key].creationTime : undefined;
+};
+
 TModel.prototype.setTargetStep = function(key, value)  {
     if (this.targetValues[key]) {
         this.targetValues[key].step = value;

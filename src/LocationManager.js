@@ -206,9 +206,18 @@ LocationManager.prototype.resetTargetsOnEvents = function(tmodel) {
         resetTargets = resetTargets.concat(tmodel.targets['onKeyEvent']);
     }
     
-    resetTargets.forEach(function(key) {        
-        if (tmodel.targets[key] && tmodel.isTargetComplete(key)) {
-            tmodel.resetTarget(key);
+    resetTargets.forEach(function(target) {
+        var key, obj;
+        if (typeof target === 'object') {
+            key = target.key;
+            obj = target.object || tmodel;
+        } else {
+            key = target;
+            obj = tmodel;
+        }
+        
+        if (obj.targets[key] && obj.isTargetComplete(key)) {
+            obj.resetTarget(key);
         }            
     });    
 };

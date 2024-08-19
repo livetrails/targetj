@@ -107,7 +107,9 @@ EventListener.prototype.captureEvents = function() {
     if (lastEvent.eventName === 'resize') {
         tapp.dim.measureScreen();
     } else {
-        this.findEventHandlers(lastEvent.tmodel);
+        if (lastEvent.tmodel) {
+            this.findEventHandlers(lastEvent.tmodel);
+        }
         this.currentEvent = lastEvent.eventName;
         this.currentKey = this.currentTouch.key;
         this.currentTouch.key = "";        
@@ -136,7 +138,7 @@ EventListener.prototype.handleEvent = function (event) {
     this.touchTimeStamp = now > this.touchTimeStamp ? now : this.touchTimeStamp;
 
     var tmodel = this.getTModelFromEvent(event);
-    
+        
     var lastEvent = this.eventQueue.length > 0 ? this.eventQueue[this.eventQueue.length - 1] : null;
     
     if (lastEvent) {
