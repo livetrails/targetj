@@ -138,7 +138,7 @@ TargetUtil.getValueStepsCycles = function(tmodel, key) {
         if (typeof target === 'object' && target !== null) {
             value = typeof target.value === 'function' ? target.value.call(tmodel, cycle, lastValue) : TUtil.isDefined(target.value) ? target.value : target;
             steps = typeof target.steps === 'function' ? target.steps.call(tmodel, cycle) : TUtil.isDefined(target.steps) ? target.steps : 0;
-            interval = typeof target.interval === 'function' ? target.interval.call(tmodel, cycle, tmodel.getTargetInterval(key)) : TUtil.isDefined(target.interval) ? target.interval : 0;            
+            interval = typeof target.interval === 'function' ? target.interval.call(tmodel, cycle) : TUtil.isDefined(target.interval) ? target.interval : 0;            
             cycles = typeof target.cycles === 'function' ? target.cycles.call(tmodel, cycle, tmodel.getTargetCycles(key)) : TUtil.isDefined(target.cycles) ? target.cycles : 0;
 
             return Array.isArray(value) ? getValue(value) : [value, steps, interval, cycles];
@@ -228,8 +228,8 @@ TargetUtil.handleValueChange = function(tmodel, key, newValue, lastValue, step, 
 
 TargetUtil.morph = function(tmodel, key, fromValue, toValue, step, steps)  {
     
-    var easing = typeof tmodel.targetValues[key].easing === 'function' ? tmodel.targetValues[key].easing : Easing.linear;
-    var easingStep = easing(tmodel.getTargetStepPercent(key, step)); 
+    var easing = tmodel.getTargetEasing(key);
+    var easingStep = easing ? easing(tmodel.getTargetStepPercent(key, step)) : tmodel.getTargetStepPercent(key, step); 
     
     if (TargetUtil.colorMap[key]) {
         

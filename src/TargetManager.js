@@ -28,6 +28,10 @@ TargetManager.prototype.applyTargetValue = function(tmodel, key) {
         return;
     }
 
+    if (!tmodel.targetValues[key] && TUtil.isDefined(tmodel.targets[key].initialValue) && !TUtil.isDefined(tmodel.actualValues[key])) {
+        tmodel.actualValues[key] = tmodel.targets[key].initialValue;
+    }
+
     if (typeof target.enabledOn === 'function') {
         tmodel.setTargetMethodName(key, 'enabledOn');
     }
@@ -57,21 +61,6 @@ TargetManager.prototype.applyTargetValue = function(tmodel, key) {
     if (schedulePeriod > 0) {
         tapp.manager.scheduleRun(schedulePeriod, "actualInterval__" + tmodel.oid + "__" + key); 
     }
-};
-
-TargetManager.prototype.setJustActualValue = function(tmodel, key)  {
-    
-    var targetValue = tmodel.getTargetValue(key);
-   
-    var step = tmodel.getTargetStep(key);
-    var steps = tmodel.getTargetSteps(key);
-    
-    if (step < steps) {
-        var initialValue = TUtil.isDefined(tmodel.getTargetInitialValue(key)) ? tmodel.getTargetInitialValue(key) : tmodel.actualValues[key];
-        tmodel.actualValues[key] = TargetUtil.morph(tmodel, key, initialValue, targetValue, step, steps);
-    } else {          
-        tmodel.actualValues[key] = targetValue;
-    } 
 };
 
 TargetManager.prototype.setActualValues = function(tmodel) { 
@@ -108,7 +97,7 @@ TargetManager.prototype.setActualValue = function(tmodel, key) {
     var interval = tmodel.getTargetInterval(key) || 0;  
     var oldValue = tmodel.actualValues[key], oldStep = step, oldCycle = cycle;
     var initialValue = tmodel.getTargetInitialValue(key);
-              
+                  
     if (step <= steps) {
         if (!TUtil.isDefined(initialValue)) {
             initialValue = tmodel.actualValues[key];

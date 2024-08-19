@@ -5,6 +5,7 @@ import { TUtil } from "./TUtil.js";
 import { TargetUtil } from "./TargetUtil.js";
 import { TargetExecutor } from "./TargetExecutor";
 import { Viewport } from "./Viewport.js";
+import { Easing } from "./Easing.js";
 import { $Dom } from "./$Dom.js";
 
 function TModel(type, targets) {
@@ -696,7 +697,7 @@ TModel.prototype.setActualValueLastUpdate = function(key) {
 };
 
 TModel.prototype.getTargetEasing = function(key)   {
-    return typeof this.targets[key] === 'object' && this.targets[key].easing ? this.targets[key].easing : undefined;
+    return typeof this.targetValues[key].easing === 'function' ? this.targetValues[key].easing : undefined;
 };
 
 TModel.prototype.getTargetInterval = function(key) {

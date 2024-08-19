@@ -20,12 +20,12 @@ TargetExecutor.executeImperativeTarget = function(tmodel, key, value, steps, int
     if (TargetUtil.isAddChildTarget(key, value)) {
         tmodel.addChild(value);
     } else if (TargetUtil.isListTarget(value)) {
-        TargetExecutor.assignListTarget(targetValue, value.list, value.list[0], steps, interval, easing);
+        TargetExecutor.assignListTarget(targetValue, value.list, value.list[0], steps, interval, easing);  
     } else {
         TargetExecutor.assignSingleTarget(targetValue, value, undefined, steps, 0, interval, easing);
         targetValue.step = 0;
     }
-    
+        
     TargetExecutor.updateTarget(tmodel, targetValue, key);
 };
 
@@ -84,18 +84,19 @@ TargetExecutor.snapActualToTarget = function(tmodel, key) {
 
 
 TargetExecutor.resolveTargetValue = function(tmodel, key) {
+    var targetInitial = !tmodel.targetValues[key] && TUtil.isDefined(tmodel.targets[key].initialValue) ?  tmodel.targets[key].initialValue : undefined;
+
     var valueArray = TargetUtil.getValueStepsCycles(tmodel, key);
 
     var newValue = valueArray[0];
     var newSteps = valueArray[1] || 0;
     var newInterval = valueArray[2] || 0;        
     var newCycles = valueArray[3] || 0;
-
+    
     var targetValue = tmodel.targetValues[key] || TargetUtil.emptyValue(); 
     var theValue = targetValue.value;
     
     tmodel.targetValues[key] = targetValue;
-    var targetInitial = TUtil.isDefined(tmodel.targets[key].initialValue) ?  tmodel.targets[key].initialValue : undefined;
     var easing = TUtil.isDefined(tmodel.targets[key].easing) ?  tmodel.targets[key].easing : undefined;
 
     if (TargetUtil.isListTarget(newValue)) {
