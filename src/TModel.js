@@ -242,15 +242,14 @@ TModel.prototype.filterChildren = function(type) {
 };
 
 TModel.prototype.findChild = function(type) {
-   return this.getChildren().find(function(tmodel, index) {
-       var typeResult = typeof type === 'function'  ? type.call(tmodel) : tmodel.type === type;
-       return typeResult; 
+   return this.getChildren().find(function(child) {
+       return typeof type === 'function'  ? type.call(child) : child.type === type;
    });
 };
 
 TModel.prototype.findLastChild = function(type) {
-   return this.getChildren().findLast(function(tmodel) {
-       return typeof type === 'function'  ? type.call(tmodel) : tmodel.type === type;
+   return this.getChildren().findLast(function(child) {
+       return typeof type === 'function'  ? type.call(child) : child.type === type;
    });
 };
 

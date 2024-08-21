@@ -2,6 +2,7 @@ import { browser } from "./Browser.js";
 import { TUtil } from "./TUtil.js";
 import { TargetUtil } from "./TargetUtil.js";
 import { TargetExecutor } from "./TargetExecutor";
+import { SearchUtil } from "./SearchUtil";
 
 import { tapp } from "./App.js";
 
@@ -97,7 +98,8 @@ TargetManager.prototype.setActualValue = function(tmodel, key) {
     var interval = tmodel.getTargetInterval(key) || 0;  
     var oldValue = tmodel.actualValues[key], oldStep = step, oldCycle = cycle;
     var initialValue = tmodel.getTargetInitialValue(key);
-                  
+    var originalTargetName, originalTarget, originalTModel; 
+          
     if (step <= steps) {
         if (!TUtil.isDefined(initialValue)) {
             initialValue = tmodel.actualValues[key];
@@ -109,11 +111,16 @@ TargetManager.prototype.setActualValue = function(tmodel, key) {
         tmodel.setActualValueLastUpdate(key);
                 
         if (tmodel.isTargetImperative(key)) {
-            var originalTargetName = targetValue.originalTargetName;
-            var originalTarget = tmodel.targets[targetValue.originalTargetName];
+            originalTargetName = targetValue.originalTargetName;
+            originalTarget = tmodel.targets[targetValue.originalTargetName];
+            originalTModel = tmodel;
+            if (!originalTarget) {
+                originalTModel = SearchUtil.findParentByTarget(tmodel, originalTargetName);
+                originalTarget = originalTModel.targets[targetValue.originalTargetName];
+            }
             if (originalTarget && typeof originalTarget.onImperativeStep === 'function') {
-                originalTarget.onImperativeStep.call(tmodel, key, tmodel.actualValues[key], step, steps);
-                tmodel.setTargetMethodName(originalTargetName, 'onImperativeStep');
+                originalTarget.onImperativeStep.call(originalTModel, key, originalTModel.actualValues[key], step, steps);
+                originalTModel.setTargetMethodName(originalTargetName, 'onImperativeStep');
             }
         } else {
             TargetUtil.handleValueChange(tmodel, key, tmodel.actualValues[key], oldValue, oldStep, oldCycle);            
@@ -149,15 +156,20 @@ TargetManager.prototype.setActualValue = function(tmodel, key) {
         scheduleTime = interval;
     } else {
         if (tmodel.isTargetImperative(key)) {
-            var originalTargetName = targetValue.originalTargetName;
-            var originalTarget = tmodel.targets[targetValue.originalTargetName];
+            originalTargetName = targetValue.originalTargetName;
+            originalTarget = tmodel.targets[targetValue.originalTargetName];
+            originalTModel = tmodel;
+            if (!originalTarget) {
+                originalTModel = SearchUtil.findParentByTarget(tmodel, originalTargetName);
+                originalTarget = originalTModel.targets[targetValue.originalTargetName];
+            }
             if (originalTarget && typeof originalTarget.onImperativeStep === 'function') {
-                originalTarget.onImperativeStep.call(tmodel, key, tmodel.actualValues[key], step, steps);
-                tmodel.setTargetMethodName(originalTargetName, 'onImperativeStep');
+                originalTarget.onImperativeStep.call(originalTModel, key, originalTModel.actualValues[key], step, steps);
+                originalTModel.setTargetMethodName(originalTargetName, 'onImperativeStep');
             }            
             if (originalTarget && typeof originalTarget.onImperativeEnd === 'function') {
-                originalTarget.onImperativeEnd.call(tmodel, key, tmodel.actualValues[key]);
-                tmodel.setTargetMethodName(originalTargetName, 'onImperativeEnd');
+                originalTarget.onImperativeEnd.call(originalTModel, key, originalTModel.actualValues[key]);
+                originalTModel.setTargetMethodName(originalTargetName, 'onImperativeEnd');
             }
         } else {
             if (tmodel.getTargetCycle(key) < tmodel.getTargetCycles(key)) {
