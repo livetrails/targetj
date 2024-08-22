@@ -175,15 +175,22 @@ TModel.prototype.hasChildren = function()  {
 };
 
 TModel.prototype.getChildren = function() {
-    if (!this.getActualValueLastUpdate('allChildren')
-            || this.getActualValueLastUpdate('children') >= this.getActualValueLastUpdate('allChildren')
-            || this.getActualValueLastUpdate('addedChildren') >= this.getActualValueLastUpdate('allChildren')) {
-                   
-        this.actualValues.allChildren = this.actualValues.children.concat(this.actualValues.addedChildren);
+    var lastUpdateAllChildren = this.getActualValueLastUpdate('allChildren');
+    var lastUpdateChildren = this.getActualValueLastUpdate('children');
+    var lastUpdateAddedChildren = this.getActualValueLastUpdate('addedChildren');
 
-        if (this.actualValues.children.length > 0) {
+    if (!lastUpdateAllChildren ||
+        lastUpdateChildren >= lastUpdateAllChildren ||
+        lastUpdateAddedChildren >= lastUpdateAllChildren) {
+                   
+        var children = this.actualValues.children;
+        var addedChildren = this.actualValues.addedChildren;
+          
+        this.actualValues.allChildren = [].concat(children, addedChildren);
+
+        if (children && children.length > 0) {
             var self = this;
-            this.actualValues.children.forEach(function(t) { t.parent = self; });
+            children.forEach(function(t) { t.parent = self; });
             this.actualValues.allChildren.sort(function(a, b) { 
                 return !a.canBeBracketed() && b.canBeBracketed() ? -1 : 1; 
             });
