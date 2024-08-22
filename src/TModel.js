@@ -531,7 +531,7 @@ TModel.prototype.updateTargetStatus = function(key) {
         this.targetValues[key].status = 'updating';        
     } else if (!this.isExecuted(key) || this.isTargetInLoop(key) || cycle < cycles) {
         this.targetValues[key].status = 'active';        
-    } else {   
+    } else { 
         this.targetValues[key].status = 'done';
     }
     
@@ -546,17 +546,17 @@ TModel.prototype.updateTargetStatus = function(key) {
     } else if (this.isTargetActive(key)) {
         this.addToActiveTargets(key);
         this.removeFromUpdatingTargets(key);
-        if (parent) {
+        if (parent && this.updatingTargetList.length === 0) {
             parent.removeFromUpdatingChildren(this);
         }
-    } else {
+    } else {        
         this.removeFromActiveTargets(key);
         this.removeFromUpdatingTargets(key);
-        if (parent) {
+        if (parent && this.updatingTargetList.length === 0) {
             parent.removeFromUpdatingChildren(this);
         }
         tapp.manager.doneTargets.push({ tmodel: this, key: key });
-    }    
+    }  
     return this.targetValues[key].status;
 };
 

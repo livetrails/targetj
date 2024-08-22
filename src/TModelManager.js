@@ -341,10 +341,10 @@ TModelManager.prototype.completeDoneTModels = function() {
             tmodel.setTargetComplete(key);
             tmodel.removeFromActiveTargets(tmodel);
             tmodel.removeFromUpdatingTargets(tmodel);
-            if (tmodel.getParent()) {
+            if (tmodel.getParent() && tmodel.updatingTargetList.length === 0) {
                 tmodel.getParent().removeFromUpdatingChildren(tmodel);
             }                                
-        }
+        }    
     });
 };
 

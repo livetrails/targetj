@@ -191,7 +191,7 @@ LocationManager.prototype.resetTargetsOnEvents = function(tmodel) {
         resetTargets = resetTargets.concat(tmodel.targets['onTouchEvent']);
     }
     
-    if (getEvents().isClickHandler(tmodel) && tmodel.targets['onClickEvent']) {
+    if (getEvents().isClickHandler(tmodel) && tmodel.targets['onClickEvent']) {        
         resetTargets = resetTargets.concat(tmodel.targets['onClickEvent']);
     }
 
@@ -206,7 +206,7 @@ LocationManager.prototype.resetTargetsOnEvents = function(tmodel) {
         resetTargets = resetTargets.concat(tmodel.targets['onKeyEvent']);
     }
     
-    resetTargets.forEach(function(target) {
+    resetTargets.forEach(function(target) {        
         var key, obj;
         if (typeof target === 'object') {
             key = target.key;

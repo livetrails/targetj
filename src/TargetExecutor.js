@@ -7,7 +7,7 @@ function TargetExecutor() {}
 
 TargetExecutor.executeDeclarativeTarget = function(tmodel, key) {
     TargetExecutor.resolveTargetValue(tmodel, key);
-    TargetExecutor.updateTarget(tmodel, tmodel.targetValues[key], key);
+    TargetExecutor.updateTarget(tmodel, tmodel.targetValues[key], key);    
 };
 
 TargetExecutor.executeImperativeTarget = function(tmodel, key, value, steps, interval, easing, originalTargetName) {    

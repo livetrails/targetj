@@ -153,7 +153,7 @@ TargetManager.prototype.setActualValue = function(tmodel, key) {
         targetValue.steps = targetValue.stepList[(cycle - 1) % targetValue.stepList.length];
         targetValue.interval = targetValue.intervalList[(cycle - 1) % targetValue.intervalList.length];
         targetValue.easing = targetValue.easingList[(cycle - 1) % targetValue.easingList.length];
-        scheduleTime = interval;
+        scheduleTime = interval;        
     } else {
         if (tmodel.isTargetImperative(key)) {
             originalTargetName = targetValue.originalTargetName;
@@ -186,7 +186,7 @@ TargetManager.prototype.setActualValue = function(tmodel, key) {
         } 
     }
    
-    tmodel.updateTargetStatus(key);
+    tmodel.updateTargetStatus(key);    
     
     tapp.manager.scheduleRun(scheduleTime, tmodel.oid + "---" + key + "-" + step + "/" + steps + "-" + cycle + "-" + interval);
 };
