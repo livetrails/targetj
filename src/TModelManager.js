@@ -340,10 +340,7 @@ TModelManager.prototype.completeDoneTModels = function() {
         if (tmodel.isTargetDone(key)) {
             tmodel.setTargetComplete(key);
             tmodel.removeFromActiveTargets(tmodel);
-            tmodel.removeFromUpdatingTargets(tmodel);
-            if (tmodel.getParent() && tmodel.updatingTargetList.length === 0) {
-                tmodel.getParent().removeFromUpdatingChildren(tmodel);
-            }                                
+            tmodel.removeFromUpdatingTargets(tmodel);                              
         }    
     });
 };

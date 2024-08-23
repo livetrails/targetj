@@ -63,6 +63,7 @@ function TModel(type, targets) {
         calculateChildren: undefined,
         isVisible: undefined,
         onResize: undefined,
+        onClickEvent: undefined,        
         onTouchEvent: undefined,
         onScrollEvent: undefined,
         onKeyEvent: undefined
@@ -541,27 +542,16 @@ TModel.prototype.updateTargetStatus = function(key) {
     } else { 
         this.targetValues[key].status = 'done';
     }
-    
-    var parent = this.getParent();
-            
+                
     if (this.isTargetUpdating(key)) {
         this.addToUpdatingTargets(key);
         this.removeFromActiveTargets(key);
-        if (parent) {
-            parent.addToUpdatingChildren(this);
-        }
     } else if (this.isTargetActive(key)) {
         this.addToActiveTargets(key);
         this.removeFromUpdatingTargets(key);
-        if (parent && this.updatingTargetList.length === 0) {
-            parent.removeFromUpdatingChildren(this);
-        }
     } else {        
         this.removeFromActiveTargets(key);
         this.removeFromUpdatingTargets(key);
-        if (parent && this.updatingTargetList.length === 0) {
-            parent.removeFromUpdatingChildren(this);
-        }
         tapp.manager.doneTargets.push({ tmodel: this, key: key });
     }  
     return this.targetValues[key].status;
@@ -857,6 +847,9 @@ TModel.prototype.addToUpdatingTargets = function(key) {
     if (!this.updatingTargetMap[key]) {
         this.updatingTargetMap[key] = true;
         this.updatingTargetList.push(key);
+        if (this.getParent()) {
+            this.getParent().addToUpdatingChildren(this);
+        }        
     }
 };
 
@@ -866,6 +859,9 @@ TModel.prototype.removeFromUpdatingTargets = function(key) {
         var index = this.updatingTargetList.indexOf(key);
         if (index >= 0) {
             this.updatingTargetList.splice(index, 1);
+        }
+        if (this.updatingTargetList.length === 0 && this.getParent()) {
+             this.getParent().removeFromUpdatingChildren(this);
         }        
     }    
 };
