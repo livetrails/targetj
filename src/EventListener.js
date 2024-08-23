@@ -237,7 +237,7 @@ EventListener.prototype.findEventHandlers = function(tmodel) {
     var scrollLeftHandler = this.end0 ? this.currentHandlers.scrollLeft : tmodel ? SearchUtil.findFirstScrollLeftHandler(tmodel) : null;
     var scrollTopHandler = this.end0 ? this.currentHandlers.scrollTop : tmodel ? SearchUtil.findFirstScrollTopHandler(tmodel) : null;
     var pinchHandler = tmodel ? SearchUtil.findFirstPinchHandler(tmodel) : null;
-
+    
     if (this.currentHandlers.scrollLeft !== scrollLeftHandler || this.currentHandlers.scrollTop !== scrollTopHandler) {
         this.clearTouch();
     }
@@ -387,7 +387,7 @@ EventListener.prototype.isClickHandlerType = function(type) {
 };
 
 EventListener.prototype.isTouchHandler = function(handler) {
-    return this.getTouchHandler() === handler;
+    return this.getTouchHandler() === handler && handler.canHandleEvents('touch');
 };
 
 EventListener.prototype.isScrollLeftHandler = function(handler)  {

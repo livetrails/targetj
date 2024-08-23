@@ -27,7 +27,7 @@ SearchUtil.findFirstTouchHandler = function(tmodel) {
 
 SearchUtil.findEventHandler = function(tmodel, eventName) {
     while (tmodel) {
-        if (tmodel.canHandleEvents() === true || tmodel.canHandleEvents() === eventName || (Array.isArray(tmodel.canHandleEvents()) && tmodel.canHandleEvents().includes(eventName))) {
+        if (tmodel.canHandleEvents(eventName)) {
             return tmodel;
         }
 

@@ -204,10 +204,10 @@ TModelManager.prototype.deleteDoms = function () {
    
         tmodel.domValues = {};
         
-        var resetTargets = [].concat(tmodel.targets['resetOnInvisible'], tmodel.targets['onResize']);
-        resetTargets && resetTargets.forEach(function(key) {
+        var activateTargets = [].concat(tmodel.targets['onInvisibleEvent'], tmodel.targets['onResize']);
+        activateTargets && activateTargets.forEach(function(key) {
             if (tmodel.targets[key] && tmodel.isTargetComplete(key)) {
-                tmodel.resetTarget(key);
+                tmodel.activateTarget(key);
             }            
         });
         

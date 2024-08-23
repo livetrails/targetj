@@ -60,6 +60,7 @@ TargetUtil.emptyValue = function() {
         actualValueLastUpdate: 0,
         status: '',
         executionCount: 0,
+        executionFlag: false,
         isImperative: false,
         originalTargetName: undefined,
         easing: undefined,

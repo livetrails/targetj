@@ -29,10 +29,6 @@ TargetManager.prototype.applyTargetValue = function(tmodel, key) {
         return;
     }
 
-    if (!tmodel.targetValues[key] && TUtil.isDefined(tmodel.targets[key].initialValue) && !TUtil.isDefined(tmodel.actualValues[key])) {
-        tmodel.actualValues[key] = tmodel.targets[key].initialValue;
-    }
-
     if (typeof target.enabledOn === 'function') {
         tmodel.setTargetMethodName(key, 'enabledOn');
     }
@@ -174,7 +170,7 @@ TargetManager.prototype.setActualValue = function(tmodel, key) {
         } else {
             if (tmodel.getTargetCycle(key) < tmodel.getTargetCycles(key)) {
                 tmodel.setTargetCycle(key, tmodel.getTargetCycle(key) + 1);
-                tmodel.resetTargetStep(key).resetTargetInitialValue(key).resetTargetExecutionCount(key);
+                tmodel.resetTargetStep(key).resetTargetInitialValue(key).resetTargetExecutionFlag(key);
                 
                 TargetExecutor.executeDeclarativeTarget(tmodel, key);
             }

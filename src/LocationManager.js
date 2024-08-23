@@ -158,7 +158,7 @@ LocationManager.prototype.calculateContainer = function(container) {
 };
 
 LocationManager.prototype.calculateTargets = function(tmodel) {
-    this.resetTargetsOnEvents(tmodel);
+    this.activateTargetsOnEvents(tmodel);
     tapp.targetManager.applyTargetValues(tmodel);        
     tapp.targetManager.setActualValues(tmodel);
    
@@ -180,45 +180,45 @@ LocationManager.prototype.calculateTargets = function(tmodel) {
     }
 };
 
-LocationManager.prototype.resetTargetsOnEvents = function(tmodel) {
-    var resetTargets = [];
+LocationManager.prototype.activateTargetsOnEvents = function(tmodel) {
+    var activateTargets = [];
 
     if (this.resizeFlag && tmodel.targets['onResize']) {
-        resetTargets = resetTargets.concat(tmodel.targets['onResize']);
+        activateTargets = activateTargets.concat(tmodel.targets['onResize']);
     }
 
     if (getEvents().isTouchHandler(tmodel) && tmodel.targets['onTouchEvent']) {
-        resetTargets = resetTargets.concat(tmodel.targets['onTouchEvent']);
+        activateTargets = activateTargets.concat(tmodel.targets['onTouchEvent']);
     }
     
     if (getEvents().isClickHandler(tmodel) && tmodel.targets['onClickEvent']) {        
-        resetTargets = resetTargets.concat(tmodel.targets['onClickEvent']);
+        activateTargets = activateTargets.concat(tmodel.targets['onClickEvent']);
     }
 
     if ((getEvents().isScrollLeftHandler(tmodel) && getEvents().deltaX()) 
         || (getEvents().isScrollTopHandler(tmodel) && getEvents().deltaY())) {
         if (tmodel.targets['onScrollEvent']) {
-            resetTargets = resetTargets.concat(tmodel.targets['onScrollEvent']);
+            activateTargets = activateTargets.concat(tmodel.targets['onScrollEvent']);
         }
     }
 
     if (TargetJ.getEvents().currentKey && tmodel.targets['onKeyEvent']) {
-        resetTargets = resetTargets.concat(tmodel.targets['onKeyEvent']);
+        activateTargets = activateTargets.concat(tmodel.targets['onKeyEvent']);
     }
     
-    resetTargets.forEach(function(target) {        
+    activateTargets.forEach(function(target) {        
         var key, obj;
         if (typeof target === 'object') {
             key = target.key;
-            obj = target.object || tmodel;
+            obj = target.tmodel || tmodel;
         } else {
             key = target;
             obj = tmodel;
         }
         
-        if (obj.targets[key] && obj.isTargetComplete(key)) {
-            obj.resetTarget(key);
-        }            
+        if (obj.targets[key] && (obj.isTargetComplete(key) || obj.getTargetStatus(key) === '')) {
+            obj.activateTarget(key);
+        }        
     });    
 };
 

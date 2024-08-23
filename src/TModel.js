@@ -61,12 +61,7 @@ function TModel(type, targets) {
         canBeBracketed: true,      
         isDomDeletable: true,
         calculateChildren: undefined,
-        isVisible: undefined,
-        onResize: undefined,
-        onClickEvent: undefined,        
-        onTouchEvent: undefined,
-        onScrollEvent: undefined,
-        onKeyEvent: undefined
+        isVisible: undefined
     };
 
     this.updatingTargetList = [];
@@ -158,9 +153,20 @@ TModel.prototype.initTargets = function() {
     this.activeTargetMap = {};
     this.activeTargetList = [];
     Object.keys(this.targets).forEach(function(key) {
-        TargetUtil.bindTargetName(self.targets, key);
-        self.addToActiveTargets(key);
+        self.processNewTarget(key);
     });    
+};
+
+TModel.prototype.processNewTarget = function(key) {
+    TargetUtil.bindTargetName(this.targets, key);
+
+    if (TUtil.isDefined(this.targets[key].initialValue)) {
+        this.actualValues[key] = this.targets[key].initialValue;
+        this.addToStyleTargetList(key);   
+    }
+    if (this.targets[key].active !== false) {
+        this.addToActiveTargets(key);
+    }    
 };
 
 TModel.prototype.hasDomHolderChanged = function() {
@@ -377,8 +383,9 @@ TModel.prototype.isInFlow = function() {
     return this.actualValues.isInFlow;
 };
 
-TModel.prototype.canHandleEvents = function() {
-    return this.actualValues.canHandleEvents;
+TModel.prototype.canHandleEvents = function(eventName) {
+    var events = this.actualValues.canHandleEvents;
+    return events === eventName || (Array.isArray(events) && events.includes(eventName));
 };
 
 TModel.prototype.keepEventDefault = function() {
@@ -499,6 +506,14 @@ TModel.prototype.resetTargetExecutionCount = function(key)   {
     return this;
 };
 
+TModel.prototype.resetTargetExecutionFlag = function(key)   {
+    if (this.targetValues[key]) {
+        this.targetValues[key].executionFlag = false;
+    }
+    
+    return this;
+};
+
 TModel.prototype.resetTargetCycle = function(key)   {
     if (this.targetValues[key]) {
         this.targetValues[key].cycle = 0;
@@ -578,7 +593,7 @@ TModel.prototype.isTargetComplete = function(key) {
 };
 
 TModel.prototype.isExecuted = function(key) {
-    return this.targetValues[key] && this.targetValues[key].executionCount > 0;
+    return this.targetValues[key] && this.targetValues[key].executionFlag;
 };
 
 TModel.prototype.isTargetImperative = function(key) {
@@ -791,28 +806,19 @@ TModel.prototype.removeTarget = function(key) {
 };
 
 TModel.prototype.addTarget = function(key, target) {
-    this.targets[key] = target;
-    TargetUtil.bindTargetName(this.targets, key);
-    this.addToActiveTargets(key);
-    this.removeFromUpdatingTargets(key);    
-    delete this.targetValues[key];
-            
-    tapp.manager.scheduleRun(10, 'addTarget-' + this.oid + "-" + key);
+    this.addTargets({ [key]: target });   
 };
 
 TModel.prototype.addTargets = function(targets) {
     var self = this;
     Object.keys(targets).forEach(function(key) {
         self.targets[key] = targets[key];
-        TargetUtil.bindTargetName(self.targets, key);   
-        self.addToActiveTargets(key);
         self.removeFromUpdatingTargets(key);
-        delete self.targetValues[key];
+        self.processNewTarget(key);
     });
     
     tapp.manager.scheduleRun(10, 'addTargets-' + this.oid);    
 };
-
 
 TModel.prototype.addToActiveTargets = function(key) {
     if (!this.activeTargetMap[key]) {
@@ -879,7 +885,7 @@ TModel.prototype.resetImperative = function(key) {
     
     if (targetValue) {
         targetValue.isImperative = false;
-        targetValue.executionCount = 0;
+        targetValue.executionFlag = false;
         targetValue.scheduleTimeStamp = undefined;
         targetValue.step = 0;
         targetValue.cycle = 0; 
@@ -891,26 +897,28 @@ TModel.prototype.resetImperative = function(key) {
     return this;
 };
 
-TModel.prototype.resetTarget = function(key)   {
-    return this.resetTargets([key]);
+TModel.prototype.activateTarget = function(key)   {
+    return this.activateTargets([key]);
 };
 
-TModel.prototype.resetTargets = function(keys) {
+TModel.prototype.activateTargets = function(keys) {
     var self = this;
     keys.forEach(function(key) {
         var targetValue = self.targetValues[key];
 
         if (targetValue) {
-            targetValue.executionCount = 0;
+            targetValue.executionFlag = false;
             targetValue.scheduleTimeStamp = undefined;
             targetValue.step = 0;
             targetValue.cycle = 0; 
 
             self.updateTargetStatus(key);
+        } else {
+            self.addToActiveTargets(key);
         }
     });
     
-    tapp.manager.scheduleRun(10, 'resetTargets-' + this.oid);    
+    tapp.manager.scheduleRun(10, 'activateTargets-' + this.oid);    
     
     return this;
 };

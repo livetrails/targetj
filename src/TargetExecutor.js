@@ -31,6 +31,7 @@ TargetExecutor.executeImperativeTarget = function(tmodel, key, value, steps, int
 
 TargetExecutor.updateTarget = function(tmodel, targetValue, key) {
     targetValue.executionCount++;
+    targetValue.executionFlag = true;
 
     tmodel.addToStyleTargetList(key);
     tmodel.setTargetMethodName(key, 'value');
