@@ -4,16 +4,24 @@ Welcome to TargetJ, a powerful JavaScript UI framework designed to simplify deve
 
 TargetJ distinguishes itself by introducing a novel concept known as 'targets', which forms its core. Targets are used as the main building blocks of components instead of direct variables and methods. Each component in TargetJ is a set of targets. Targets are employed across all aspects of the program. They are used in animation, controlling program flow, loading data from external APIs, handling user events, and more.
 
+Targets enhance both variables and methods by providing them with lifecycle management and autonomy, rather than being controlled always externally. They can execute themselves under specific conditions, control the number of executions, manage the pauses between each execution, and offer callbacks to manage their life cycles.
+
 ## What is a target?
 
-Targets enhance variables by enabling them to iterate until they reach the specified value, rather than being immediately assigned their values. They can also introduce pauses between each iteration and provide various callbacks, allowing you to track the progress of the variables as well as the progress of other variables. Similarly, targets enhance methods by introducing conditions for execution, controlling the number of executions, and offering the same capabilities as those applied to variables.
+Targets enhance variables by giving them the ability to iterate in steps until they reach the specified value, rather than being immediately assigned their values. They can also introduce pauses between each iteration and provide various callbacks, allowing you to track the progress of the variables as well as the progress of other variables. 
+
+Similarly, targets enhance methods by allowing to manage their life cycle. It let them to get executed under the right conditions, controlling the number of executions, and offering the same capabilities as those applied to variables.
+
+Providing a unified, autonomous approach for passive variables and methods mimics the behavior of live cells in living beings. They largely manage themselves autonomously, with various callbacks available to adjust for changes.
+
+## What does a target consist of?
 
 Each target consists of the following:
-1. Target Value and Actual Value. The target Value can be either be a static value or a method represented by the value method. The actual Value is always represented as a value. When the target value differs from the actual value, TargetJ iteratively updates the actual value until it matches the target value. This process is controlled by two additional variables: Step which dictates the number of iterations, and Interval which specifies the duration (in milliseconds) that the system waits before executing the next iteration.
+1. Target Value and Actual Value. The target value represents a variable or the outcome of a method (called within TargetJ’s value() method). The actual value reflects the transitional value between the previous target value and the current target value. When the target value differs from the actual value, TargetJ iteratively updates the actual value until it matches the target value. This process is managed by two additional variables: Step, which dictates the number of iterations, and Interval, which specifies the duration (in milliseconds) the system waits before executing the next iteration.
 
-2. State: Targets have three states that control their lifecycle: active, updating, and complete. Active: Indicates that the target value is being initialized or the target has not been executed yet. Updating: Indicates that the actual value is being updated to reach the target value. Complete: Indicates that the target execution is finished, and the actual value equals the target value.
+2. State: Targets have three states that control their lifecycle: Active, Updating, and Complete. Active: Indicates that the target value needs to be initialized from the variable or that the value() method needs to be executed. Updating: Indicates that the actual value is being adjusted to reach the target value. Complete: Indicates that the target execution is finished, and the actual value has matched the target value.
 
-3. Target Methods: All methods are optional. They are used to control the lifecycle of targets or serve as callbacks to reflect changes. The controlling methods are: enabledOn, loop, steps, cycles. The callbacks are: onValueChange, onStepsEnd, onImperativeStep, onImperativeEnd.
+3. Target Methods: All methods are optional. They are used to control the lifecycle of targets or serve as callbacks to reflect changes. The controlling methods are: enabledOn, loop, steps, cycles. The callbacks are: onValueChange, onStepsEnd, onImperativeStep, onImperativeEnd. More details in the method section.
 
 ## Brief overview of how it operates
 
