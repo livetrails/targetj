@@ -330,7 +330,7 @@ TModelManager.prototype.fixStyles = function() {
         
         tmodel.styleTargetMap = {};
         tmodel.styleTargetList.length = 0;
-    };
+    }
 };
 
 TModelManager.prototype.completeDoneTModels = function() {

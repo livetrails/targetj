@@ -203,7 +203,7 @@ TModel.prototype.getChildren = function() {
             });
         }
         if (this.targetValues['allChildren']) {
-            this.setActualValueLastUpdate('allChildren')
+            this.setActualValueLastUpdate('allChildren');
         } else {
             this.setTarget('allChildren', this.actualValues.allChildren);
         }
@@ -726,7 +726,7 @@ TModel.prototype.getTargetEventFunctions = function(key)   {
 TModel.prototype.setTarget = function(key, value, steps, interval, easing, originalTargetName) {  
 
     originalTargetName = originalTargetName || this.key;   
-    TargetExecutor.executeImperativeTarget(this, key, value, steps, interval, easing, originalTargetName)
+    TargetExecutor.executeImperativeTarget(this, key, value, steps, interval, easing, originalTargetName);
     
     return this;
 };
@@ -878,7 +878,7 @@ TModel.prototype.deleteTargetValue = function(key) {
     this.removeFromUpdatingTargets(key);
     
     tapp.manager.scheduleRun(10, 'deleteTargetValue-' + this.oid + "-" + key);        
-}
+};
 
 TModel.prototype.resetImperative = function(key) {
     var targetValue = this.targetValues[key];

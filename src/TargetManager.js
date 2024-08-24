@@ -38,14 +38,14 @@ TargetManager.prototype.applyTargetValue = function(tmodel, key) {
         return;
     }
     
-    if (tmodel.getTargetStep(key) === tmodel.getTargetSteps(key)) {
+    if (tmodel.isExecuted(key) && tmodel.getTargetStep(key) === tmodel.getTargetSteps(key)) {
         if (TargetUtil.scheduleExecution(tmodel, key) > 0) {
             return;
         }
     }
     
     tmodel.resetScheduleTimeStamp(key);
-
+    
     if (tmodel.isExecuted(key) && tmodel.getTargetCycle(key) < tmodel.getTargetCycles(key)) {        
         tmodel.setTargetCycle(key, tmodel.getTargetCycle(key) + 1);
         tmodel.resetTargetStep(key);
