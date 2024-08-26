@@ -114,6 +114,41 @@ The declarative approach offers a structured method for defining targets, as see
 
 By combining both declarative and imperative targets, you gain a powerful toolset for designing complex interactions.
 
+### Declarative an imperative example
+
+The following example demonstrates the use of both declarative and imperative approaches. In the animate target, we set two imperative targets to move a square across the screen. When x reaches the end of the screen, onImperativeEnd is triggered, reactivating the target and restarting the animation. We can modify this example by adding another imperative target with setTarget('wait', '', 1, 1000), which completes after 1 second. If we adjust onImperativeEnd to check for the completion of wait instead of x, the animation will restart after 1 second, regardless of whether the square has reached the end of the screen.
+
+```bash
+import { App, TModel, getScreenWidth, getScreenHeight } from "targetj";
+
+App(new TModel('declarative', {     
+    add() { 
+        for (var i = 0; i < 10; i++) {
+            this.addChild(new TModel("square", {
+                width: 50,
+                height: 50,
+                background: '#f0f',
+                animate: {
+                    value() {
+                        var width = this.getWidth();
+                        var parentWidth = this.getParentValue('width');
+                        this.setTarget('x', { list: [ -width, parentWidth + width ] }, Math.floor(30 + parentWidth * Math.random()));
+                        this.setTarget('y',  Math.floor(Math.random() * (this.getParentValue('height') - this.getHeight())), 30);
+                    },
+                    onImperativeEnd(key) {
+                        if (key === 'x') {
+                            this.activateTarget(this.key);
+                        }
+                    }
+                }
+            }));
+        }
+    },
+    width() { return getScreenWidth(); },
+    height() { return getScreenHeight(); }         
+}));
+```
+
 ## Special target names used by TargetJ
 
 The following are special target names to impact the UI or control properties of TargetJ objects (called TModel):
@@ -172,43 +207,6 @@ npm install targetj
 import { App, TModel } from 'targetj';
 
 App(new TModel({ html: 'Hello World'}));
-```
-
-### Simple animation example
-```bash
-import { App, TModel } from 'targetj';
-
-App(new TModel({
-    style: { backgroundColor: '#f00' },
-    width: {
-        value: 250,        
-        steps: 30,
-        stepInterval: 50
-    },
-    height: {
-        value: 250,        
-        steps: 30,
-        stepInterval: 50
-    },
-    opacity: {
-        value: 0.15,        
-        steps: 30,
-        stepInterval: 50
-    }
- }));
-```
-
-It can also be written in a more compact form using arrays:
-
-```bash
-import { App, TModel } from 'targetj';
-
-App(new TModel({
-    style: { backgroundColor: '#f00' },
-    width: [ 250, 30, 50],
-    height: [ 250, 30, 50],
-    opacity: [ 0.15, 30, 50]
- }));
 ```
 
 ### More complicated example
