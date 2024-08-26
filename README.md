@@ -8,7 +8,7 @@ Targets enhance both variables and methods by giving them lifecycles and the aut
 
 ## What are targets?
 
-Targets provide a unified, autonomous approach for managing passive variables and methods, mimicking the behavior of live cells in living beings. They largely manage themselves autonomously, with various callbacks available to adjust for changes.
+Targets provide a unified, autonomous approach for managing passive variables and methods, offering a unified solution for animations, controlling program flow, loading data from external APIs, handling user events, and more. They mimic the behavior of living cells, autonomously managing themselves with various callbacks available to adapt to changes.
 
 For variables, targets enhance functionality by giving them the ability to iterate in steps until they reach the specified value, rather rather than being immediately assigned their values. They can introduce pauses between iterations and offer callbacks to monitor progress, track the progress of other variables, and manage their life cycles accordingly.
 
@@ -19,17 +19,19 @@ Similarly, targets enhance methods by allowing them to manage their own life cyc
 Each target consists of the following:
 1. Target Value and Actual Value. The target value represents a variable or the outcome of a method. The actual value reflects the transitional value between the previous target value and the current target value. When the target value differs from the actual value, TargetJ iteratively updates the actual value until it matches the target value. This process is managed by two additional variables: Step, which dictates the number of iterations, and Interval, which specifies the duration (in milliseconds) the system waits before executing the next iteration.
 
-2. State: Targets have three states that control their lifecycle: Active, Updating, and Complete. Active: Indicates that the target value needs to be initialized from the variable or that the method needs to be executed to calculate its output. Updating: Indicates that the actual value is being adjusted to reach the target value. Complete: Indicates that the target execution is finished, and the actual value has matched the target value.
+2. State: Targets have four states that control their lifecycle: Active, Inactive, Updating, and Complete. Active: This is the default state for all targets. It indicates that the target is ready to be executed, and the target value needs to be initialized from the variable it represents or its value() method needs to be executed to calculate its output. Inactive: Indicates that the target is not ready to be executed. Updating: Indicates that the actual value is being adjusted to reach the target value. Complete: Indicates that the target execution is finished, and the actual value has matched the target value.
 
 3. Target Methods: All methods are optional. They are used to control the lifecycle of targets or serve as callbacks to reflect changes. The controlling methods are: enabledOn, loop, steps, cycles. The callbacks are: onValueChange, onStepsEnd, onImperativeStep, onImperativeEnd. More details in the method section.
 
 ## Brief overview of how it operates
 
-All targets are in the active state by default. They can include an enabledOn function that delays their execution until the specified conditions are met. Targets can also be set to inactive and activated externally when needed. The target task monitors all active targets, and if a target is enabled, it will be executed. The target value is generated either from the result of a method or from a static value defined in the target. For simple targets without steps, cycles, or loops, the actual value is set immediately based on the target value. Once executed, the target’s state becomes complete, and it will not be executed again.
+All targets are in the active state by default and ready to be executed. They can include an enabledOn function that delays their execution until the specified conditions are met. Targets can also be set to inactive and activated externally when needed. 
+
+The target task monitors all active targets, and if a target is enabled, it will be executed. The target value is generated either from the result of a method or from a static value defined in the target. For simple targets without steps, cycles, or loops, the actual value is set immediately based on the target value. Once executed, the target’s state becomes complete, and it will not be executed again.
 
 If the target has loop or cycle methods defined, its value method will be re-executed after a pause specified by the interval. The number of executions will be determined by the cycles or will continue as long as the loop condition returns true. If the target has steps defined, its state changes to updating, and the actual value is updated iteratively until it reaches the target value, according to the number of steps and pauses specified by steps and intervals.
 
-A target can reactivate itself under various conditions, such as when all steps are completed, all imperative targets initiated by that target are completed, or the targets of the component’s children are completed. It can also be reactivated externally, either directly or through an event.
+A target can reactivate itself under various conditions, such as when all steps are completed or all imperative targets initiated by that target are completed. It can also be reactivated externally, either directly or through an event.
 
 ## Target methods
 
@@ -65,6 +67,13 @@ onImperativeStep() This callback tracks the progress of imperative targets defin
 
 11. **onImperativeEnd**
 It is similar to onImperativeStep, but it is called when the imperative target is completed.
+
+12. **active**
+This is only property. It indicates that the target is in an inactive state and is ready to be executed.
+
+13. **initialValue**
+This is only property. It defines the initial value of the actual value.
+
 
 ### Simple example
 
@@ -116,7 +125,7 @@ By combining both declarative and imperative targets, you gain a powerful toolse
 
 ### Declarative an imperative example
 
-The following example demonstrates the use of both declarative and imperative approaches. In the animate target, we set two imperative targets to move a square across the screen. When x reaches the end of the screen, onImperativeEnd is triggered, reactivating the target and restarting the animation. We can modify this example by adding another imperative target with setTarget('wait', '', 1, 1000), which completes after 1 second. If we adjust onImperativeEnd to check for the completion of wait instead of x, the animation will restart after 1 second, regardless of whether the square has reached the end of the screen.
+The following example demonstrates the use of both declarative and imperative approaches. In the animate target, we set two imperative targets to move a square across the screen. When x reaches the end of the screen, onImperativeEnd is triggered, reactivating the target and restarting the animation.
 
 ```bash
 import { App, TModel, getScreenWidth, getScreenHeight } from "targetj";
@@ -148,6 +157,68 @@ App(new TModel('declarative', {
     height() { return getScreenHeight(); }         
 }));
 ```
+
+## Loading data example
+
+Calling backend APIs is simplified through the use of targets in TargetJ. It includes a loader that streamlines API integration.
+
+In the example below, we define a target named 'load' that attempts to fetch a random user. Within the value() function, we initialize the API call. The first parameter specifies an ID that identifies the API call, which can also be used to access cached data.
+
+The target will remain active using the loop function, with value() continuing to return undefined while polling the system every 20ms (as specified in the interval property) until the loader retrieves the API result. When the API result arrives, it triggers onValueChange, which creates a user object based on the retrieved data. Additionally, we define two targets to handle scenarios for both fast and slow connections. The slow target is enabled if polling exceeds 100 times, while the fast target is enabled if the API result is retrieved in less than 600ms. If you restart the example, the result will be fetched from the cache instead of the API.
+
+```bash
+import { App, TModel, getLoader, browser } from "targetj";
+
+App(
+  new TModel("apiCall", {
+    load: {
+      loop() {
+        return !this.val(this.key);
+      },
+      interval: 20,
+      value: function () {
+        var fetchId = "user";
+        getLoader().initSingleLoad(fetchId, {
+          url: "https://targetj.io/api/randomUser",
+          data: { id: fetchId },
+        });
+        return getLoader().fetchResult(fetchId);
+      },
+      onValueChange(newValue) {
+        var user = newValue.result;
+        this.addChild(
+          new TModel("userApi", {
+            width: 60,
+            height: 30,
+            html: user.name,
+            background: "#f00",
+          })
+        );
+      },
+    },
+    slowLoad: {
+      value() {
+        console.log("Connection issue: please try again later.");
+      },
+      enabledOn() {
+        return this.getTargetExecutionCount("load") > 100;
+      },
+    },
+    fastLoad: {
+      value() {
+        //Loading is fast: We can load additional details about the user.
+        console.log(`Loading time was only ${this.val("load").loadingTime}ms`);
+        console.log(`Load target execution time was ${browser.now() - this.getTargetCreationTime("load")}ms`);
+        console.log(`Load target was executed ${this.getTargetExecutionCount("load")} times`);
+      },
+      enabledOn() {
+        return this.val("load") && this.val("load").loadingTime < 600;
+      },
+    },
+  })
+);
+```
+
 
 ## Special target names used by TargetJ
 
