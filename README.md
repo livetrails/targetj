@@ -66,13 +66,51 @@ onImperativeStep() This callback tracks the progress of imperative targets defin
 11. **onImperativeEnd**
 It is similar to onImperativeStep, but it is called when the imperative target is completed.
 
+### Simple example
+
+In the example below, we incrementally increase the value of width, height, and opacity in 30 steps, with a 50-milliseconds pause between each step.
+
+```bash
+import { App, TModel } from 'targetj';
+
+App(new TModel({
+    background: '#fff',
+    width: {
+        value: 250,        
+        steps: 30,
+        stepInterval: 50
+    },
+    height: {
+        value: 250,        
+        steps: 30,
+        stepInterval: 50
+    },
+    opacity: {
+        value: 0.15,        
+        steps: 30,
+        stepInterval: 50
+    }
+ }));
+```
+
+It can also be written in a more compact form using arrays:
+
+```bash
+import { App, TModel } from 'targetj';
+
+App(new TModel({
+    background: '#fff',
+    width: [ 250, 30, 50],
+    height: [ 250, 30, 50],
+    opacity: [ 0.15, 30, 50]
+ }));
+```
+
 ## Declarative and imperative targets
 
 Targets in TargetJ can be defined in two ways: declaratively or imperatively.
 
-The declarative approach offers a structured way to define targets. However, orchestrating multiple targets simultaneously can be challenging, especially when each target has different speed and timing requirements that depend on each other.
-
-To address this, TargetJ provides a way to call imperative targets using the setTarget function. This allows you to set multiple targets from one declarative target. Additionally, it offers onImperativeStep and onImperativeEnd callbacks, which enable declarative targets to track every step of each imperative target or just their completion.
+The declarative approach offers a structured method for defining targets, as seen in the previous example. However, orchestrating multiple targets with varying speeds and timings can be challenging. For instance, tracking the completion of multiple targets to trigger a new set of targets is not easily done using only declarative targets. To address this, TargetJ provides the setTarget function, allowing you to define multiple targets from within a single declarative target. Additionally, the onImperativeStep and onImperativeEnd callbacks, defined in the declarative target, enable you to track each step of the imperative targets or just their completion.
 
 By combining both declarative and imperative targets, you gain a powerful toolset for designing complex interactions.
 
