@@ -87,6 +87,9 @@ This is only property. It defines the initial value of the actual value.
 
 In the example below, we incrementally increase the value of width, height, and opacity in 30 steps, with a 50-milliseconds pause between each step.
 
+![first example](https://targetj.io/img/firstExample.png)
+
+
 ```bash
 import { App, TModel } from 'targetj';
 
@@ -135,6 +138,8 @@ By combining both declarative and imperative targets, you gain a powerful toolse
 
 The following example demonstrates the use of both declarative and imperative approaches. In the animate target, we set two imperative targets to move a square across the screen. When x reaches the end of the screen, onImperativeEnd is triggered, reactivating the target and restarting the animation.
 
+![declarative example](https://targetj.io/img/declarative.png)
+
 ```bash
 import { App, TModel, getScreenWidth, getScreenHeight } from "targetj";
 
@@ -144,7 +149,7 @@ App(new TModel('declarative', {
             this.addChild(new TModel("square", {
                 width: 50,
                 height: 50,
-                background: '#f0f',
+                background: 'brown',
                 animate: {
                     value() {
                         var width = this.getWidth();
@@ -173,6 +178,8 @@ Calling backend APIs is simplified through the use of targets in TargetJ. It inc
 In the example below, we define a target named 'load' that attempts to fetch a random user. Within the value() function, we initialize the API call. The first parameter specifies an ID that identifies the API call, which can also be used to access cached data.
 
 The target will remain active using the loop function, with value() continuing to return undefined while polling the system every 20ms (as specified in the interval property) until the loader retrieves the API result. When the API result arrives, it triggers onValueChange, which creates a user object based on the retrieved data. Additionally, we define two targets to handle scenarios for both fast and slow connections. The slow target is enabled if polling exceeds 100 times, while the fast target is enabled if the API result is retrieved in less than 600ms. If you restart the example, the result will be fetched from the cache instead of the API.
+
+![api loading example](https://targetj.io/img/apiLoading.png)
 
 ```bash
 import { App, TModel, getLoader, browser } from "targetj";
@@ -224,6 +231,8 @@ App(
 
 In the following example, the background color of the pane changes randomly whenever you click on it. The `canHandleEvents` target ensures that the object can handle touch events, such as clicks. However, we’ve set a limit of 10 executions for the background change. After reaching this limit, the component will no longer respond to click events. The `onClickEvent` is a system target that activates all associated targets when a click occurs. The `html` target tracks the number of executions and displays it within the pane.
 
+![event handling example](https://targetj.io/img/eventHandling.png)
+
 ```bash
 import { App, TModel } from "targetj";
 
@@ -252,6 +261,8 @@ App(
 ## Animation API example
 
 TargetJ offers efficient and easy-to-control UI animation and manipulation through special targets such as x, y, width, height, scale, rotate, and opacity, which directly impact the UI. A complete list of these targets can be found in the "Special target names" section. For very intensive UI animations, you can leverage the Animation API. An example is provided below.
+
+![animation api example](https://targetj.io/img/animationApi.png)
 
 ```bash
 import { App, TModel } from "targetj";
@@ -325,6 +336,8 @@ App(
 ## Simple Single Page App Example
 
 Below is a simple single-page app that demonstrates how to develop a full application using TargetJ.
+
+![Single page app](https://targetj.io/img/singlePageApp.png)
 
 ```bash
 import { App, TModel, getScreenHeight, getScreenWidth, getEvents, getPager } from "targetj";
