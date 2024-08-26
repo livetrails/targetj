@@ -131,7 +131,7 @@ The declarative approach offers a structured method for defining targets, as see
 
 By combining both declarative and imperative targets, you gain a powerful toolset for designing complex interactions.
 
-### Declarative an imperative example
+## Declarative an imperative example
 
 The following example demonstrates the use of both declarative and imperative approaches. In the animate target, we set two imperative targets to move a square across the screen. When x reaches the end of the screen, onImperativeEnd is triggered, reactivating the target and restarting the animation.
 
@@ -220,8 +220,206 @@ App(
 );
 ```
 
+## Event handling example
 
-## Special target names used by TargetJ
+In the following example, the background color of the pane changes randomly whenever you click on it. The `canHandleEvents` target ensures that the object can handle touch events, such as clicks. However, we’ve set a limit of 10 executions for the background change. After reaching this limit, the component will no longer respond to click events. The `onClickEvent` is a system target that activates all associated targets when a click occurs. The `html` target tracks the number of executions and displays it within the pane.
+
+```bash
+import { App, TModel } from "targetj";
+
+App(
+  new TModel("events", {
+    canHandleEvents() {
+      return this.getTargetExecutionCount("background") < 10 ? "touch" : "";
+    },
+    width: 120,
+    height: 120,
+    background: {
+      active: false,
+      initialValue: "#f00",
+      value() {
+        return "#" + Math.random().toString(16).slice(-6);
+      },
+    },
+    html() {
+      return this.getTargetExecutionCount("background");
+    },
+    onClickEvent: ["background", "canHandleEvents", "html"],
+  })
+);
+```
+
+## Animation API example
+
+TargetJ offers efficient and easy-to-control UI animation and manipulation through special targets such as x, y, width, height, scale, rotate, and opacity, which directly impact the UI. A complete list of these targets can be found in the "Special target names" section. For very intensive UI animations, you can leverage the Animation API. An example is provided below.
+
+```bash
+import { App, TModel } from "targetj";
+
+App(
+  new TModel("TargetJ vs Animation Api", {
+    x: 0,
+    y: 0,
+    width: 150,
+    height: 150,
+    animate: {
+      value() {
+        const keyframes = [
+          {
+            transform: "translate(0, 0) rotate(0deg) scale(1)",
+            width: "80px",
+            height: "80px",
+            background: "orange",
+          },
+          {
+            transform: "translate(50px, 100px) rotate(180deg) scale(1.5)",
+            width: "120px",
+            height: "120px",
+            background: "brown",
+          },
+          {
+            transform: "translate(200px, 0) rotate(360deg) scale(1)",
+            width: "100px",
+            height: "100px",
+            background: "crimson",
+          },
+          {
+            transform: "translate(0, 0) rotate(360deg) scale(1)",
+            width: "150px",
+            height: "150px",
+            background: "purple",
+          },
+        ];
+
+        return this.$dom.animate(keyframes, {
+          duration: 5000,
+          iterations: 1,
+          easing: "ease-in-out",
+        });
+      },
+      enabledOn() {
+        return this.hasDom();
+      },
+    },
+    trackProgress: {
+      loop: true,
+      interval: 100,
+      value() {
+        const currentTime = this.val("animate").currentTime;
+        this.setTarget("html", (currentTime / 5000).toFixed(1));
+        return currentTime < 5000 ? false : true;
+      },
+      onValueChange(newValue) {
+        if (newValue) {
+          this.activateTarget("animate");
+        }
+      },
+      enabledOn() {
+        return this.isTargetComplete("animate");
+      },
+    },
+  })
+);
+```
+
+## Simple Single Page App Example
+
+Below is a simple single-page app that demonstrates how to develop a full application using TargetJ.
+
+```bash
+import { App, TModel, getScreenHeight, getScreenWidth, getEvents, getPager } from "targetj";
+
+App(
+  new TModel("app", {
+    start() {
+      const urlParts = window.location.href.split("/");
+      this.pageName = urlParts[urlParts.length - 1];
+    },
+    canHandleEvents: "touch",
+    width() { return getScreenWidth(); },
+    innerXEast: 0,
+    height() { return getScreenHeight(); },
+    children() {
+      switch (this.pageName) {
+        case "page1":
+          return [Toolbar(), Page1()];
+
+        case "page2":
+          return [Toolbar(), Page2()];
+
+        default:
+          return [Toolbar(), HomePage()];
+      }
+    },
+    onResize: ["width", "height"]
+  })
+);
+
+function Toolbar() {
+  return new TModel("toolbar", {
+    start() {
+      ["home", "page1", "page2"].forEach(menu => {
+        this.addChild(
+          new TModel("toolItem", {
+            canHandleEvents: "touch",
+            background: "bisque",
+            width: 100,
+            height: 50,
+            outerXEast: 0,
+            opacity: {
+              loop() { return this.getOpacity() === 1; },
+              value() { return getEvents().isTouchHandler(this) ? [1, 20] : [0.5, 20]; },
+            },
+            activePage: {
+                active: false,
+                value() { getPager().openLink(menu); }
+            },
+            onTouchEvent: ["opacity"],
+            onClickEvent: ["activePage"],
+            html: menu,
+          })
+        );
+      });
+    },
+    innerXEast: 0,
+    height: 50,
+    width() { return getScreenWidth(); },
+    onResize: ["width"]
+  });
+}
+
+function HomePage() {
+  return new TModel("homePage", {
+    background: "yellow",
+    width() { return getScreenWidth(); },
+    height() { return getScreenHeight(); },
+    html: "home page",
+    onResize: ["width", "height"],
+  });
+}
+
+function Page1() {
+  return new TModel("page1", {
+    background: "blue",
+    width() { return getScreenWidth(); },
+    height() { return getScreenHeight(); },
+    html: "page 1",
+    onResize: ["width", "height"],
+  });
+}
+
+function Page2() {
+  return new TModel("page2", {
+    background: "green",
+    width() { return getScreenWidth(); },
+    height() { return getScreenHeight(); },
+    html: "page 2",
+    onResize: ["width", "height"],
+  });
+}
+```
+
+## Special target names
 
 The following are special target names to impact the UI or control properties of TargetJ objects (called TModel):
 
@@ -260,77 +458,15 @@ As a result of using targets, we can develop web sites or apps with the followin
 - **Easy to learn**: TargetJ simplifies development by employing the single concept of \'targets\' making it easy to learn.
 - **Handle 100,000s of items**: TargetJ efficiently manages large collections of objects on a single page. This is done by its data structure and optimization algorithm. It divides a long list into a tree structure, monitoring only the branches that are visible to the user at any given time.
 - **AI friendly**: With a unified concept of targets for all development, the ability to add and remove targets at runtime, and the capability to inspect various statuses of running objects, TargetJ is a strong candidate for AI-powered UI development.
-  
 
-## Examples
-
-### Hello World example
-
-```bash
-import { App, TModel } from 'targetj';
-
-App(new TModel({ html: 'Hello World'}));
-```
-
-### More complicated example
-
-You can find a running example, which also demonstrates how the code operates, at https://targetj.io/docs/declarative.html
-
-```bash
-import { App, TModel, getScreenWidth, getScreenHeight } from "targetj";
-
-App(
-  new TModel({
-    add() {
-      for (var i = 0; i < 10; i++) {
-        this.addChild(
-          new TModel("square", {
-            width: 50,
-            height: 50,
-            style: { backgroundColor: "#f00" },
-            rotate: {
-              cycles: 1000,
-              steps: 15,
-              stepInterval: 50,
-              value(key, cycle) {
-                return [360, 0][cycle % 2];
-              },
-            },
-          })
-        );
-      }
-    },
-    animate: {
-      loop: true,
-      stepInterval: 1600,
-      value() {
-        this.getChildren().forEach((child) => {
-          child.setTargetValue("x", -child.getWidth());
-          child.setTargetValue("x", getScreenWidth() + child.getWidth(), 30, 50);
-          child.setTargetValue("y", Math.random() * getScreenHeight(), 30, 50);
-        });
-      },
-      enabledOn() {
-        return this.isTargetComplete("add");
-      },
-    },
-    width() {
-      return getScreenWidth();
-    },
-    height() {
-      return getScreenHeight();
-    },
-  })
-);
-```
 
 ## How to debug in TargetJ
 1. TargetJ.tapp.stop(): Stops the application.
 2. TargetJ.tapp.start(): Restarts the application
 3. TargetJ.tapp.throttle: Slows down the application. This represents the pause in milliseconds before starting another TargetJ task cycle. It is zero by default.
 4. TargetJ.tapp.debugLevel: Logs information about the TargetJ task cycle and its efficiency. It is zero by default. Set it to 1 to log basic information and 2 to log more detailed information.
-5. Use `t()` to find an object from the browser console using its `oid`: Inspect its targetValues to display the status of its targets.
-
+5. Use `t()` to find an object from the browser console using its `oid`. Inspect all the vital properities using `t(oid).bug`.
+   
 ## Documentation
 Explore the full potential of TargetJ and dive into our interactive documentation at www.targetj.io.
 
