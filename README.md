@@ -4,47 +4,58 @@ Welcome to TargetJ, a powerful JavaScript UI framework designed to simplify deve
 
 TargetJ distinguishes itself by introducing a novel concept known as 'targets', which forms its core. Targets are used as the main building blocks of components instead of direct variables and methods. Each component in TargetJ is a set of targets. Targets are employed across all aspects of the program. They are used in animation, controlling program flow, loading data from external APIs, handling user events, and more.
 
-## What is a target?
+Targets enhance both variables and methods by giving them lifecycles and the autonomy to run independently, rather than always being controlled externally. They can execute under specific conditions, manage the number and timing of executions, and provide callbacks to oversee their life cycles.
 
-Targets enhance variables by enabling them to iterate until they reach the specified value, rather than being immediately assigned their values. They can also introduce pauses between each iteration and provide various callbacks, allowing you to track the progress of the variables as well as the progress of other variables. Similarly, targets enhance methods by introducing conditions for execution, controlling the number of executions, and offering the same capabilities as those applied to variables.
+## What are targets?
+
+Targets provide a unified, autonomous approach for managing passive variables and methods, mimicking the behavior of live cells in living beings. They largely manage themselves autonomously, with various callbacks available to adjust for changes.
+
+For variables, targets enhance functionality by giving them the ability to iterate in steps until they reach the specified value, rather rather than being immediately assigned their values. They can introduce pauses between iterations and offer callbacks to monitor progress, track the progress of other variables, and manage their life cycles accordingly.
+
+Similarly, targets enhance methods by allowing them to manage their own life cycles. They execute under specific conditions, control the number of executions, and offer the same capabilities as those provided to variables.
+
+## What does a target consist of?
 
 Each target consists of the following:
-1. Target Value and Actual Value. The target Value can be either be a static value or a method represented by the value method. The actual Value is always represented as a value. When the target value differs from the actual value, TargetJ iteratively updates the actual value until it matches the target value. This process is controlled by two additional variables: Step which dictates the number of iterations, and Interval which specifies the duration (in milliseconds) that the system waits before executing the next iteration.
+1. Target Value and Actual Value. The target value represents a variable or the outcome of a method. The actual value reflects the transitional value between the previous target value and the current target value. When the target value differs from the actual value, TargetJ iteratively updates the actual value until it matches the target value. This process is managed by two additional variables: Step, which dictates the number of iterations, and Interval, which specifies the duration (in milliseconds) the system waits before executing the next iteration.
 
-2. State: Targets have three states that control their lifecycle: active, updating, and complete. Active: Indicates that the target value is being initialized or the target has not been executed yet. Updating: Indicates that the actual value is being updated to reach the target value. Complete: Indicates that the target execution is finished, and the actual value equals the target value.
+2. State: Targets have three states that control their lifecycle: Active, Updating, and Complete. Active: Indicates that the target value needs to be initialized from the variable or that the method needs to be executed to calculate its output. Updating: Indicates that the actual value is being adjusted to reach the target value. Complete: Indicates that the target execution is finished, and the actual value has matched the target value.
 
-3. Target Methods: All methods are optional. They are used to control the lifecycle of targets or serve as callbacks to reflect changes. The controlling methods are: enabledOn, loop, steps, cycles. The callbacks are: onValueChange, onStepsEnd, onImperativeStep, onImperativeEnd.
+3. Target Methods: All methods are optional. They are used to control the lifecycle of targets or serve as callbacks to reflect changes. The controlling methods are: enabledOn, loop, steps, cycles. The callbacks are: onValueChange, onStepsEnd, onImperativeStep, onImperativeEnd. More details in the method section.
 
 ## Brief overview of how it operates
 
-Here's a brief and condensed overview of how it operates: The target task monitors all active targets. If a target is enabled, it will be executed. The target value is generated based on either the result of the value method or the static value defined in the targets. In simple targets with no steps, the actual value is immediately set based on the target value. Once a target is executed, its state becomes complete, and it will not be executed again.
+All targets are in the active state by default. They can include an enabledOn function that delays their execution until the specified conditions are met. Targets can also be set to inactive and activated externally when needed. The target task monitors all active targets, and if a target is enabled, it will be executed. The target value is generated either from the result of a method or from a static value defined in the target. For simple targets without steps, cycles, or loops, the actual value is set immediately based on the target value. Once executed, the target’s state becomes complete, and it will not be executed again.
 
-If the target has loop or cycles methods defined, the value method of the target will be executed again after a pause specified by the interval. The number of executions will be based on the cycles or as long as the loop returns true. If the target has steps defined, its state will change to updating, and the actual value will be updated till it reaches its target value. It will be updated iteratively according to the number of steps and pauses specified by steps and intervals.
+If the target has loop or cycle methods defined, its value method will be re-executed after a pause specified by the interval. The number of executions will be determined by the cycles or will continue as long as the loop condition returns true. If the target has steps defined, its state changes to updating, and the actual value is updated iteratively until it reaches the target value, according to the number of steps and pauses specified by steps and intervals.
 
-## Target life cycle and methods
+A target can reactivate itself under various conditions, such as when all steps are completed, all imperative targets initiated by that target are completed, or the targets of the component’s children are completed. It can also be reactivated externally, either directly or through an event.
 
-By default, a target has a simple life cycle, executing only once. However, several methods can extend its life cycle, allowing it to execute multiple times, add pauses between executions, control how the actual value is updated to reach the target value, and trigger various callbacks based on specific conditions during the extended cycle:
+## Target methods
 
-1. **onEnabled**
+1. **Value**
+If defined, value is the primary target method that will be executed. The target value will be calculated based on the result of value().
+
+2. **onEnabled**
 Determines whether the target is eligible for execution. If enabledOn() returns false, the target remains active until it is enabled and gets executed.
 
-2. **loop**
+3. **loop**
 Controls the repetition of target execution. If loop() returns true, the target will continue to execute indefinitely. It can also be defined as a boolean instead of a method.
 
-3. **cycles**
+4. **cycles**
 Its purpose is similar to loop, but the number of repetitions is specified explicitly as a number.
 
-4. **interval**
+5. **interval**
 It specifies the pause between each target execution or each actual value update when steps are defined.
 
-5. **steps**
+6. **steps**
 By default, the actual value is updated immediately after the target value. The steps option allows the actual value to be updated in iterations specified by the number of steps.
 
-6. **easing**
+7. **easing**
 An easing function that operates when steps are defined. It controls how the actual value is updated in relation to the steps.
 
 8. **onValueChange**
-This callbak is triggered whenever there is a change returned by the target value().
+This callbak is triggered whenever there is a change returned by the target method, which is called value().
 
 9. **onStepsEnd**
 This method is invoked only after the final step of updating the actual value is completed, assuming the target has a defined steps value.
@@ -55,13 +66,51 @@ onImperativeStep() This callback tracks the progress of imperative targets defin
 11. **onImperativeEnd**
 It is similar to onImperativeStep, but it is called when the imperative target is completed.
 
+### Simple example
+
+In the example below, we incrementally increase the value of width, height, and opacity in 30 steps, with a 50-milliseconds pause between each step.
+
+```bash
+import { App, TModel } from 'targetj';
+
+App(new TModel({
+    background: '#fff',
+    width: {
+        value: 250,        
+        steps: 30,
+        stepInterval: 50
+    },
+    height: {
+        value: 250,        
+        steps: 30,
+        stepInterval: 50
+    },
+    opacity: {
+        value: 0.15,        
+        steps: 30,
+        stepInterval: 50
+    }
+ }));
+```
+
+It can also be written in a more compact form using arrays:
+
+```bash
+import { App, TModel } from 'targetj';
+
+App(new TModel({
+    background: '#fff',
+    width: [ 250, 30, 50],
+    height: [ 250, 30, 50],
+    opacity: [ 0.15, 30, 50]
+ }));
+```
+
 ## Declarative and imperative targets
 
 Targets in TargetJ can be defined in two ways: declaratively or imperatively.
 
-The declarative approach offers a structured way to define targets. However, orchestrating multiple targets simultaneously can be challenging, especially when each target has different speed and timing requirements that depend on each other.
-
-To address this, TargetJ provides a way to call imperative targets using the setTarget function. This allows you to set multiple targets from one declarative target. Additionally, it offers onImperativeStep and onImperativeEnd callbacks, which enable declarative targets to track every step of each imperative target or just their completion.
+The declarative approach offers a structured method for defining targets, as seen in the previous example. However, orchestrating multiple targets with varying speeds and timings can be challenging. For instance, tracking the completion of multiple targets to trigger a new set of targets is not easily done using only declarative targets. To address this, TargetJ provides the setTarget function, allowing you to define multiple targets from within a single declarative target. Additionally, the onImperativeStep and onImperativeEnd callbacks, defined in the declarative target, enable you to track each step of the imperative targets or just their completion.
 
 By combining both declarative and imperative targets, you gain a powerful toolset for designing complex interactions.
 
