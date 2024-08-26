@@ -202,7 +202,7 @@ LocationManager.prototype.activateTargetsOnEvents = function(tmodel) {
         }
     }
 
-    if (TargetJ.getEvents().currentKey && tmodel.targets['onKeyEvent']) {
+    if (getEvents().currentKey && tmodel.targets['onKeyEvent']) {
         activateTargets = activateTargets.concat(tmodel.targets['onKeyEvent']);
     }
     
