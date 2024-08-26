@@ -231,7 +231,7 @@ App(
 
 In the following example, the background color of the pane changes randomly whenever you click on it. The `canHandleEvents` target ensures that the object can handle touch events, such as clicks. However, we’ve set a limit of 10 executions for the background change. After reaching this limit, the component will no longer respond to click events. The `onClickEvent` is a system target that activates all associated targets when a click occurs. The `html` target tracks the number of executions and displays it within the pane.
 
-![event handling example](https://targetj.io/img/eventHandling.png)
+![event handling example](https://targetj.io/img/eventHandling2.png)
 
 ```bash
 import { App, TModel } from "targetj";
@@ -337,7 +337,7 @@ App(
 
 Below is a simple single-page app that demonstrates how to develop a full application using TargetJ.
 
-![Single page app](https://targetj.io/img/singlePageApp.png)
+![Single page app](https://targetj.io/img/singlePageApp2.png)
 
 ```bash
 import { App, TModel, getScreenHeight, getScreenWidth, getEvents, getPager } from "targetj";
