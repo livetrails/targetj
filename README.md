@@ -6,6 +6,14 @@ TargetJ distinguishes itself by introducing a novel concept known as 'targets', 
 
 Targets enhance both variables and methods by giving them lifecycles and the autonomy to run independently, rather than always being controlled externally. They can execute under specific conditions, manage the number and timing of executions, and provide callbacks to oversee their life cycles.
 
+### Installation
+
+To install TargetJ, run the following command in your terminal:
+
+```bash
+npm install targetj
+```
+
 ## What are targets?
 
 Targets provide a unified, autonomous approach for managing passive variables and methods, offering a unified solution for animations, controlling program flow, loading data from external APIs, handling user events, and more. They mimic the behavior of living cells, autonomously managing themselves with various callbacks available to adapt to changes.
@@ -172,28 +180,21 @@ import { App, TModel, getLoader, browser } from "targetj";
 App(
   new TModel("apiCall", {
     load: {
-      loop() {
-        return !this.val(this.key);
-      },
+      loop() { return !this.val(this.key); },
       interval: 20,
       value: function () {
         var fetchId = "user";
-        getLoader().initSingleLoad(fetchId, {
-          url: "https://targetj.io/api/randomUser",
-          data: { id: fetchId },
-        });
+        getLoader().initSingleLoad(fetchId, { url: "https://targetj.io/api/randomUser", data: { id: fetchId } });
         return getLoader().fetchResult(fetchId);
       },
       onValueChange(newValue) {
         var user = newValue.result;
-        this.addChild(
-          new TModel("userApi", {
+        this.addChild(new TModel("userApi", {
             width: 60,
             height: 30,
             html: user.name,
             background: "#f00",
-          })
-        );
+        }));
       },
     },
     slowLoad: {
@@ -202,7 +203,7 @@ App(
       },
       enabledOn() {
         return this.getTargetExecutionCount("load") > 100;
-      },
+      }
     },
     fastLoad: {
       value() {
@@ -213,8 +214,8 @@ App(
       },
       enabledOn() {
         return this.val("load") && this.val("load").loadingTime < 600;
-      },
-    },
+      }
+    }
   })
 );
 ```
@@ -260,15 +261,6 @@ As a result of using targets, we can develop web sites or apps with the followin
 - **Handle 100,000s of items**: TargetJ efficiently manages large collections of objects on a single page. This is done by its data structure and optimization algorithm. It divides a long list into a tree structure, monitoring only the branches that are visible to the user at any given time.
 - **AI friendly**: With a unified concept of targets for all development, the ability to add and remove targets at runtime, and the capability to inspect various statuses of running objects, TargetJ is a strong candidate for AI-powered UI development.
   
-## Getting Started
-
-### Installation
-
-To install TargetJ, run the following command in your terminal:
-
-```bash
-npm install targetj
-```
 
 ## Examples
 
