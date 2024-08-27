@@ -41,7 +41,7 @@ A target can reactivate itself in the `onStepsEnd` callback once all steps are c
 
 All methods and properties are optional, but they play integral roles in making targets useful for animation, API loading, event handling, and more:
 
-1. **Value**
+1. **value**
 If defined, value is the primary target method that will be executed. The target value will be calculated based on the result of value().
 
 2. **onEnabled**
