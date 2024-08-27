@@ -128,7 +128,7 @@ App(new TModel({
 
 Targets in TargetJ can be defined in two ways: declaratively or imperatively.
 
-The declarative approach offers a structured method for defining targets, as seen in the previous example. However, orchestrating multiple targets with varying speeds and timings can be challenging. For instance, tracking the completion of multiple targets to trigger a new set of targets is not easily done using only declarative targets. To address this, TargetJ provides the setTarget function, allowing you to define multiple targets from within a single declarative target. Additionally, the onImperativeStep and onImperativeEnd callbacks, defined in the declarative target, enable you to track each step of the imperative targets or just their completion.
+The declarative approach offers a structured method for defining targets, as seen in the previous example. However, orchestrating multiple targets with varying speeds and timings can be challenging. For instance, tracking the completion of multiple targets to trigger a new set of targets is not easily done using only declarative targets. To address this, TargetJ provides the setTarget function, allowing you to define multiple imperative targets from within a single declarative target. Additionally, the onImperativeStep and onImperativeEnd callbacks, defined in the declarative target, enable you to track each step of the imperative targets or just their completion.
 
 By combining both declarative and imperative targets, you gain a powerful toolset for designing complex interactions.
 
@@ -451,11 +451,12 @@ The following are special target names to impact the UI or control properties of
 15. textOnly: A boolean flag that sets the type of content to be text or HTML.
 16. canBeBracketed: A boolean flag that controls if the object will be optimized and included in the TargetJ task process only when visible.
 17. isInFlow: A boolean flag that determines if the object will be used to calculate the content height and width of its parent.
-18. onResize: An array of targets that will be reset and re-executed after a resize event.
-19. onClickEvent: An array of targets that will be reset and re-executed after a click event.
-20. onTouchEvent: An array of targets that will be reset and re-executed after a touch event.
-21. onScrollEvent: An array of targets that will be reset and re-executed after a scroll event.
-22. onKeyEvent: An array of targets that will be reset and re-executed after a key event.
+18. onResize: An array of targets that will be activated and executed after a resize event.
+19. onClickEvent: An array of targets that will be activated and executed after a click event.
+20. onTouchEvent: An array of targets that will be activated and executed after a touch event.
+21. onScrollEvent: An array of targets that will be activated and executed after a scroll event.
+22. onKeyEvent: An array of targets that will be activated and executed after a key event.
+22. onInvisibleEvent: An array of targets that will be activated and executed after the component becomes invisisble.
 
 ## Features
 
