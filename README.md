@@ -4,8 +4,6 @@ Welcome to TargetJ, a powerful JavaScript UI framework designed to simplify deve
 
 TargetJ distinguishes itself by introducing a novel concept known as 'targets', which forms its core. Targets are used as the main building blocks of components instead of direct variables and methods. Each component in TargetJ is a set of targets. Targets are employed across all aspects of the program. They are used in animation, controlling program flow, loading data from external APIs, handling user events, and more.
 
-Targets enhance both variables and methods by giving them lifecycles and the autonomy to run independently, rather than always being controlled externally. They can execute under specific conditions, manage the number and timing of executions, and provide callbacks to oversee their life cycles.
-
 ### Installation
 
 To install TargetJ, run the following command in your terminal:
@@ -16,16 +14,14 @@ npm install targetj
 
 ## What are targets?
 
-Targets provide a unified, autonomous approach for managing passive variables and methods, offering a unified solution for animations, controlling program flow, loading data from external APIs, handling user events, and more. They mimic the behavior of living cells, autonomously managing themselves with various callbacks available to adapt to changes.
+Targets provide a unified interface for variables and methods, giving them life cycles and the autonomy to operate independently, with various callbacks to adapt to changes, mimicking the behavior of living cells.
 
-For variables, targets enhance functionality by giving them the ability to iterate in steps until they reach the specified value, rather rather than being immediately assigned their values. They can introduce pauses between iterations and offer callbacks to monitor progress, track the progress of other variables, and manage their life cycles accordingly.
-
-Similarly, targets enhance methods by allowing them to manage their own life cycles. They execute under specific conditions, control the number of executions, and offer the same capabilities as those provided to variables.
+For variables, targets enhance functionality by giving them the ability to iterate in steps until they reach the specified value, rather than being immediately assigned their values. They can introduce pauses between iterations and offer callbacks to monitor progress, track the progress of other variables, and manage their life cycles accordingly. Similarly, targets enhance methods by allowing them to manage their own life cycles. They can execute themselves under specific conditions, control the number of executions, and offer the same capabilities as those provided to variables.
 
 ## What does a target consist of?
 
 Each target consists of the following:
-1. Target Value and Actual Value. The target value represents a variable or the outcome of a method. The actual value reflects the transitional value between the previous target value and the current target value. When the target value differs from the actual value, TargetJ iteratively updates the actual value until it matches the target value. This process is managed by two additional variables: Step, which dictates the number of iterations, and Interval, which specifies the duration (in milliseconds) the system waits before executing the next iteration.
+1. Target Value and Actual Value. The target value represents a variable or the outcome of a method. The actual value is the value used by the application. When the target value differs from the actual value, TargetJ iteratively updates the actual value until it matches the target value. This process is managed by two additional variables: Step, which dictates the number of iterations, and Interval, which specifies the duration (in milliseconds) the system waits before executing the next iteration.
 
 2. State: Targets have four states that control their lifecycle: Active, Inactive, Updating, and Complete. Active: This is the default state for all targets. It indicates that the target is ready to be executed, and the target value needs to be initialized from the variable it represents or its value() method needs to be executed to calculate its output. Inactive: Indicates that the target is not ready to be executed. Updating: Indicates that the actual value is being adjusted to reach the target value. Complete: Indicates that the target execution is finished, and the actual value has matched the target value.
 
@@ -39,7 +35,7 @@ The target task monitors all active targets, and if a target is enabled, it will
 
 If the target has loop or cycle methods defined, its value method will be re-executed after a pause specified by the interval. The number of executions will be determined by the cycles or will continue as long as the loop condition returns true. If the target has steps defined, its state changes to updating, and the actual value is updated iteratively until it reaches the target value, according to the number of steps and pauses specified by steps and intervals.
 
-A target can reactivate itself under various conditions, such as when all steps are completed or all imperative targets initiated by that target are completed. It can also be reactivated externally, either directly or through an event.
+A target can reactivate itself in the `onStepsEnd` callback once all steps are completed, or in the `onImperativeEnd` callback when all imperative targets initiated by that target are finished, allowing it to re-execute. It can also be reactivated externally, either directly or through an event.
 
 ## Target methods
 
