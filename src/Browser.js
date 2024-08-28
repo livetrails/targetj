@@ -39,14 +39,6 @@ var browser = {
                 return this.map(function(o) { return o.oid; }).join(separator || " ");
             };
         }
-        
-        if (!Array.spaces)  {
-            Array.spaces = function(count)   {
-                return Array(count).join(' ');
-            };
-        }
-        
-        
 
         if (!Array.prototype.find) {
           Object.defineProperty(Array.prototype, 'find', {
@@ -82,21 +74,11 @@ var browser = {
           });
         }
 
-
         if (!document.getElementsByClassName) {
-            var indexOf = [].indexOf || function (prop) {
-                for (var i = 0; i < this.length; i++) {
-                    if (this[i] === prop)
-                        return i;
-                }
-                return -1;
-            };
             var getElementsByClassName = function (className, context) {
                 var elems = document.querySelectorAll ? context.querySelectorAll("." + className) : (function () {
-                    var all = context.getElementsByTagName("*"),
-                            elements = [],
-                            i = 0;
-                    for (; i < all.length; i++) {
+                    var all = context.getElementsByTagName("*"), elements = [];
+                    for (var i = 0; i < all.length; i++) {
                         if (all[i].className && (" " + all[i].className + " ").indexOf(" " + className + " ") > -1 && indexOf.call(elements, all[i]) === -1)
                             elements.push(all[i]);
                     }
