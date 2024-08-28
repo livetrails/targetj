@@ -347,17 +347,14 @@ App(
       this.pageName = urlParts[urlParts.length - 1];
     },
     canHandleEvents: "touch",
-    width() { return getScreenWidth(); },
-    innerXEast: 0,
-    height() { return getScreenHeight(); },
+    width: () => getScreenWidth(),
+    height: () => getScreenHeight(),
     children() {
       switch (this.pageName) {
         case "page1":
           return [Toolbar(), Page1()];
-
         case "page2":
           return [Toolbar(), Page2()];
-
         default:
           return [Toolbar(), HomePage()];
       }
@@ -366,68 +363,64 @@ App(
   })
 );
 
-function Toolbar() {
-  return new TModel("toolbar", {
+const Toolbar = () =>
+  new TModel("toolbar", {
     start() {
-      ["home", "page1", "page2"].forEach(menu => {
+      ["home", "page1", "page2"].forEach((menu) => {
         this.addChild(
           new TModel("toolItem", {
             canHandleEvents: "touch",
             background: "bisque",
             width: 100,
             height: 50,
+            lineHeight: 50,
             outerXEast: 0,
             opacity: {
               loop() { return this.getOpacity() === 1; },
-              value() { return getEvents().isTouchHandler(this) ? [1, 20] : [0.5, 20]; },
+              value () { return getEvents().isTouchHandler(this) ? [1, 20] : [0.5, 20]; }
             },
             activePage: {
-                active: false,
-                value() { getPager().openLink(menu); }
+              active: false,
+              value: () => getPager().openLink(menu),
             },
             onTouchEvent: ["opacity"],
             onClickEvent: ["activePage"],
-            html: menu,
+            html: menu
           })
         );
       });
     },
-    innerXEast: 0,
     height: 50,
-    width() { return getScreenWidth(); },
-    onResize: ["width"]
+    width: () => getScreenWidth(),
+    onResize: ["width"],
   });
-}
 
-function HomePage() {
-  return new TModel("homePage", {
+const HomePage = () =>
+  new TModel("homePage", {
     background: "yellow",
-    width() { return getScreenWidth(); },
-    height() { return getScreenHeight(); },
+    width: () => getScreenWidth(),
+    height: () => getScreenHeight(),
     html: "home page",
-    onResize: ["width", "height"],
+    onResize: ["width", "height"]
   });
-}
 
-function Page1() {
-  return new TModel("page1", {
+const Page1 = () =>
+  new TModel("page1", {
     background: "blue",
-    width() { return getScreenWidth(); },
-    height() { return getScreenHeight(); },
+    width: () => getScreenWidth(),
+    height: () => getScreenHeight(),
     html: "page 1",
-    onResize: ["width", "height"],
+    onResize: ["width", "height"]
   });
-}
 
-function Page2() {
-  return new TModel("page2", {
+const Page2 = () =>
+  new TModel("page2", {
     background: "green",
-    width() { return getScreenWidth(); },
-    height() { return getScreenHeight(); },
+    width: () => getScreenWidth(),
+    height: () => getScreenHeight(),
     html: "page 2",
-    onResize: ["width", "height"],
+    onResize: ["width", "height"]
   });
-}
 ```
 
 ## Special target names
