@@ -1,4 +1,3 @@
-import { Easing } from "./Easing.js";
 import {  getScreenWidth } from "./App.js";
 
 function Moves() {}

@@ -1,7 +1,6 @@
 import { TargetUtil } from "./TargetUtil.js";
 import { TUtil } from "./TUtil.js";
 import { Easing } from "./Easing.js";
-import { browser } from "./Browser.js";
 
 function TargetExecutor() {}
 

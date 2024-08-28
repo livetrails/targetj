@@ -1,4 +1,3 @@
-import { browser } from "./Browser.js";
 import { TUtil } from "./TUtil.js";
 import { TargetUtil } from "./TargetUtil.js";
 import { TargetExecutor } from "./TargetExecutor";
@@ -80,7 +79,9 @@ TargetManager.prototype.setActualValues = function(tmodel) {
 TargetManager.prototype.setActualValue = function(tmodel, key) {
     var targetValue = tmodel.targetValues[key];
 
-    if (!targetValue) return;
+    if (!targetValue) {
+        return;
+    }
     
     if (!tmodel.isTargetEnabled(key)) {
         tapp.manager.scheduleRun(10, "setActualValue-disabled-" + tmodel.oid + "__" + key);

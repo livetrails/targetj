@@ -120,7 +120,9 @@ EventListener.prototype.captureEvents = function() {
 };
     
 EventListener.prototype.handleEvent = function (event) {
-    if (!event) return;
+    if (!event) {
+        return;
+    }
     
     var eventName, inputType, eventType, eventOrder;
     
@@ -167,7 +169,9 @@ EventListener.prototype.handleEvent = function (event) {
             this.clearTouch(); 
             
             this.touchCount = this.countTouches(event);
-            if (this.preventDefault(tmodel, eventName)) event.preventDefault();
+            if (this.preventDefault(tmodel, eventName)) {
+                event.preventDefault();
+            }
             
             this.start0 = this.getTouch(event);
             this.start1 = this.getTouch(event, 1);
@@ -184,7 +188,9 @@ EventListener.prototype.handleEvent = function (event) {
             var touch = this.getTouch(event);
             this.cursor.x = touch.x;
             this.cursor.y = touch.y;
-            if (this.preventDefault(tmodel, eventName)) event.preventDefault();
+            if (this.preventDefault(tmodel, eventName)) {
+                event.preventDefault();
+            }
             if (this.touchCount > 0) {                
                 this.move(event);
                 event.stopPropagation();
@@ -194,7 +200,9 @@ EventListener.prototype.handleEvent = function (event) {
         case 'mouseup':
         case 'touchend':
                         
-            if (this.preventDefault(tmodel, eventName)) event.preventDefault();
+            if (this.preventDefault(tmodel, eventName)) {
+                event.preventDefault();
+            }
             this.end(event);
                         
             if (this.start0) {
@@ -219,7 +227,9 @@ EventListener.prototype.handleEvent = function (event) {
 
         case 'wheel':
             
-            if (this.preventDefault(tmodel, eventName)) event.preventDefault();   
+            if (this.preventDefault(tmodel, eventName)) {
+                event.preventDefault();
+            }   
             this.wheel(event);
             break;
 

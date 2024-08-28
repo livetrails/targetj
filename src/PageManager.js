@@ -1,4 +1,3 @@
-import { $Dom } from "./$Dom.js";
 import { TUtil } from "./TUtil.js";
 import { tapp } from "./App.js";
 

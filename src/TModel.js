@@ -5,8 +5,6 @@ import { TUtil } from "./TUtil.js";
 import { TargetUtil } from "./TargetUtil.js";
 import { TargetExecutor } from "./TargetExecutor";
 import { Viewport } from "./Viewport.js";
-import { Easing } from "./Easing.js";
-import { $Dom } from "./$Dom.js";
 
 function TModel(type, targets) {
       
@@ -119,7 +117,9 @@ TModel.prototype.getDomHolder = function() {
 };
 
 TModel.prototype.addToStyleTargetList = function(key) {
-    if (!TargetUtil.styleTargetMap[key]) return;
+    if (!TargetUtil.styleTargetMap[key]) {
+        return;
+    }
     
     key = TargetUtil.transformMap[key] ? 'transform' : TargetUtil.dimMap[key] ? 'dim' : key;
     
@@ -541,7 +541,9 @@ TModel.prototype.resetTargetInitialValue = function(key)   {
 TModel.prototype.updateTargetStatus = function(key) {
     var targetValue = this.targetValues[key];
     
-    if (!targetValue) return;
+    if (!targetValue) {
+        return;
+    }
     
     var cycle = this.getTargetCycle(key);
     var cycles = this.getTargetCycles(key);

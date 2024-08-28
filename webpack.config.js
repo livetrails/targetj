@@ -30,7 +30,6 @@ module.exports = {
                 rules: {
                     'curly': 'error',
                     'eqeqeq': 'error',
-                    'no-unused-expressions': 'warn',
                     'dot-notation': 'off',
                     'no-console': 'warn',
                     'no-loop-func': 'off'

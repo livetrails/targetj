@@ -92,7 +92,9 @@ SearchUtil.findByType = function (type) {
     
     function search(container) {
         
-        if (container.type === type) return container;
+        if (container.type === type) {
+            return container;
+        }
         
         var children = container.getChildren();
         var found;
@@ -101,7 +103,9 @@ SearchUtil.findByType = function (type) {
 
             tmodel = children[i];
             
-            if (!tmodel) continue;
+            if (!tmodel) {
+                continue;
+            }
 
             if (tmodel.hasChildren()) {
                 found = search(tmodel);
@@ -128,7 +132,9 @@ SearchUtil.findByTarget = function (target) {
     
     function search(container) {
 
-        if (container.targets[target]) return container;
+        if (container.targets[target]) {
+            return container;
+        }
         
         var children = container.getChildren();
         var found;
@@ -137,7 +143,9 @@ SearchUtil.findByTarget = function (target) {
 
             tmodel = children[i];
 
-            if (!tmodel) continue;
+            if (!tmodel) {
+                continue;
+            }
 
             if (tmodel.hasChildren()) {
                 found = search(tmodel);
@@ -164,7 +172,9 @@ SearchUtil.find = function (oid) {
     
     function search(container) {
         
-        if (container.oid === oid) return container;
+        if (container.oid === oid) {
+            return container;
+        }
         
         var children = container.getChildren();
         var found;
@@ -173,7 +183,9 @@ SearchUtil.find = function (oid) {
             
             tmodel = children[i];
 
-            if (!tmodel) continue;
+            if (!tmodel) {
+                continue;
+            }
 
             if (tmodel.hasChildren()) {
                 found = search(tmodel);

@@ -1,6 +1,4 @@
-import { browser } from "./Browser.js";
 import { TUtil } from "./TUtil.js";
-import { tapp } from "./App.js";
 import { getScreenWidth, getScreenHeight } from "./App.js";
 
 function Viewport(tmodel) {

@@ -3,7 +3,6 @@ import { TModel } from "./TModel.js";
 import { getManager } from "./App.js";
 import { TUtil } from "./TUtil.js";
 import { ColorUtil } from "./ColorUtil.js";
-import { Easing } from "./Easing.js";
 
 function TargetUtil() {}
 
@@ -228,7 +227,7 @@ TargetUtil.handleValueChange = function(tmodel, key, newValue, lastValue, step, 
     }    
 };
 
-TargetUtil.morph = function(tmodel, key, fromValue, toValue, step, steps)  {
+TargetUtil.morph = function(tmodel, key, fromValue, toValue, step)  {
     
     var easing = tmodel.getTargetEasing(key);
     var easingStep = easing ? easing(tmodel.getTargetStepPercent(key, step)) : tmodel.getTargetStepPercent(key, step); 

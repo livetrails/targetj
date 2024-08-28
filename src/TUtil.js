@@ -132,7 +132,9 @@ TUtil.limit = function (num, low, high) {
 };
 
 TUtil.formatNum = function (num, precision) {
-    if (!num) return 0;
+    if (!num) {
+        return 0;
+    }
     var s = num.toString();
     var n = parseFloat(s);
     return n.toFixed(precision);
@@ -143,7 +145,9 @@ TUtil.distance = function(x1, y1, x2, y2) {
 };
 
 TUtil.getFullLink = function(link) {
-    if (!TUtil.isDefined(link)) return;
+    if (!TUtil.isDefined(link)) {
+        return;
+    }
     
     if (link.indexOf('http') === 0) {
         return link;

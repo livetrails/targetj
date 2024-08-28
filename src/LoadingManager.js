@@ -20,7 +20,9 @@ function LoadingManager() {
 
 LoadingManager.prototype.initSingleLoad = function (fetchId, query, forceLoad)  {
     
-    if (this.isLoading(fetchId) || (this.isLoaded(fetchId) && !forceLoad) || this.getLoadingAttempts(fetchId) > this.stopLoadingAfterAttempts) return;
+    if (this.isLoading(fetchId) || (this.isLoaded(fetchId) && !forceLoad) || this.getLoadingAttempts(fetchId) > this.stopLoadingAfterAttempts) {
+        return;
+    }
 
     this.initLoadingMap(fetchId);
      
@@ -31,7 +33,9 @@ LoadingManager.prototype.initSingleLoad = function (fetchId, query, forceLoad)  
 LoadingManager.prototype.initGroupLoad = function (fetchId, dataId, query, idKey, separator)  {
     var groupId = JSON.stringify({ query: query, idKey: idKey, separator: separator });
                
-    if (this.isLoading(fetchId) || this.isLoaded(fetchId) || this.getLoadingAttempts(fetchId) > this.stopLoadingAfterAttempts) return;
+    if (this.isLoading(fetchId) || this.isLoaded(fetchId) || this.getLoadingAttempts(fetchId) > this.stopLoadingAfterAttempts) {
+        return;
+    }
     
     this.initLoadingMap(fetchId);
         
@@ -45,7 +49,9 @@ LoadingManager.prototype.initGroupLoad = function (fetchId, dataId, query, idKey
 
 LoadingManager.prototype.initImgLoad = function (fetchId, src) {
     
-    if (this.isLoading(fetchId) || this.isLoaded(fetchId) || this.getLoadingAttempts(fetchId) > this.stopLoadingAfterAttempts) return;
+    if (this.isLoading(fetchId) || this.isLoaded(fetchId) || this.getLoadingAttempts(fetchId) > this.stopLoadingAfterAttempts) {
+        return;
+    }
     
     this.initLoadingMap(fetchId, 'image');
     
@@ -110,7 +116,9 @@ LoadingManager.prototype.initLoadingMap = function(fetchId, category) {
 };
 
 LoadingManager.prototype.groupLoad = function () {
-    if (!this.groupLoadList) return;
+    if (!this.groupLoadList) {
+        return;
+    }
     
     var groupIds = Object.keys(this.groupLoadList);
     
@@ -140,7 +148,9 @@ LoadingManager.prototype.groupLoad = function () {
 };
 
 LoadingManager.prototype.singleLoad = function () {
-    if (!this.singleLoadList) return;
+    if (!this.singleLoadList) {
+        return;
+    }
     
     var keys = Object.keys(this.singleLoadList);
         
@@ -154,7 +164,9 @@ LoadingManager.prototype.singleLoad = function () {
 };
 
 LoadingManager.prototype.imgLoad = function () {  
-    if (!this.imgLoadList) return;
+    if (!this.imgLoadList) {
+        return;
+    }
 
     var keys = Object.keys(this.imgLoadList);
         

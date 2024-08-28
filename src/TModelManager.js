@@ -67,8 +67,7 @@ TModelManager.prototype.clear = function() {
     this.targetMethodMap = {};      
 };
 
-TModelManager.prototype.visibles = function(type, list) {
-    list = !list ? this.lists.visible : list;
+TModelManager.prototype.visibles = function(type) {
     return this.lists.visible.filter(function(tmodel) { return tmodel.type === type || !type ; }).map(function(tmodel) { return tmodel.oid; });
 };
   

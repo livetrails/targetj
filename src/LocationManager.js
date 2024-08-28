@@ -63,7 +63,9 @@ LocationManager.prototype.calculateContainer = function(container) {
     while (i < length && tapp.isRunning()) {
         
         var child = allChildren[i++];
-        if (!child) continue;
+        if (!child) {
+            continue;
+        }
                       
         var outerXEast = undefined, innerXEast = undefined;
         
@@ -137,7 +139,9 @@ LocationManager.prototype.calculateContainer = function(container) {
             child.val('contentHeight').forEach(function(key) {
                 var preVal = child.val(key);
                 child.val(key, child.getContentHeight());
-                if (preVal !== child.val(key)) child.addToStyleTargetList(key);
+                if (preVal !== child.val(key)) {
+                    child.addToStyleTargetList(key);
+                }
             });
         }
 
@@ -145,7 +149,9 @@ LocationManager.prototype.calculateContainer = function(container) {
             child.val('contentWidth').forEach(function(key) {
                 var preVal = child.val(key);                
                 child.val(key, child.getContentWidth());
-                if (preVal !== child.val(key)) child.addToStyleTargetList(key);                
+                if (preVal !== child.val(key)) {
+                    child.addToStyleTargetList(key);
+                }                
             });
         }
         

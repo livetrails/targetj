@@ -1,7 +1,6 @@
 import { TModel } from "./TModel.js";
 import { TUtil } from "./TUtil.js";
 import { tapp } from "./App.js";
-import { browser } from "./Browser.js";
 
 function Bracket(parent) {
 

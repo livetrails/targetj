@@ -41,7 +41,9 @@ $Dom.prototype.focus = function() {
 };
 
 $Dom.prototype.attr = function(name, value) {
-    if (!this.element) return;
+    if (!this.element) {
+        return;
+    }
     
     if (TUtil.isDefined(value)) {
         this.element.setAttribute(name, value);
@@ -51,8 +53,10 @@ $Dom.prototype.attr = function(name, value) {
 };
 
 $Dom.prototype.value = function(value) {
-    if (!this.element) return;
-    
+    if (!this.element) {
+        return;
+    }
+
     if (TUtil.isDefined(value)) {
         this.element.value = value;
     } else {
@@ -61,8 +65,9 @@ $Dom.prototype.value = function(value) {
 };
 
 $Dom.prototype.select = function() {
-    if (!this.element || typeof this.element.select !== 'function') return;
-    
+    if (!this.element || typeof this.element.select !== 'function') {
+        return;
+    }
     
     this.element.select();
 };
@@ -138,7 +143,9 @@ $Dom.prototype.parent = function() {
 
 $Dom.prototype.detach = function() {
     $Dom.detach(this.element);
-    if (this.$domParent && this.$domParent.childrenCount > 0) this.$domParent.childrenCount--;
+    if (this.$domParent && this.$domParent.childrenCount > 0) {
+        this.$domParent.childrenCount--;
+    }
 };
 
 $Dom.prototype.append$Dom = function($dom) {
