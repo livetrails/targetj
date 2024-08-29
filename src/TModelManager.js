@@ -92,7 +92,7 @@ TModelManager.prototype.analyze = function()    {
         var visible = tmodel.isVisible();
                                 
         if (tmodel.isMarkedDeleted() && this.lists.deletedTModel.indexOf(tmodel) === -1)  {
-            this.lists.deletedTModel = [].concat(this.lists.deletedTModel, tmodel, tmodel.getAllNestedChildren());
+            this.lists.deletedTModel = [].concat(this.lists.deletedTModel, tmodel, TUtil.getDeepList(tmodel));
                     
             lastVisibleMap[tmodel.oid] = null;
         } else if (visible) {

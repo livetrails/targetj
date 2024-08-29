@@ -56,7 +56,7 @@ LocationManager.prototype.calculateContainer = function(container) {
     var allChildren = this.getChildren(container);
         
     var viewport = container.createViewport();
-    container.resetVisibleList();
+    container.inFlowVisibles.length = 0;
     
     var i = 0, length = allChildren.length;
    

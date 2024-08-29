@@ -46,7 +46,7 @@ TargetManager.prototype.applyTargetValue = function(tmodel, key) {
     tmodel.resetScheduleTimeStamp(key);
     
     if (tmodel.isExecuted(key) && tmodel.getTargetCycle(key) < tmodel.getTargetCycles(key)) {        
-        tmodel.setTargetCycle(key, tmodel.getTargetCycle(key) + 1);
+        tmodel.incrementTargetCycle(key, tmodel.getTargetCycle(key));
         tmodel.resetTargetStep(key);
         tmodel.resetTargetInitialValue(key);
     }   
@@ -123,7 +123,7 @@ TargetManager.prototype.setActualValue = function(tmodel, key) {
             TargetUtil.handleValueChange(tmodel, key, tmodel.actualValues[key], oldValue, oldStep, oldCycle);            
         }
         
-        tmodel.setTargetStep(key, step + 1);  
+        tmodel.incrementTargetStep(key);  
 
         tmodel.resetScheduleTimeStamp(key);
         
@@ -142,7 +142,7 @@ TargetManager.prototype.setActualValue = function(tmodel, key) {
     var scheduleTime = 0;
     
     if (targetValue.valueList && cycle < targetValue.valueList.length - 1) {        
-        tmodel.setTargetCycle(key, tmodel.getTargetCycle(key) + 1);
+        tmodel.incrementTargetCycle(key, tmodel.getTargetCycle(key));
         cycle = tmodel.getTargetCycle(key);
         tmodel.resetTargetStep(key);
         targetValue.initialValue = targetValue.value;
@@ -170,7 +170,7 @@ TargetManager.prototype.setActualValue = function(tmodel, key) {
             }
         } else {
             if (tmodel.getTargetCycle(key) < tmodel.getTargetCycles(key)) {
-                tmodel.setTargetCycle(key, tmodel.getTargetCycle(key) + 1);
+                tmodel.incrementTargetCycle(key, tmodel.getTargetCycle(key));
                 tmodel.resetTargetStep(key).resetTargetInitialValue(key).resetTargetExecutionFlag(key);
                 
                 TargetExecutor.executeDeclarativeTarget(tmodel, key);

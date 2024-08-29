@@ -8,12 +8,24 @@ module.exports = {
             name: 'TargetJ',
             type: 'window'
         },
-        path: path.resolve(__dirname, './dist'),
+        environment: {
+          arrowFunction: false
+        },        
+        path: path.resolve(__dirname, '../targetj/jslib'),
         filename: 'targetj.js'
+    },
+    module: {
+        rules: [
+            {
+                test: /\.js$/,
+                exclude: /node_modules/,
+                include: path.resolve(__dirname, 'src'),          
+                use: 'babel-loader',
+            }
+        ]
     },
     plugins: [
         new ESLintPlugin({
-            extensions: ['js'],
             exclude: 'node_modules',
             overrideConfig: {
                 env: {
