@@ -335,7 +335,7 @@ App(
 
 Below is a simple single-page app that demonstrates how to develop a full application using TargetJ.
 
-![Single page app](https://targetj.io/img/singlePageApp2.png)
+![Single page app](https://targetj.io/img/singlePage.gif)
 
 ```bash
 import { App, TModel, getScreenHeight, getScreenWidth, getEvents, getPager } from "targetj";
