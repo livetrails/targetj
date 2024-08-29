@@ -1,10 +1,10 @@
 {
   "name": "targetj",
-  "version": "1.0.77",
+  "version": "1.0.78",
   "keywords": [
     "targetj"
   ],
-  "main": "Exports.js",
+  "main": "dist/index.js",
   "contributors": [
     "ahmad.wasfi"
   ],
