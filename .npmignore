@@ -1,5 +1,7 @@
 /nbproject/
-/build/
 /dist/
 /node_modules/
-Gruntfile.js
+/src/
+*.config.json
+*.config.js
+*.lock
