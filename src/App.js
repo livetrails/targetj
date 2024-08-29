@@ -163,8 +163,16 @@ const AppFn = (firstChild) => {
 const App = (tmodel) => {
     tApp = AppFn(tmodel);
     tApp.init().start();
+};
 
-    return tApp;
+App.oids = {};
+App.getOid = function(type) {
+    if (!TUtil.isDefined(App.oids[type])) {
+        App.oids[type] = 0;
+    }
+
+    const num = App.oids[type]++;
+    return { oid: num > 0 ? `${type}${num}` : type, num };
 };
 
 const isRunning = () => tApp ? tApp.runningFlag : false;
@@ -177,16 +185,6 @@ const getScreenWidth = () => tApp ? tApp.dim.screen.width : 0;
 const getScreenHeight = () => tApp ? tApp.dim.screen.height : 0;
 
 window.t = window.t || SearchUtil.find;
-
-App.oids = {};
-App.getOid = function(type) {
-    if (!TUtil.isDefined(App.oids[type])) {
-        App.oids[type] = 0;
-    }
-
-    const num = App.oids[type]++;
-    return { oid: num > 0 ? `${type}${num}` : type, num };
-};
 
 export {
     tApp,
