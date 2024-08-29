@@ -1,212 +1,125 @@
 import { TModel } from "./TModel.js";
 import { TUtil } from "./TUtil.js";
-import { tapp } from "./App.js";
 
-function Bracket(parent) {
+class Bracket extends TModel {
+    constructor(parent) {
+        super("BI", {
+            canHaveDom: false,
+            outerXEast: 0
+        });
 
-    var tm = new TModel("BI", {
-        canHaveDom: false,
-        outerXEast: 0
-    });
-    
-    tm.parent = parent;
-    tm.newFlag = true;
+        this.parent = parent;
+        this.newFlag = true;
+    }
 
-    tm.getWidth = function()    {
+    getWidth() {
         return this.getContentWidth();
-    };
-    
-    tm.getHeight = function()   {
+    }
+
+    getHeight() {
         return this.getContentHeight();
-    };
-    
-    tm.getInnerWidth = function() {
+    }
+
+    getInnerWidth() {
         return this.innerContentWidth;
-    };
-    
-    tm.getInnerXEast = function() {
-        return TUtil.isDefined(tm.getRealParent().val('innerXEast')) ? this.getRealParent().val('innerXEast') : this.getRealParent().absX + this.getRealParent().getWidth();        
-    };
-    
-    tm.getInnerContentHeight = function() {
+    }
+
+    getInnerXEast() {
+        return TUtil.isDefined(this.getRealParent().val('innerXEast')) ? this.getRealParent().val('innerXEast') : this.getRealParent().absX + this.getRealParent().getWidth();
+    }
+
+    getInnerContentHeight() {
         return this.innerContentHeight;
-    };
-    
-    tm.getScrollTop = function() {
+    }
+
+    getScrollTop() {
         this.initParents();
         return this.getRealParent().getScrollTop();
-    };
-    
-    tm.getScrollLeft = function() {
+    }
+
+    getScrollLeft() {
         this.initParents();
         return this.getRealParent().getScrollLeft();
-    };
-    
-    tm.getBoundingRect = function() {
-        this.initParents();                
+    }
+
+    getBoundingRect() {
+        this.initParents();
         return TUtil.getBoundingRect(this.getRealParent());
-    };
-    
-    tm.calculateAbsolutePosition = function(x, y) {
-        var rect = this.getBoundingRect();
+    }
+
+    calculateAbsolutePosition(x, y) {
+        const rect = this.getBoundingRect();
         this.absX = rect.left + x;
         this.absY = rect.top + y;
-    };
+    }
 
-    tm.isVisible = function () {
+    isVisible() {
         return this.visibilityStatus.top && this.visibilityStatus.bottom;
-    };
-    
-    tm.addToUpdatingChildren = function(child) {
+    }
+
+    addToUpdatingChildren(child) {
         this.getRealParent().addToUpdatingChildren(child);
-    };
-    
-    tm.createViewport = function() { 
+    }
+
+    createViewport() {
         return this.getRealParent().createViewport.call(this);
-    };
-   
-    tm.getRealParent = function()   {
+    }
+
+    getRealParent() {
         this.initParents();
         return this.realParent;
-    };
+    }
 
-    tm.shouldCalculateChildren = function()    {
-        var result = this.isVisible() || this.newFlag;
+    shouldCalculateChildren() {
+        const result = this.isVisible() || this.newFlag;
         this.newFlag = false;
-                
         return result;
-    };
-    
-    tm.getChildren = function() {
-        return this.actualValues.tchildren;
-    };
-    
-    tm.addToParentVisibleList = function() {};
-    
-    tm.initParents = function() {
-        if (this.realParent || this.topBracket)    {
+    }
+
+    getChildren() {
+        return this.actualValues.children;
+    }
+
+    addToParentVisibleList() {}
+
+    initParents() {
+        if (this.realParent || this.topBracket) {
             return;
         }
-        
-        var topBracket = this;
-        var parent = this.bracketParent;
-                        
+
+        let topBracket = this;
+        let parent = this.bracketParent;
+
         while (parent) {
-            
-            if (parent.type !== 'BI')  {
+            if (parent.type !== 'BI') {
                 break;
             } else {
                 topBracket = parent;
                 parent = parent.bracketParent;
             }
-        }   
-        
+        }
+
         this.realParent = parent;
         this.topBracket = topBracket;
-    };
-    
-    tm.getChildrenOids = function()    {
-        
-        var oids = [], list = this.getChildren();
-        
-        for (var i = 0; i < list.length; i++)  {
-            var item = list[i];
-            if (item.type === 'BI')   {
-                var goids = item.getChildrenOids();
+    }
 
+    getChildrenOids() {
+        let oids = [];
+        const list = this.getChildren();
+
+        for (let i = 0; i < list.length; i++) {
+            const item = list[i];
+            if (item.type === 'BI') {
+                const goids = item.getChildrenOids();
                 oids = [].concat(oids, [item.oid], goids);
             } else {
                 oids.push(item.oid + ":" + item.getHeight());
             }
-            
         }
-        
+
         return oids;
-    };
+    }
 
-    return tm;
 }
-
-Bracket.bracketMap = {};
-Bracket.bracketAllMap = {};
-
-Bracket.generate = function(page, listOfTModel)  {
-    var brackets = Bracket.bracketMap[page.oid];
-    
-    var maxLastUpdate = Math.max(page.getActualValueLastUpdate('allChildren'), page.getActualValueLastUpdate('width'), page.getActualValueLastUpdate('height'));
-    
-    if (brackets && brackets.lastUpdate >= maxLastUpdate) {
-        brackets = Bracket.bracketMap[page.oid];
-    } else {       
-        brackets = {
-            lastUpdate: maxLastUpdate,
-            list: []
-        };  
-        
-        listOfTModel = page.type !== 'BI' && !listOfTModel ? page.getChildren() : listOfTModel;
-        var length = listOfTModel.length;
-
-        var bracketSize = Math.max(2, tapp.locationManager.bracketThreshold - 1);
-        var needsMoreBracketing = false;
-        var consecutiveBrackets = 0;
-        var from = 0;
-        for (var i = 0; i < length; i++) {
-
-            var index = i - from;
-
-            if ((listOfTModel[i].canBeBracketed() && (index === bracketSize || i === length - 1))
-                    || (!listOfTModel[i].canBeBracketed() && index > 0)) {
-                var to = !listOfTModel[i].canBeBracketed() ? i : i + 1;
-                brackets.list.push(Bracket.createBracket(page, listOfTModel, from, to));
-                from = i + 1;
-                consecutiveBrackets++;
-            }
-            
-            if (consecutiveBrackets > bracketSize) {
-                needsMoreBracketing = true;
-            }
-            
-            if (!listOfTModel[i].canBeBracketed()) {
-                consecutiveBrackets = 0;
-                brackets.list.push(listOfTModel[i]);
-                from = i + 1;                 
-            }
-        }
-
-        if (needsMoreBracketing)   {
-            brackets = Bracket.generate(page, brackets.list);
-        } else {
-            Bracket.bracketMap[page.oid] = brackets;
-        }
-    }
-          
-    return brackets;  
-};
-
-Bracket.createBracket = function(page, listOfTModel, from, to) {
-    var bracketId = page.oid + "_" + page.getWidth() + "_" + page.getHeight() + "_" + listOfTModel.slice(from, to).oids('_');
-    var bracket;
-    
-    if (Bracket.bracketAllMap[bracketId]) {
-        bracket = Bracket.bracketAllMap[bracketId];
-    } else {
-        bracket = new Bracket(page);
-
-        Bracket.bracketAllMap[bracketId] = bracket;
-
-        bracket.actualValues.tchildren = listOfTModel.slice(from, to);
-
-        if (bracket.actualValues.tchildren[0].type === 'BI')   { 
-
-            bracket.actualValues.children.forEach(function(b) {
-                b.bracketParent = bracket; 
-            });
-        }
-
-        bracket.bracketParent = page;
-        
-    }
-    return bracket;
-};
 
 export { Bracket };

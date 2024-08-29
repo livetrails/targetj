@@ -11,55 +11,48 @@ import { TModelManager } from "./TModelManager.js";
 import { TUtil } from "./TUtil.js";
 import { TargetManager } from "./TargetManager.js";
 
-var tapp;
+let tApp;
 
-function AppFn(firstChild) { 
-        
-    function my() {} 
-    
+const AppFn = (firstChild) => {
+    const my = {};
+
     my.throttle = 0;
     my.debugLevel = 0;
-
     my.runningFlag = false;
-    
+
     my.init = function() {
         browser.setup();
-        
+
         my.$window = new $Dom(window);
         my.$window.addEvent("popstate", function(event) {
             if (event.state) {
-                tapp.pager.openLinkFromHistory(event.state);
+                tApp.pager.openLinkFromHistory(event.state);
             }
         });
-                
+
         my.loader = new LoadingManager();
-        
         my.pager = new PageManager();
-                 
-        my.dim = Dim().measureScreen();
-                        
+        my.dim = new Dim().measureScreen();
         my.events = new EventListener();
-        
         my.locationManager = new LocationManager();
         my.targetManager = new TargetManager();
         my.manager = new TModelManager();
-        
-        my.trootFactory = function() {
-            
-            var troot = new TModel('targetj');
-                        
-            troot.addChild = function(child, index) {
+
+        my.tRootFactory = () => {
+            const tRoot = new TModel('targetj');
+
+            tRoot.addChild = (child, index) => {
                 if (!TUtil.isDefined(child.targets['domHolder'])) {
                     child.addTarget('domHolder', {
                         value: function() {
-                            var $dom;
+                            let $dom;
                             if (!$Dom.query('#tj-root')) {
-                                $dom = new $Dom();            
+                                $dom = new $Dom();
                                 $dom.create('div');
                                 $dom.setSelector('#tj-root');
                                 $dom.setId('#tj-root');
                                 $dom.attr("tabindex", "0");
-                                new $Dom('body').insertFirst$Dom($dom);            
+                                new $Dom('body').insertFirst$Dom($dom);
                             } else {
                                 $dom = new $Dom('#tj-root');
                             }
@@ -67,14 +60,14 @@ function AppFn(firstChild) {
                         }
                     });
                 }
-                
-                if (!TUtil.isDefined(child.targets['addEventHandler'])) {                
+
+                if (!TUtil.isDefined(child.targets['addEventHandler'])) {
                     child.addTarget('addEventHandler', {
                         value: function() {
                             my.events.removeHandlers(this.$dom);
                             my.events.addHandlers(this.$dom);
                             if (this.hasDom) {
-                                this.$dom.focus();                                
+                                this.$dom.focus();
                             }
                         },
                         enabledOn: function() {
@@ -82,83 +75,80 @@ function AppFn(firstChild) {
                         }
                     });
                 }
-                
-                TModel.prototype.addChild.call(troot, child, index);  
+
+                TModel.prototype.addChild.call(tRoot, child, index);
             };
-                        
-            if (my.troot) {
-                my.troot.getChildren().forEach(function(t, num) {
-                    var child = new TModel(t.type, t.targets);
+
+            if (my.tRoot) {
+                my.tRoot.getChildren().forEach((t, num) => {
+                    const child = new TModel(t.type, t.targets);
                     child.oidNum = num;
-                    child.oid = num > 0 ? t.type + num : t.type;
-                    troot.addChild(child);
+                    child.oid = num > 0 ? `${t.type}${num}` : t.type;
+                    tRoot.addChild(child);
                 });
             }
-            
-            return troot;
-        };
-        
 
-        my.troot = my.trootFactory();
-        
+            return tRoot;
+        };
+
+        my.tRoot = my.tRootFactory();
+
         if (firstChild) {
-            my.troot.addChild(firstChild);
+            my.tRoot.addChild(firstChild);
         }
-        
-        window.history.pushState({ link: document.URL }, "", document.URL);                
+
+        window.history.pushState({ link: document.URL }, "", document.URL);
 
         return my;
     };
 
-    my.start = function () {
-        my.runningFlag = false; 
-        
+    my.start = function() {
+        my.runningFlag = false;
+
         my.events.clearAll();
-        my.troot.getChildren().forEach(function(child) {
+        my.tRoot.getChildren().forEach(child => {
             child.deleteTargetValue('addEventHandler');
-        }); 
+        });
 
         my.events.removeWindowHandlers();
         my.events.addWindowHandlers();
-                        
-        my.dim.measureScreen();    
+
+        my.dim.measureScreen();
         my.manager.resetRuns();
 
         my.runningFlag = true;
-                        
         my.manager.scheduleRun(0, "appStart");
 
         return my;
     };
-    
-    my.stop = function()    { 
+
+    my.stop = function() {
         my.runningFlag = false;
 
         my.events.removeWindowHandlers();
-        my.troot.getChildren().forEach(function(child) {
+        my.tRoot.getChildren().forEach(child => {
             if (child.hasDom()) {
                 my.events.removeHandlers(child.$dom);
             }
         });
 
         my.events.clearAll();
-        
         my.manager.resetRuns();
-                
+
         return my;
     };
-    
+
     my.reset = function() {
-        my.manager.lists.visible.forEach(function(tmodel) { tmodel.domValues = {}; });
+        my.manager.lists.visible.forEach(tmodel => tmodel.domValues = {});
         my.manager.clear();
         my.locationManager.hasLocationList.length = 0;
         my.locationManager.screenWidth = 0;
         my.locationManager.screenHeight = 0;
         SearchUtil.foundParentWithTarget = {};
         SearchUtil.foundTypeMap = {};
-        SearchUtil.foundTargetMap = {}; 
+        SearchUtil.foundTargetMap = {};
     };
-    
+
     my.isRunning = function() {
         return my.runningFlag;
     };
@@ -168,57 +158,46 @@ function AppFn(firstChild) {
     };
 
     return my;
-}
+};
 
-function App(tmodel) {
-    tapp = AppFn(tmodel);    
-    tapp.init().start();
+const App = (tmodel) => {
+    tApp = AppFn(tmodel);
+    tApp.init().start();
 
-    return tapp;
-}
+    return tApp;
+};
 
-function isRunning() {
-    return tapp ? tapp.runningFlag : false;
-}
-
-function troot() {
-    return tapp ? tapp.troot : null;
-}
-
-function getEvents() {
-    return tapp ? tapp.events : null;
-}
-
-function getPager() {
-    return tapp ? tapp.pager : null;
-}
-
-function getLoader() {
-    return tapp ? tapp.loader : null;
-}
-
-function getManager() {
-    return tapp ? tapp.manager : null;
-}
-
-function getScreenWidth() {
-    return tapp ? tapp.dim.screen.width : 0;
-}
-
-function getScreenHeight() {
-    return tapp ? tapp.dim.screen.height : 0;
-}
+const isRunning = () => tApp ? tApp.runningFlag : false;
+const tRoot = () => tApp ? tApp.tRoot : null;
+const getEvents = () => tApp ? tApp.events : null;
+const getPager = () => tApp ? tApp.pager : null;
+const getLoader = () => tApp ? tApp.loader : null;
+const getManager = () => tApp ? tApp.manager : null;
+const getScreenWidth = () => tApp ? tApp.dim.screen.width : 0;
+const getScreenHeight = () => tApp ? tApp.dim.screen.height : 0;
 
 window.t = window.t || SearchUtil.find;
 
 App.oids = {};
-App.getOid = function(type) { 
-    if (!TUtil.isDefined(App.oids[type]))  {
+App.getOid = function(type) {
+    if (!TUtil.isDefined(App.oids[type])) {
         App.oids[type] = 0;
     }
 
-    var num = App.oids[type]++;
-    return { oid: num > 0 ? type + num : type, num: num };
+    const num = App.oids[type]++;
+    return { oid: num > 0 ? `${type}${num}` : type, num };
 };
 
-export { tapp, App, troot, isRunning, getEvents, getPager, getLoader, getManager, $Dom, getScreenWidth, getScreenHeight };
+export {
+    tApp,
+    App,
+    tRoot,
+    isRunning,
+    getEvents,
+    getPager,
+    getLoader,
+    getManager,
+    $Dom,
+    getScreenWidth,
+    getScreenHeight
+};

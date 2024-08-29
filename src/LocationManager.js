@@ -1,236 +1,228 @@
-import { Bracket } from "./Bracket.js";
+import { BracketGenerator } from "./BracketGenerator.js";
 import { TUtil } from "./TUtil.js";
 import { TargetUtil } from "./TargetUtil.js";
 import { TargetExecutor } from "./TargetExecutor.js";
-import { tapp, getEvents, getScreenWidth, getScreenHeight } from "./App.js";
+import { tApp, getEvents, getScreenWidth, getScreenHeight } from "./App.js";
 import { browser } from "./Browser.js";
 
-function LocationManager() {
-    this.hasLocationList = [];
-    this.hasLocationMap = {};
+class LocationManager {
+    constructor() {
+        this.hasLocationList = [];
+        this.hasLocationMap = {};
 
-    this.bracketThreshold = 6;
-    this.locationCount = [];
-    
-    this.screenWidth = getScreenWidth();
-    this.screenHeight = getScreenHeight();
-    this.resizeFlag = false;
-}
+        this.bracketThreshold = 6;
+        this.locationCount = [];
 
-LocationManager.prototype.calculateAll = function() {
-    this.hasLocationList.length = 0;
-    this.hasLocationMap = {};
-    this.locationCount.length = 0;
-    this.startTime = browser.now();
-    this.resizeFlag = false;
-
-    if (this.screenWidth !== getScreenWidth() || this.screenHeight !== getScreenHeight()) {
-        this.resizeFlag = true;
         this.screenWidth = getScreenWidth();
         this.screenHeight = getScreenHeight();
+        this.resizeFlag = false;
     }
-    
-    this.calculate();
-};
 
-LocationManager.prototype.calculate = function() {                   
-    this.addToLocationList(tapp.troot);
-    this.calculateContainer(tapp.troot);
-};
+    calculateAll() {
+        this.hasLocationList.length = 0;
+        this.hasLocationMap = {};
+        this.locationCount.length = 0;
+        this.startTime = browser.now();
+        this.resizeFlag = false;
 
-LocationManager.prototype.getChildren = function(container) {
-    var brackets;
-    
-    if (this.isProlificContainer(container)) {
-        brackets = Bracket.generate(container);
-    } 
-
-    return brackets ? brackets.list : container.getChildren(); 
-};
-
-LocationManager.prototype.isProlificContainer = function(container)   {
-    return container.canBeBracketed() && container.getChildren().length > this.bracketThreshold;
-};
-
-LocationManager.prototype.calculateContainer = function(container) {
-    var allChildren = this.getChildren(container);
-        
-    var viewport = container.createViewport();
-    container.inFlowVisibles.length = 0;
-    
-    var i = 0, length = allChildren.length;
-   
-    while (i < length && tapp.isRunning()) {
-        
-        var child = allChildren[i++];
-        if (!child) {
-            continue;
+        if (this.screenWidth !== getScreenWidth() || this.screenHeight !== getScreenHeight()) {
+            this.resizeFlag = true;
+            this.screenWidth = getScreenWidth();
+            this.screenHeight = getScreenHeight();
         }
-                      
-        var outerXEast = undefined, innerXEast = undefined;
-        
-        var preX = child.domValues.x;
-        var preY = child.domValues.y;
-                
-        this.calculateTargets(child);
-        
-        if (child.getActualValueLastUpdate('canBeBracketed') > child.getParent().getActualValueLastUpdate("allChildren")) {
-            delete child.getParent().targetValues['allChildren'];
+
+        this.calculate();
+    }
+
+    calculate() {
+        this.addToLocationList(tApp.tRoot);
+        this.calculateContainer(tApp.tRoot);
+    }
+
+    getChildren(container) {
+        if (this.isProlificContainer(container)) {
+            return BracketGenerator.generate(container).list;
         }
-         
-        viewport.setCurrentChild(child);  
-        child.setLocation(viewport);
-        child.calculateAbsolutePosition(child.x, child.y);
-        
-        innerXEast = TUtil.isDefined(container.val('innerXEast')) ? container.val('innerXEast') : container.getInnerXEast();
-        outerXEast = TUtil.isDefined(child.val('outerXEast')) ? child.val('outerXEast') : child.getOuterXEast();
-        
-        if (viewport.isOverflow(outerXEast, innerXEast)) {   
-            viewport.overflow();                       
+
+        return container.getChildren();
+    }
+
+    isProlificContainer(container) {
+        return container.canBeBracketed() && container.getChildren().length > this.bracketThreshold;
+    }
+
+    calculateContainer(container) {
+        const allChildren = this.getChildren(container);
+        const viewport = container.createViewport();
+        container.inFlowVisibles.length = 0;
+
+        let i = 0;
+        const length = allChildren.length;
+
+        while (i < length && tApp.isRunning()) {
+            const child = allChildren[i++];
+            if (!child) {
+                continue;
+            }
+
+            let outerXEast;
+            let innerXEast;
+
+            const preX = child.domValues.x;
+            const preY = child.domValues.y;
+
+            this.calculateTargets(child);
+
+            if (child.getActualValueLastUpdate('canBeBracketed') > child.getParent().getActualValueLastUpdate("allChildren")) {
+                delete child.getParent().targetValues['allChildren'];
+            }
+
+            viewport.setCurrentChild(child);
             child.setLocation(viewport);
-        } else {            
-            child.setLocation(viewport);
-        }
-        
-        if (child.isIncluded() && !this.hasLocationMap[child.oid]) {    
-            this.addToLocationList(child);          
-        }
+            child.calculateAbsolutePosition(child.x, child.y);
 
-        if (child.isTargetEnabled('x') && !child.isTargetUpdating('x') && !child.isTargetImperative('x') && child.getTargetSteps('x') === 0) {
-            TargetExecutor.resolveTargetValue(child, 'x');
-            TargetExecutor.snapActualToTarget(child, 'x');  
-        } else if (!TUtil.isDefined(child.targetValues.x)) {
-            child.val('x', child.x);                
-        }
+            innerXEast = TUtil.isDefined(container.val('innerXEast')) ? container.val('innerXEast') : container.getInnerXEast();
+            outerXEast = TUtil.isDefined(child.val('outerXEast')) ? child.val('outerXEast') : child.getOuterXEast();
 
-        if (child.isTargetEnabled('y') && !child.isTargetUpdating('y') && !child.isTargetImperative('y') && child.getTargetSteps('y') === 0) {
-            TargetExecutor.resolveTargetValue(child, 'y');
-            TargetExecutor.snapActualToTarget(child, 'y');              
-        } else if (!TUtil.isDefined(child.targetValues.y)) {
-            child.val('y', child.y);          
-        }
-        
-        if (preX !== child.getX() || preY !== child.getY()) {
-            child.addToStyleTargetList('transform');          
-        }
-                
-        child.calculateAbsolutePosition(child.getX(), child.getY());
-        
-        viewport.isVisible(child);
-                   
-        child.addToParentVisibleList();
-               
-        if (child.shouldCalculateChildren()) {
-            this.calculateContainer(child);  
-        }
-  
-        if (child.isInFlow()) {
-            
-            if (TUtil.isNumber(child.val('appendNewLine'))) {
-                viewport.appendNewLine();
-                viewport.calcContentWidthHeight();
+            if (viewport.isOverflow(outerXEast, innerXEast)) {
+                viewport.overflow();
+                child.setLocation(viewport);
             } else {
-                viewport.calcContentWidthHeight();                
-                viewport.nextLocation();
+                child.setLocation(viewport);
+            }
+
+            if (child.isIncluded() && !this.hasLocationMap[child.oid]) {
+                this.addToLocationList(child);
+            }
+
+            if (child.isTargetEnabled('x') && !child.isTargetUpdating('x') && !child.isTargetImperative('x') && child.getTargetSteps('x') === 0) {
+                TargetExecutor.resolveTargetValue(child, 'x');
+                TargetExecutor.snapActualToTarget(child, 'x');
+            } else if (!TUtil.isDefined(child.targetValues.x)) {
+                child.val('x', child.x);
+            }
+
+            if (child.isTargetEnabled('y') && !child.isTargetUpdating('y') && !child.isTargetImperative('y') && child.getTargetSteps('y') === 0) {
+                TargetExecutor.resolveTargetValue(child, 'y');
+                TargetExecutor.snapActualToTarget(child, 'y');
+            } else if (!TUtil.isDefined(child.targetValues.y)) {
+                child.val('y', child.y);
+            }
+
+            if (preX !== child.getX() || preY !== child.getY()) {
+                child.addToStyleTargetList('transform');
+            }
+
+            child.calculateAbsolutePosition(child.getX(), child.getY());
+            viewport.isVisible(child);
+            child.addToParentVisibleList();
+
+            if (child.shouldCalculateChildren()) {
+                this.calculateContainer(child);
+            }
+
+            if (child.isInFlow()) {
+                if (TUtil.isNumber(child.val('appendNewLine'))) {
+                    viewport.appendNewLine();
+                    viewport.calcContentWidthHeight();
+                } else {
+                    viewport.calcContentWidthHeight();
+                    viewport.nextLocation();
+                }
+            }
+
+            if (Array.isArray(child.val('contentHeight'))) {
+                child.val('contentHeight').forEach(key => {
+                    const preVal = child.val(key);
+                    child.val(key, child.getContentHeight());
+                    if (preVal !== child.val(key)) {
+                        child.addToStyleTargetList(key);
+                    }
+                });
+            }
+
+            if (Array.isArray(child.val('contentWidth'))) {
+                child.val('contentWidth').forEach(key => {
+                    const preVal = child.val(key);
+                    child.val(key, child.getContentWidth());
+                    if (preVal !== child.val(key)) {
+                        child.addToStyleTargetList(key);
+                    }
+                });
+            }
+
+            viewport.calcContentWidthHeight();
+            this.locationCount.push(`${child.oid}-${child.updatingTargetList.length}-${browser.now() - this.startTime}`);
+        }
+    }
+
+    calculateTargets(tmodel) {
+        this.activateTargetsOnEvents(tmodel);
+        tApp.targetManager.applyTargetValues(tmodel);
+        tApp.targetManager.setActualValues(tmodel);
+
+        if (tmodel.hasDom()) {
+            const preWidth = tmodel.getWidth();
+            const preHeight = tmodel.getHeight();
+
+            if (
+                (!TUtil.isDefined(tmodel.targetValues.width) && !TUtil.isDefined(tmodel.targets.width) && !TUtil.isDefined(tmodel.targetValues.contentWidth)) ||
+                tmodel.getTargetValue('widthFromDom')
+            ) {
+                TargetUtil.setWidthFromDom(tmodel);
+            }
+            if (
+                (!TUtil.isDefined(tmodel.targetValues.height) && !TUtil.isDefined(tmodel.targets.height) && !TUtil.isDefined(tmodel.targetValues.contentHeight)) ||
+                tmodel.getTargetValue('heightFromDom')
+            ) {
+                TargetUtil.setHeightFromDom(tmodel);
+            }
+
+            if (preWidth !== tmodel.getWidth() || preHeight !== tmodel.getHeight()) {
+                tmodel.addToStyleTargetList('dim');
             }
         }
-            
-        if (Array.isArray(child.val('contentHeight'))) {
-            child.val('contentHeight').forEach(function(key) {
-                var preVal = child.val(key);
-                child.val(key, child.getContentHeight());
-                if (preVal !== child.val(key)) {
-                    child.addToStyleTargetList(key);
-                }
-            });
-        }
-
-        if (Array.isArray(child.val('contentWidth'))) {
-            child.val('contentWidth').forEach(function(key) {
-                var preVal = child.val(key);                
-                child.val(key, child.getContentWidth());
-                if (preVal !== child.val(key)) {
-                    child.addToStyleTargetList(key);
-                }                
-            });
-        }
-        
-        viewport.calcContentWidthHeight();
-        
-        
-        this.locationCount.push(child.oid + "-" + child.updatingTargetList.length + "-" + (browser.now() - this.startTime));
-    }   
-    
-};
-
-LocationManager.prototype.calculateTargets = function(tmodel) {
-    this.activateTargetsOnEvents(tmodel);
-    tapp.targetManager.applyTargetValues(tmodel);        
-    tapp.targetManager.setActualValues(tmodel);
-   
-    if (tmodel.hasDom()) {
-        var preWidth = tmodel.getWidth();
-        var preHeight = tmodel.getHeight();
-        
-        
-        if ((!TUtil.isDefined(tmodel.targetValues.width) && !TUtil.isDefined(tmodel.targets.width) && !TUtil.isDefined(tmodel.targetValues.contentWidth)) || tmodel.getTargetValue('widthFromDom')) {
-            TargetUtil.setWidthFromDom(tmodel);
-        }
-        if ((!TUtil.isDefined(tmodel.targetValues.height) && !TUtil.isDefined(tmodel.targets.height) && !TUtil.isDefined(tmodel.targetValues.contentHeight)) || tmodel.getTargetValue('heightFromDom')) {
-           TargetUtil.setHeightFromDom(tmodel);
-        }
-
-        if (preWidth !== tmodel.getWidth() || preHeight !== tmodel.getHeight()) {
-            tmodel.addToStyleTargetList('dim');
-        }    
-    }
-};
-
-LocationManager.prototype.activateTargetsOnEvents = function(tmodel) {
-    var activateTargets = [];
-
-    if (this.resizeFlag && tmodel.targets['onResize']) {
-        activateTargets = activateTargets.concat(tmodel.targets['onResize']);
     }
 
-    if (getEvents().isTouchHandler(tmodel) && tmodel.targets['onTouchEvent']) {
-        activateTargets = activateTargets.concat(tmodel.targets['onTouchEvent']);
-    }
-    
-    if (getEvents().isClickHandler(tmodel) && tmodel.targets['onClickEvent']) {        
-        activateTargets = activateTargets.concat(tmodel.targets['onClickEvent']);
-    }
+    activateTargetsOnEvents(tmodel) {
+        let activateTargets = [];
 
-    if ((getEvents().isScrollLeftHandler(tmodel) && getEvents().deltaX()) 
-        || (getEvents().isScrollTopHandler(tmodel) && getEvents().deltaY())) {
-        if (tmodel.targets['onScrollEvent']) {
-            activateTargets = activateTargets.concat(tmodel.targets['onScrollEvent']);
+        if (this.resizeFlag && tmodel.targets['onResize']) {
+            activateTargets = activateTargets.concat(tmodel.targets['onResize']);
         }
-    }
 
-    if (getEvents().currentKey && tmodel.targets['onKeyEvent']) {
-        activateTargets = activateTargets.concat(tmodel.targets['onKeyEvent']);
-    }
-    
-    activateTargets.forEach(function(target) {        
-        var key, obj;
-        if (typeof target === 'object') {
-            key = target.key;
-            obj = target.tmodel || tmodel;
-        } else {
-            key = target;
-            obj = tmodel;
+        if (getEvents().isTouchHandler(tmodel) && tmodel.targets['onTouchEvent']) {
+            activateTargets = activateTargets.concat(tmodel.targets['onTouchEvent']);
         }
-        
-        if (obj.targets[key] && (obj.isTargetComplete(key) || obj.getTargetStatus(key) === '')) {
-            obj.activateTarget(key);
-        }        
-    });    
-};
 
-LocationManager.prototype.addToLocationList = function(child)   {
-    this.hasLocationList.push(child);
-    this.hasLocationMap[child.oid] = child;
-};
+        if (getEvents().isClickHandler(tmodel) && tmodel.targets['onClickEvent']) {
+            activateTargets = activateTargets.concat(tmodel.targets['onClickEvent']);
+        }
+
+        if ((getEvents().isScrollLeftHandler(tmodel) && getEvents().deltaX()) || (getEvents().isScrollTopHandler(tmodel) && getEvents().deltaY())) {
+            if (tmodel.targets['onScrollEvent']) {
+                activateTargets = activateTargets.concat(tmodel.targets['onScrollEvent']);
+            }
+        }
+
+        if (getEvents().currentKey && tmodel.targets['onKeyEvent']) {
+            activateTargets = activateTargets.concat(tmodel.targets['onKeyEvent']);
+        }
+
+        activateTargets.forEach(target => {
+            const key = typeof target === 'object' ? target.key : target;
+            const obj = typeof target === 'object' && target.tmodel ? target.tmodel : tmodel;
+
+            if (obj.targets[key] && (obj.isTargetComplete(key) || obj.getTargetStatus(key) === '')) {
+                obj.activateTarget(key);
+            }
+        });
+    }
+
+    addToLocationList(child) {
+        this.hasLocationList.push(child);
+        this.hasLocationMap[child.oid] = child;
+    }
+}
 
 export { LocationManager };

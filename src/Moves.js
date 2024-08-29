@@ -1,59 +1,48 @@
-import {  getScreenWidth } from "./App.js";
+import { getScreenWidth } from "./App.js";
 
-function Moves() {}
+class Moves {
+    static bounce(from, to, initialX = getScreenWidth() / 2, initialWidth = 50, initialHeight = 50, bounceFactor = 0.6, compressionFactor = 0.2) {
+        let bounce = to * bounceFactor;
+        const ys = [from];
+        const xs = [initialX];
+        const widths = [initialWidth];
+        const heights = [initialHeight];
 
-Moves.bounce = function (from, to, initialX, initialWidth, initialHeight, bounceFactor, compressionFactor) {
+        while ((bounce | 0) > 1) {
+            ys.push(to);
+            ys.push(to - bounce);
 
-    initialX = initialX || getScreenWidth() / 2;
-    initialWidth = initialWidth || 50;
-    initialHeight = initialHeight || 50;
-    bounceFactor = bounceFactor || 0.6;
-    
-    compressionFactor = compressionFactor || 0.2;    
-    
-    var bounce = to * bounceFactor;
-    var ys = [from];
-    var xs = [initialX];    
-    var widths = [initialWidth];
-    var heights = [initialHeight];
-   
-    while ((bounce | 0) > 1) {
-        ys.push(to);
-        ys.push(to - bounce);
-        
-        var compressedWidth = initialWidth * (1 + compressionFactor);
-        var compressedHeight = initialHeight * (1 - compressionFactor);
-        
-        widths.push(compressedWidth);
-        widths.push(initialWidth);
-        
-        heights.push(compressedHeight);
-        heights.push(initialHeight);
-        
-        xs.push(initialX - (compressedWidth - initialWidth) / 2);
-        xs.push(initialX);
-        
-        bounce *= bounceFactor;
-        compressionFactor *= bounceFactor;
+            const compressedWidth = initialWidth * (1 + compressionFactor);
+            const compressedHeight = initialHeight * (1 - compressionFactor);
+
+            widths.push(compressedWidth);
+            widths.push(initialWidth);
+
+            heights.push(compressedHeight);
+            heights.push(initialHeight);
+
+            xs.push(initialX - (compressedWidth - initialWidth) / 2);
+            xs.push(initialX);
+
+            bounce *= bounceFactor;
+            compressionFactor *= bounceFactor;
+        }
+
+        return { x: xs, y: ys, width: widths, height: heights };
     }
-    
-    return { x: xs, y: ys, width: widths, height: heights };
-};
 
-Moves.spiral = function (startAngle, endAngle, angleStep, x, y, width, height) {
-        
-    var xCoords = [], yCoords = [], rotations = [];
-            
-    for (var angle = startAngle; angle <= endAngle; angle += angleStep) {
-        var radians = angle * (Math.PI / 180);
-        xCoords.push(Math.floor(x + width * Math.cos(radians)));
-        yCoords.push(Math.floor(y + height * Math.sin(radians)));
-        rotations.push(90 + angle);
+    static spiral(startAngle, endAngle, angleStep, x, y, width, height) {
+        const xCoords = [], yCoords = [], rotations = [];
+
+        for (let angle = startAngle; angle <= endAngle; angle += angleStep) {
+            const radians = angle * (Math.PI / 180);
+            xCoords.push(Math.floor(x + width * Math.cos(radians)));
+            yCoords.push(Math.floor(y + height * Math.sin(radians)));
+            rotations.push(90 + angle);
+        }
+
+        return { x: xCoords, y: yCoords, rotate: rotations };
     }
-    
-    return { x: xCoords, y: yCoords, rotate: rotations };
-};
-
-
+}
 
 export { Moves };

@@ -11,7 +11,7 @@ module.exports = {
         environment: {
           arrowFunction: false
         },        
-        path: path.resolve(__dirname, '../targetj/jslib'),
+        path: path.resolve(__dirname, './dist'),
         filename: 'targetj.js'
     },
     module: {
@@ -35,6 +35,7 @@ module.exports = {
                 extends: [
                     'eslint:recommended'
                 ],
+                parser: "@babel/eslint-parser",
                 parserOptions: {
                     ecmaVersion: 12,
                     sourceType: 'module'

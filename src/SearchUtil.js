@@ -1,210 +1,155 @@
 import { TUtil } from "./TUtil.js";
-import { tapp } from "./App.js";
+import { tApp } from "./App.js";
 
-function SearchUtil() {}
+class SearchUtil {
+    static foundParentWithType = {};
+    static foundParentWithTarget = {};
+    static foundTypeMap = {};
+    static foundTargetMap = {};
+    static foundOids = {};
 
-SearchUtil.foundParentWithType = {};
-SearchUtil.foundParentWithTarget = {};
-SearchUtil.foundTypeMap = {};
-SearchUtil.foundTargetMap = {};
-SearchUtil.foundOids = {};
-
-SearchUtil.findFirstPinchHandler = function(tmodel) {
-    return SearchUtil.findEventHandler(tmodel, 'pinch');
-};
-
-SearchUtil.findFirstScrollTopHandler = function(tmodel) {
-    return SearchUtil.findEventHandler(tmodel, 'scrollTop');
-};
-
-SearchUtil.findFirstScrollLeftHandler = function(tmodel) {
-    return SearchUtil.findEventHandler(tmodel, 'scrollLeft');
-};
-
-SearchUtil.findFirstTouchHandler = function(tmodel) {
-    return SearchUtil.findEventHandler(tmodel, 'touch');
-};
-
-SearchUtil.findEventHandler = function(tmodel, eventName) {
-    while (tmodel) {
-        if (tmodel.canHandleEvents(eventName)) {
-            return tmodel;
-        }
-
-        tmodel = tmodel.getParent();
+    static findFirstPinchHandler(tmodel) {
+        return SearchUtil.findEventHandler(tmodel, 'pinch');
     }
-};
 
-SearchUtil.findParentByType = function(child, type) {
-    var parent;
-      
-    function search() {
-        parent = child.getParent();
-        while (parent) {
-            if (parent.type === type) {
-                break;
+    static findFirstScrollTopHandler(tmodel) {
+        return SearchUtil.findEventHandler(tmodel, 'scrollTop');
+    }
+
+    static findFirstScrollLeftHandler(tmodel) {
+        return SearchUtil.findEventHandler(tmodel, 'scrollLeft');
+    }
+
+    static findFirstTouchHandler(tmodel) {
+        return SearchUtil.findEventHandler(tmodel, 'touch');
+    }
+
+    static findEventHandler(tmodel, eventName) {
+        while (tmodel) {
+            if (tmodel.canHandleEvents(eventName)) {
+                return tmodel;
             }
-            parent = parent.getParent();
+            tmodel = tmodel.getParent();
         }
     }
-    
-    var indexKey = child.oid + "__" + type;
-        
-    if (!TUtil.isDefined(SearchUtil.foundParentWithType[indexKey])) {
-        search();
-        
-        if (parent) {
-            SearchUtil.foundParentWithType[indexKey] = parent;
-        }
-    }
-    
-    return SearchUtil.foundParentWithType[indexKey];
-};
 
-SearchUtil.findParentByTarget = function(child, targetName) {
-    var parent;
-      
-    function search() {
-        parent = child.getParent();
-        while (parent) {
-            if (TUtil.isDefined(parent.targets[targetName]) || TUtil.isDefined(parent.targetValues[targetName])) {
-                break;
-            }
-            parent = parent.getParent();
-        }
-    }
-    
-    var indexKey = child.oid + "__" + targetName;
-        
-    if (!TUtil.isDefined(SearchUtil.foundParentWithTarget[indexKey])) {
-        search();
-        
-        if (parent) {
-            SearchUtil.foundParentWithTarget[indexKey] = parent;
-        }
-    }
-    
-    return SearchUtil.foundParentWithTarget[indexKey];
-};
+    static findParentByType(child, type) {
+        const indexKey = `${child.oid}__${type}`;
 
-SearchUtil.findByType = function (type) {
-    var tmodel;
-    
-    function search(container) {
-        
-        if (container.type === type) {
-            return container;
-        }
-        
-        var children = container.getChildren();
-        var found;
-        
-        for (var i = 0; children && i < children.length && !found; i++) {
-
-            tmodel = children[i];
-            
-            if (!tmodel) {
-                continue;
-            }
-
-            if (tmodel.hasChildren()) {
-                found = search(tmodel);
-            } else if (tmodel.type === type) {
-                found = tmodel;
+        if (!TUtil.isDefined(SearchUtil.foundParentWithType[indexKey])) {
+            let parent = child.getParent();
+            while (parent) {
+                if (parent.type === type) {
+                    SearchUtil.foundParentWithType[indexKey] = parent;
+                    break;
+                }
+                parent = parent.getParent();
             }
         }
 
-        return found;
+        return SearchUtil.foundParentWithType[indexKey];
     }
-    
-    if (!TUtil.isDefined(SearchUtil.foundTypeMap[type])) {
-        tmodel = search(tapp.troot);  
-        if (tmodel) {
-            SearchUtil.foundTypeMap[type] = tmodel;
-        }
-    }
-    
-    return SearchUtil.foundTypeMap[type];
-};
 
-SearchUtil.findByTarget = function (target) {
-    var tmodel;
-    
-    function search(container) {
+    static findParentByTarget(child, targetName) {
+        const indexKey = `${child.oid}__${targetName}`;
 
-        if (container.targets[target]) {
-            return container;
-        }
-        
-        var children = container.getChildren();
-        var found;
-        
-        for (var i = 0; children && i < children.length && !found; i++) {
-
-            tmodel = children[i];
-
-            if (!tmodel) {
-                continue;
-            }
-
-            if (tmodel.hasChildren()) {
-                found = search(tmodel);
-            } else if (tmodel.targets[target]) {
-                found = tmodel;
+        if (!TUtil.isDefined(SearchUtil.foundParentWithTarget[indexKey])) {
+            let parent = child.getParent();
+            while (parent) {
+                if (TUtil.isDefined(parent.targets[targetName]) || TUtil.isDefined(parent.targetValues[targetName])) {
+                    SearchUtil.foundParentWithTarget[indexKey] = parent;
+                    break;
+                }
+                parent = parent.getParent();
             }
         }
-        
-        return found;
+
+        return SearchUtil.foundParentWithTarget[indexKey];
     }
-    
-    if (!TUtil.isDefined(SearchUtil.foundTargetMap[target])) {
-        tmodel = search(tapp.troot);  
-        if (tmodel) {
-            SearchUtil.foundTargetMap[target] = tmodel;
-        }
-    }
-    
-    return SearchUtil.foundTargetMap[target];
-};
 
-SearchUtil.find = function (oid) {
-    var tmodel;
-    
-    function search(container) {
-        
-        if (container.oid === oid) {
-            return container;
-        }
-        
-        var children = container.getChildren();
-        var found;
+    static findByType(type) {
+        if (!TUtil.isDefined(SearchUtil.foundTypeMap[type])) {
+            const search = (container) => {
+                if (container.type === type) {
+                    return container;
+                }
 
-        for (var i = 0; children && i < children.length && !found; i++) {
-            
-            tmodel = children[i];
+                for (const child of container.getChildren()) {
+                    if (child && child.hasChildren()) {
+                        const found = search(child);
+                        if (found) {
+                            return found;
+                        }
+                    } else if (child && child.type === type) {
+                        return child;
+                    }
+                }
+            };
 
-            if (!tmodel) {
-                continue;
-            }
-
-            if (tmodel.hasChildren()) {
-                found = search(tmodel);
-            } else if (tmodel.oid === oid) {
-                found = tmodel;
+            const tmodel = search(tApp.tRoot);
+            if (tmodel) {
+                SearchUtil.foundTypeMap[type] = tmodel;
             }
         }
-        
-        return found;
+
+        return SearchUtil.foundTypeMap[type];
     }
-       
-    if (!TUtil.isDefined(SearchUtil.foundOids[oid])) {
-        tmodel = search(tapp.troot);  
-        if (tmodel) {
-            SearchUtil.foundOids[oid] = tmodel;
+
+    static findByTarget(target) {
+        if (!TUtil.isDefined(SearchUtil.foundTargetMap[target])) {
+            const search = (container) => {
+                if (container.targets[target]) {
+                    return container;
+                }
+
+                for (const child of container.getChildren()) {
+                    if (child && child.hasChildren()) {
+                        const found = search(child);
+                        if (found) {
+                            return found;
+                        }
+                    } else if (child && child.targets[target]) {
+                        return child;
+                    }
+                }
+            };
+
+            const tmodel = search(tApp.tRoot);
+            if (tmodel) {
+                SearchUtil.foundTargetMap[target] = tmodel;
+            }
         }
+
+        return SearchUtil.foundTargetMap[target];
     }
-    
-    return SearchUtil.foundOids[oid];
-};
+
+    static find(oid) {
+        if (!TUtil.isDefined(SearchUtil.foundOids[oid])) {
+            const search = (container) => {
+                if (container.oid === oid) {
+                    return container;
+                }
+
+                for (const child of container.getChildren()) {
+                    if (child && child.hasChildren()) {
+                        const found = search(child);
+                        if (found) {
+                            return found;
+                        }
+                    } else if (child && child.oid === oid) {
+                        return child;
+                    }
+                }
+            };
+
+            const tmodel = search(tApp.tRoot);
+            if (tmodel) {
+                SearchUtil.foundOids[oid] = tmodel;
+            }
+        }
+
+        return SearchUtil.foundOids[oid];
+    }
+}
 
 export { SearchUtil };

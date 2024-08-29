@@ -1,4 +1,4 @@
-import { tapp, App } from "./App.js";
+import { tApp, App } from "./App.js";
 import { browser } from "./Browser.js";
 import { SearchUtil } from "./SearchUtil.js";
 import { TUtil } from "./TUtil.js";
@@ -524,7 +524,7 @@ class TModel {
         } else {
             this.removeFromActiveTargets(key);
             this.removeFromUpdatingTargets(key);
-            tapp.manager.doneTargets.push({ tmodel: this, key: key });
+            tApp.manager.doneTargets.push({ tmodel: this, key: key });
         }
         return this.targetValues[key].status;
     }
@@ -725,7 +725,7 @@ class TModel {
             this.setTarget('addedChildren', addedChildren);
         }
 
-        tapp.manager.scheduleRun(10, 'addChild-' + this.oid + "-" + child.oid);
+        tApp.manager.scheduleRun(10, 'addChild-' + this.oid + "-" + child.oid);
 
         return this;
     }
@@ -773,7 +773,7 @@ class TModel {
             this.processNewTarget(key);
         });
 
-        tapp.manager.scheduleRun(10, 'addTargets-' + this.oid);
+        tApp.manager.scheduleRun(10, 'addTargets-' + this.oid);
     }
 
     addToActiveTargets(key) {
@@ -833,7 +833,7 @@ class TModel {
         this.addToActiveTargets(key);
         this.removeFromUpdatingTargets(key);
 
-        tapp.manager.scheduleRun(10, 'deleteTargetValue-' + this.oid + "-" + key);
+        tApp.manager.scheduleRun(10, 'deleteTargetValue-' + this.oid + "-" + key);
     }
 
     resetImperative(key) {
@@ -873,7 +873,7 @@ class TModel {
             }
         });
 
-        tapp.manager.scheduleRun(10, 'activateTargets-' + this.oid);
+        tApp.manager.scheduleRun(10, 'activateTargets-' + this.oid);
 
         return this;
     }

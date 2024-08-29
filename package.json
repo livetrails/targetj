@@ -1,6 +1,6 @@
 {
   "name": "targetj",
-  "version": "1.0.74",
+  "version": "1.0.75",
   "keywords": [
     "targetj"
   ],
@@ -18,8 +18,8 @@
     "url": "https://github.com/livetrails/targetj.io/issues"
   },
   "scripts": {
-    "build": "webpack --mode production",
-    "babel": "babel src -d dist"    
+    "prod": "webpack --mode production",
+    "dev": "webpack --mode development"    
   },
   "homepage": "http://targetj.io",
   "devDependencies": {
@@ -27,6 +27,7 @@
     "webpack-cli": "^5.1.4",
     "wepback": "^1.0.0",
     "eslint-webpack-plugin": "^4.2.0",
+    "@babel/eslint-parser": "^7.25.0",
     "@babel/core": "^7.21.0",
     "@babel/preset-env": "^7.15.6",
     "babel-loader": "^9.1.0"
