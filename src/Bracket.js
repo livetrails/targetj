@@ -25,6 +25,7 @@ class Bracket extends TModel {
     }
 
     getInnerXEast() {
+        this.initParents();        
         return TUtil.isDefined(this.getRealParent().val('innerXEast')) ? this.getRealParent().val('innerXEast') : this.getRealParent().absX + this.getRealParent().getWidth();
     }
 
@@ -58,10 +59,12 @@ class Bracket extends TModel {
     }
 
     addToUpdatingChildren(child) {
+        this.initParents();        
         this.getRealParent().addToUpdatingChildren(child);
     }
 
     createViewport() {
+        this.initParents();        
         return this.getRealParent().createViewport.call(this);
     }
 
@@ -83,24 +86,21 @@ class Bracket extends TModel {
     addToParentVisibleList() {}
 
     initParents() {
-        if (this.realParent || this.topBracket) {
+        if (this.realParent) {
             return;
         }
 
-        let topBracket = this;
         let parent = this.bracketParent;
 
         while (parent) {
             if (parent.type !== 'BI') {
                 break;
             } else {
-                topBracket = parent;
                 parent = parent.bracketParent;
             }
         }
 
         this.realParent = parent;
-        this.topBracket = topBracket;
     }
 
     getChildrenOids() {

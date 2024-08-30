@@ -2,6 +2,7 @@
 /dist/
 /node_modules/
 /src/
+/build/index.js
 *.config.json
 *.config.js
 *.lock

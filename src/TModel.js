@@ -13,14 +13,15 @@ class TModel {
             type = "";
         }
 
-        this.type = type || 'blank';
+        type = type || 'blank';
+        const uniqueId = App.getOid(type);
+        this.oid = uniqueId.oid;
+        this.oidNum = uniqueId.num;
+        this.type = type;
+        
         this.targets = Object.assign({}, targets);
         this.activeTargetList = [];
         this.activeTargetMap = {};
-
-        const uniqueId = App.getOid(this.type);
-        this.oid = uniqueId.oid;
-        this.oidNum = uniqueId.num;
 
         this.targetValues = {};
 
@@ -145,6 +146,10 @@ class TModel {
             { targetValues: this.targetValues },
             { actualValues: this.actualValues }
         ];
+    }
+    
+    logTree() {
+        TUtil.logTree(this);
     }
 
     initTargets() {

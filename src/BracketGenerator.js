@@ -7,7 +7,7 @@ class BracketGenerator {
     
     static generate(page, listOfTModel) {
         let brackets = BracketGenerator.bracketMap[page.oid];
-        const maxLastUpdate = Math.max(page.getActualValueLastUpdate('allChildren'), page.getActualValueLastUpdate('width'), page.getActualValueLastUpdate('height'));
+        const maxLastUpdate = Math.max(...[page.getActualValueLastUpdate('allChildren'), page.getActualValueLastUpdate('width'), page.getActualValueLastUpdate('height')].filter(v => v !== undefined));
 
         if (brackets && brackets.lastUpdate >= maxLastUpdate) {
             brackets = BracketGenerator.bracketMap[page.oid];
@@ -26,10 +26,10 @@ class BracketGenerator {
             let from = 0;
 
             for (let i = 0; i < length; i++) {
-                const index = i - from;
+                const size = i - from;
 
-                if ((listOfTModel[i].canBeBracketed() && (index === bracketSize || i === length - 1))
-                    || (!listOfTModel[i].canBeBracketed() && index > 0)) {
+                if ((listOfTModel[i].canBeBracketed() && (size === bracketSize || i === length - 1))
+                    || (!listOfTModel[i].canBeBracketed() && size > 0)) {
                     const to = !listOfTModel[i].canBeBracketed() ? i : i + 1;
                     brackets.list.push(BracketGenerator.createBracket(page, listOfTModel, from, to));
                     from = i + 1;
@@ -58,7 +58,7 @@ class BracketGenerator {
     }
     
     static createBracket(page, listOfTModel, from, to) {
-        const bracketId = `${page.oid}_${page.getWidth()}_${page.getHeight()}_${listOfTModel.slice(from, to).oids('_')}`;
+        const bracketId = `${page.oid}_${listOfTModel.slice(from, to).map(tmodel => tmodel.oid[0] + tmodel.oid[1] + tmodel.oidNum).join(".")}`;
         let bracket;
 
         if (BracketGenerator.bracketAllMap[bracketId]) {
@@ -81,7 +81,6 @@ class BracketGenerator {
 
         return bracket;
     }
-
 }
 
 export { BracketGenerator };

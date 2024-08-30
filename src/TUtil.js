@@ -1,18 +1,27 @@
 import { $Dom } from "./$Dom.js";
 import { getScreenWidth, getScreenHeight } from "./App.js";
 import { SearchUtil } from "./SearchUtil.js";
+import { getLocationManager, tRoot } from "./App.js";
 
 class TUtil {
     static getBoundingRect(tmodel) {
         let left, top, right, bottom, oid;
 
         if (tmodel.actualValues.domHolder && tmodel.actualValues.domHolder.exists()) {
-            const rect = tmodel.actualValues.domHolder.getBoundingClientRect();
-            left = rect.left;
-            top = rect.top;
-            right = rect.right;
-            bottom = rect.bottom;
-            oid = tmodel.actualValues.domHolder.attr('id');
+            if (tmodel.getParent() === tRoot()) {
+                left = tmodel.getX();
+                top = tmodel.getY();
+                right = left + tmodel.getWidth();
+                bottom = top + tmodel.getHeight();
+                oid = tmodel.oid;             
+            } else {
+                const rect = tmodel.actualValues.domHolder.getBoundingClientRect();
+                left = rect.left;
+                top = rect.top;
+                right = rect.right;
+                bottom = rect.bottom;
+                oid = tmodel.actualValues.domHolder.attr('id');
+            }
         } else {
             const parent = tmodel.getDomParent() ? tmodel.getDomParent() : SearchUtil.findParentByTarget(tmodel, 'domHolder');
 
@@ -144,6 +153,24 @@ class TUtil {
             return link.startsWith("/") ? base + link : `${base}/${link}`;
         }
     }
+    
+    static logTree(tmodel = tRoot(), tab = '') {
+        const list = getLocationManager().getChildren(tmodel);
+        for (const g of list) {
+            const gtab = g.isVisible() ? tab + '|  ': tab + 'x  ';
+
+            if (g.type === 'BI') {
+                console.log(`${gtab}${g.oid} v:${g.isVisible()} x:${Math.floor(g.getX())} y:${Math.floor(g.getY())} w:${Math.floor(g.getWidth())} wi:${Math.floor(g.getInnerWidth())} h:${Math.floor(g.getHeight())} hi:${Math.floor(g.innerContentHeight)} p:${g.getRealParent().oid}`);
+            } else {
+                console.log(`${gtab}${g.oid} v:${g.isVisible()} x:${Math.floor(g.getX())} y:${Math.floor(g.getY())} w:${Math.floor(g.getWidth())} h:${Math.floor(g.getHeight())} hc:${Math.floor(g.getContentHeight())}`);
+            }
+
+            if (g.hasChildren()) {
+                TUtil.logTree(g, gtab);
+            }
+        }
+    }
+
 }
 
 export { TUtil };

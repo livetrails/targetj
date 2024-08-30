@@ -39,7 +39,7 @@ const AppFn = (firstChild) => {
         my.manager = new TModelManager();
 
         my.tRootFactory = () => {
-            const tRoot = new TModel('targetj');
+            const tRoot = new TModel('tRoot');
 
             tRoot.addChild = (child, index) => {
                 if (!TUtil.isDefined(child.targets['domHolder'])) {
@@ -181,6 +181,7 @@ const getEvents = () => tApp ? tApp.events : null;
 const getPager = () => tApp ? tApp.pager : null;
 const getLoader = () => tApp ? tApp.loader : null;
 const getManager = () => tApp ? tApp.manager : null;
+const getLocationManager = () => tApp ? tApp.locationManager : null;
 const getScreenWidth = () => tApp ? tApp.dim.screen.width : 0;
 const getScreenHeight = () => tApp ? tApp.dim.screen.height : 0;
 
@@ -195,6 +196,7 @@ export {
     getPager,
     getLoader,
     getManager,
+    getLocationManager,
     $Dom,
     getScreenWidth,
     getScreenHeight
