@@ -331,9 +331,76 @@ App(
 );
 ```
 
+## Infinite scrolling
+
+This example demonstrates how to handle scroll events and develop a simple infinite scrolling application.
+
+![Single page app](https://targetj.io/img/infiniteScrolling3.gif)
+
+```bash
+import { App, TModel, getEvents, getScreenHeight, getScreenWidth } from "targetj";
+
+App(
+  new TModel("scroller", {
+    canHandleEvents: "scrollTop",
+    innerXEast: 0,
+    addChildren() {
+      const childrenCount = this.getChildren().length;
+      for (let i = 0; i < 10; i++) {
+        this.addChild(
+          new TModel("scrollItem", {
+            width: 300,
+            background: "brown",
+            height: 30,
+            lineHeight: "30",
+            color: "#fff",
+            style: { textAlign: "center" },
+            bottomMargin: 2,
+            x() {
+              return (this.getParentValue("width") - this.getWidth()) / 2;
+            },
+            html: childrenCount + i + 1,
+            domParent() {
+              return this.getParent();
+            },
+          })
+        );
+      }
+    },
+    scrollTop: {
+      value(cycle, lastValue) {
+        return Math.max(0, lastValue + getEvents().currentTouch.deltaY);
+      },
+      enabledOn() {
+        return getEvents().isScrollTopHandler(this);
+      },
+    },
+    addOnOverflow: {
+      loop() {
+        return this.inFlowVisibles.length * 32 < this.getHeight();
+      },
+      value() {
+        this.activateTarget("addChildren");
+      },
+      enabledOn() {
+        return this.inFlowVisibles.length * 32 < this.getHeight();
+      },
+    },
+    width() {
+      return getScreenWidth();
+    },
+    height() {
+      return getScreenHeight();
+    },
+    onResize: ["width", "height"],
+    onScrollEvent: ["scrollTop", "addOnOverflow"],
+  })
+);
+```
+
 ## Simple Single Page App Example
 
-Below is a simple single-page app that demonstrates how to develop a full application using TargetJ. 
+Below is a simple single-page app that demonstrates how to develop a fully-fledged application using TargetJ. You can now assemble your app by incorporating code segments from the examples on animation, event handling, API integration, and infinite scrolling provided above.
 
 ![Single page app](https://targetj.io/img/singlePage.gif)
 
