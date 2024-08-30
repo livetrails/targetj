@@ -173,33 +173,45 @@ App(new TModel('declarative', {
 
 Calling backend APIs is simplified through the use of targets in TargetJ. It includes a loader that streamlines API integration.
 
-In the example below, we define a target named 'load' that attempts to fetch a random user. Within the value() function, we initialize the API call. The first parameter specifies an ID that identifies the API call, which can also be used to access cached data.
+In the example below, we define a target named 'load' that attempts to fetch a specific user with an ID . Within the value() function, we initialize the API call. The first parameter specifies an ID that identifies the API call, which can also be used to access cached data. We chose to be the same as the uer ID.
 
-The target will remain active using the loop function, with value() continuing to return undefined while polling the system every 20ms (as specified in the interval property) until the loader retrieves the API result. When the API result arrives, it triggers onValueChange, which creates a user object based on the retrieved data. Additionally, we define two targets to handle scenarios for both fast and slow connections. The slow target is enabled if polling exceeds 100 times, while the fast target is enabled if the API result is retrieved in less than 600ms. If you restart the example, the result will be fetched from the cache instead of the API.
+The target will remain active using the loop function, with value() continuing to return undefined while polling the system every 50ms (as specified in the interval property) until the loader retrieves the API result. When the API result arrives, it triggers onValueChange, which creates a user object based on the retrieved data. Additionally, we define two targets to handle scenarios for both fast and slow connections. The slow target is enabled if polling exceeds 100 times, while the fast target is enabled if the API result is retrieved in less than 600ms. The fast target will reactivate the load target till it fetches 10 users.
 
-![api loading example](https://targetj.io/img/apiLoading.png)
+![api loading example](https://targetj.io/img/apiLoading2.gif)
 
 ```bash
-import { App, TModel, getLoader, browser } from "targetj";
+import { App, TModel, getLoader, getScreenHeight, getScreenWidth } from "targetj";
 
 App(
   new TModel("apiCall", {
+    start() { this.users = 0; },
+    width() { return getScreenWidth(); },
+    height() { return getScreenHeight(); },
     load: {
       loop() { return !this.val(this.key); },
-      interval: 20,
-      value: function () {
-        var fetchId = "user";
-        getLoader().initSingleLoad(fetchId, { url: "https://targetj.io/api/randomUser", data: { id: fetchId } });
+      interval: 50,
+      value() {
+        const fetchId = `user${this.users}`;
+        getLoader().initSingleLoad(fetchId, {
+          url: "https://targetj.io/api/randomUser",
+          data: { id: fetchId },
+        });
         return getLoader().fetchResult(fetchId);
       },
       onValueChange(newValue) {
-        var user = newValue.result;
-        this.addChild(new TModel("userApi", {
-            width: 60,
+        if (!newValue) return;
+        const user = newValue.result;
+        this.addChild(
+          new TModel("userApi", {
+            width: 100,
             height: 30,
+            rightMargin: 5,
+            bottomMargin: 5,
+            lineHeight: 30,
             html: user.name,
-            background: "#f00",
-        }));
+            background: "yellow",
+          })
+        );
       },
     },
     slowLoad: {
@@ -207,22 +219,26 @@ App(
         console.log("Connection issue: please try again later.");
       },
       enabledOn() {
-        return this.getTargetExecutionCount("load") > 100;
-      }
+        return this.getTargetExecutionCount("load") > 30;
+      },
     },
     fastLoad: {
+      loop() { return this.users <= 9; },
       value() {
-        //Loading is fast: We can load additional details about the user.
-        console.log(`Loading time was only ${this.val("load").loadingTime}ms`);
-        console.log(`Load target execution time was ${browser.now() - this.getTargetCreationTime("load")}ms`);
-        console.log(`Load target was executed ${this.getTargetExecutionCount("load")} times`);
+        //Loading is fast: We can load additional details about the user or more users.
+        this.users++;
+        this.targetValues['load'].executionCount = 0;
+        this.activateTarget("load");
       },
       enabledOn() {
-        return this.val("load") && this.val("load").loadingTime < 600;
-      }
-    }
+        return (
+          this.isTargetComplete("load") && this.val("load").loadingTime < 600
+        );
+      },
+    },
   })
 );
+
 ```
 
 ## Event handling example
