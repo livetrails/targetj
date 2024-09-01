@@ -164,8 +164,8 @@ App(new TModel('declarative', {
             }));
         }
     },
-    width() { return getScreenWidth(); },
-    height() { return getScreenHeight(); }         
+    width: getScreenWidth,
+    height: getScreenHeight       
 }));
 ```
 
