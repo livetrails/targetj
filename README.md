@@ -408,9 +408,8 @@ App(
       const urlParts = window.location.href.split("/");
       this.pageName = urlParts[urlParts.length - 1];
     },
-    canHandleEvents: "touch",
-    width: () => getScreenWidth(),
-    height: () => getScreenHeight(),
+    width: getScreenWidth,
+    height: getScreenHeight,
     children() {
       switch (this.pageName) {
         case "page1":
@@ -421,7 +420,7 @@ App(
           return [Toolbar(), HomePage()];
       }
     },
-    onResize: ["width", "height"]
+    onResize: ["width", "height"],
   })
 );
 
@@ -439,49 +438,49 @@ const Toolbar = () =>
             outerXEast: 0,
             opacity: {
               loop() { return this.getOpacity() === 1; },
-              value () { return getEvents().isTouchHandler(this) ? [1, 20] : [0.5, 20]; }
+              value() { return getEvents().isTouchHandler(this) ? [1, 20] : [0.5, 20]; },
             },
             activePage: {
               active: false,
               value: () => getPager().openLink(menu),
             },
+            html: menu,
             onTouchEvent: ["opacity"],
-            onClickEvent: ["activePage"],
-            html: menu
+            onClickEvent: ["activePage"]
           })
         );
       });
     },
     height: 50,
-    width: () => getScreenWidth(),
+    width: getScreenWidth,
     onResize: ["width"],
   });
 
 const HomePage = () =>
   new TModel("homePage", {
     background: "yellow",
-    width: () => getScreenWidth(),
-    height: () => getScreenHeight(),
+    width: getScreenWidth,
+    height: getScreenHeight,
     html: "home page",
-    onResize: ["width", "height"]
+    onResize: ["width", "height"],
   });
 
 const Page1 = () =>
   new TModel("page1", {
     background: "blue",
-    width: () => getScreenWidth(),
-    height: () => getScreenHeight(),
+    width: getScreenWidth,
+    height: getScreenHeight,
     html: "page 1",
-    onResize: ["width", "height"]
+    onResize: ["width", "height"],
   });
 
 const Page2 = () =>
   new TModel("page2", {
     background: "green",
-    width: () => getScreenWidth(),
-    height: () => getScreenHeight(),
+    width: getScreenWidth,
+    height: getScreenHeight,
     html: "page 2",
-    onResize: ["width", "height"]
+    onResize: ["width", "height"],
   });
 ```
 
