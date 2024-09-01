@@ -283,8 +283,6 @@ import { App, TModel } from "targetj";
 
 App(
   new TModel("Animation Api", {
-    x: 0,
-    y: 0,
     width: 150,
     height: 150,
     animate: {
@@ -332,10 +330,7 @@ App(
       value() {
         const currentTime = this.val("animate").currentTime;
         this.setTarget("html", (currentTime / 5000).toFixed(1));
-        return currentTime < 5000 ? false : true;
-      },
-      onValueChange(newValue) {
-        if (newValue) {
+        if (currentTime === 5000) {
           this.activateTarget("animate");
         }
       },
