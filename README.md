@@ -185,8 +185,8 @@ import { App, TModel, getLoader, getScreenHeight, getScreenWidth } from "targetj
 App(
   new TModel("apiCall", {
     start() { this.users = 0; },
-    width() { return getScreenWidth(); },
-    height() { return getScreenHeight(); },
+    width: getScreenWidth,
+    height: getScreenHeight,
     load: {
       loop() { return !this.val(this.key); },
       interval: 50,
@@ -282,7 +282,7 @@ TargetJ offers efficient and easy-to-control UI animation and manipulation throu
 import { App, TModel } from "targetj";
 
 App(
-  new TModel("TargetJ vs Animation Api", {
+  new TModel("Animation Api", {
     x: 0,
     y: 0,
     width: 150,
@@ -354,64 +354,48 @@ This example demonstrates how to handle scroll events and develop a simple infin
 ![Single page app](https://targetj.io/img/infiniteScrolling3.gif)
 
 ```bash
-import { App, TModel, getEvents, getScreenHeight, getScreenWidth } from "targetj";
+import { App, TModel, getEvents, getScreenHeight, getScreenWidth, } from "targetj";
 
 App(
   new TModel("scroller", {
     canHandleEvents: "scrollTop",
     innerXEast: 0,
-    addChildren() {
-      const childrenCount = this.getChildren().length;
-      for (let i = 0; i < 10; i++) {
-        this.addChild(
-          new TModel("scrollItem", {
-            width: 300,
-            background: "brown",
-            height: 30,
-            lineHeight: "30",
-            color: "#fff",
-            style: { textAlign: "center" },
-            bottomMargin: 2,
-            x() {
-              return (this.getParentValue("width") - this.getWidth()) / 2;
-            },
-            html: childrenCount + i + 1,
-            domParent() {
-              return this.getParent();
-            },
-          })
-        );
-      }
-    },
-    scrollTop: {
-      value(cycle, lastValue) {
-        return Math.max(0, lastValue + getEvents().currentTouch.deltaY);
-      },
-      enabledOn() {
-        return getEvents().isScrollTopHandler(this);
-      },
-    },
-    addOnOverflow: {
+    addChildren: {
       loop() {
         return this.inFlowVisibles.length * 32 < this.getHeight();
       },
       value() {
-        this.activateTarget("addChildren");
+        const childrenCount = this.getChildren().length;
+        for (let i = 0; i < 10; i++) {
+          this.addChild(
+            new TModel("scrollItem", {
+              width: 300,
+              background: "brown",
+              height: 30,
+              lineHeight: 30,
+              color: "#fff",
+              style: { textAlign: "center" },
+              bottomMargin: 2,
+              x() { return (this.getParentValue("width") - this.getWidth()) / 2; },
+              html: childrenCount + i + 1,
+            })
+          );
+        }
       },
       enabledOn() {
         return this.inFlowVisibles.length * 32 < this.getHeight();
       },
     },
-    width() {
-      return getScreenWidth();
+    scrollTop(cycle, lastValue) {
+      return Math.max(0, lastValue + getEvents().deltaY();
     },
-    height() {
-      return getScreenHeight();
-    },
+    width: getScreenWidth,
+    height: getScreenHeight,
     onResize: ["width", "height"],
     onScrollEvent: ["scrollTop", "addOnOverflow"],
   })
 );
+
 ```
 
 ## Simple Single Page App Example
