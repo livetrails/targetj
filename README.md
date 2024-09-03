@@ -21,7 +21,7 @@ For variable assignments, targets enhance functionality by giving them the abili
 ## What does a target consist of?
 
 Each target consists of the following:
-1. Target Value and Actual Value. The target value represents a variable or the outcome of a method. The actual value is typically the value used by the rest of the application. When the target value differs from the actual value, TargetJ iteratively updates the actual value until it matches the target value. This process is managed by two additional variables: Step, which dictates the number of iterations, and Interval, which specifies the duration (in milliseconds) the system waits before executing the next iteration.
+1. Target Value and Actual Value. The target value is the value assigned to a variable or the result produced by a method.. The actual value is typically the value used by the rest of the application. When the target value differs from the actual value, TargetJ iteratively updates the actual value until it matches the target value. This process is managed by two additional variables: Step, which dictates the number of iterations, and Interval, which specifies the duration (in milliseconds) the system waits before executing the next iteration.
 
 2. State: Targets have four states that control their lifecycle: Active, Inactive, Updating, and Complete. Active: This is the default state for all targets. It indicates that the target is ready to be executed, and the target value needs to be initialized from the variable it represents or its value() method needs to be executed to calculate its output. Inactive: Indicates that the target is not ready to be executed. Updating: Indicates that the actual value is being adjusted to reach the target value. Complete: Indicates that the target execution is finished, and the actual value has matched the target value.
 
@@ -143,15 +143,15 @@ import { App, TModel, getScreenWidth, getScreenHeight } from "targetj";
 
 App(new TModel('declarative', {     
     add() { 
-        for (var i = 0; i < 10; i++) {
+        for (let i = 0; i < 10; i++) {
             this.addChild(new TModel("square", {
                 width: 50,
                 height: 50,
                 background: 'brown',
                 animate: {
                     value() {
-                        var width = this.getWidth();
-                        var parentWidth = this.getParentValue('width');
+                        const width = this.getWidth();
+                        const parentWidth = this.getParentValue('width');
                         this.setTarget('x', { list: [ -width, parentWidth + width ] }, Math.floor(30 + parentWidth * Math.random()));
                         this.setTarget('y',  Math.floor(Math.random() * (this.getParentValue('height') - this.getHeight())), 30);
                     },
