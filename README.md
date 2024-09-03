@@ -274,7 +274,7 @@ App(
 
 ## Animation API example
 
-TargetJ offers efficient and easy-to-control UI animation and manipulation through special targets such as x, y, width, height, scale, rotate, and opacity, which directly impact the UI. A complete list of these targets can be found in the "Special target names" section. For very intensive UI animations, you can leverage the Animation API. An example is provided below.
+TargetJ offers efficient and easy-to-control UI animation and manipulation through special targets such as x, y, width, height, scale, rotate, and opacity, which directly impact the UI. A complete list of these targets can be found in the "Special target names" section below. For very intensive UI animations, you can leverage the Animation API. An example is provided below.
 
 ![animation api example](https://targetj.io/img/animationApi.gif)
 
@@ -387,7 +387,7 @@ App(
     width: getScreenWidth,
     height: getScreenHeight,
     onResize: ["width", "height"],
-    onScrollEvent: ["scrollTop", "addOnOverflow"],
+    onScrollEvent: ["scrollTop", "addChildren"],
   })
 );
 
