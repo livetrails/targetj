@@ -8,7 +8,7 @@ class BracketGenerator {
     static generate(page) {
         let brackets = BracketGenerator.bracketMap[page.oid];
 
-        if (!brackets || brackets.updateCount > 5) {
+        if (!brackets) {
             BracketGenerator.bracketMap[page.oid] = { brackets: BracketGenerator.buildTreeBottomUp(page, page.getChildren()), updateCount: 0 };
         } else if (page.lastChildrenUpdate.additions.length > 0 || page.lastChildrenUpdate.deletions.length > 0) {
             BracketGenerator.updateTree(page, page.lastChildrenUpdate.additions, page.lastChildrenUpdate.deletions);
@@ -26,7 +26,7 @@ class BracketGenerator {
         const affectedIndices = new Set();
         const bracketSize = BracketGenerator.getBracketSize();
 
-        deletions.forEach(item => { // eslint-disable-line no-unused-vars
+        deletions.forEach(item => {
             const index = list.indexOf(item);
             affectedIndices.add(index);
         });
@@ -67,15 +67,18 @@ class BracketGenerator {
     
     static updateSegmentInTree(page, list, start, end) {
         const topBrackets = BracketGenerator.bracketMap[page.oid].brackets;
-        const updatedSegment = BracketGenerator.buildTreeBottomUp(page, list.slice(start, end + 1), start);
+        const updatedSegment = BracketGenerator.buildTreeBottomUp(page, list.slice(start, end + 1));
         const bracketSize = BracketGenerator.getBracketSize();
 
         let currentLevel = topBrackets;
+        let levels = 0;
         while (true) {
              let nextLevel = null;
              for (const bracket of currentLevel) {
+                 console.log('update: ' + start + "-"+ end + ", " + bracket.startIndex + "-" + bracket.endIndex);
+                 
                  if (bracket.startIndex <= start && bracket.endIndex >= end) {
-                     nextLevel = bracket.getChildren() || [];
+                     nextLevel = bracket.getChildren();
                      break;
                  }
              }
@@ -83,6 +86,8 @@ class BracketGenerator {
                  break;
              }
              currentLevel = nextLevel;
+             
+             levels++;
          }        
 
         let mergeIndex = 0;
@@ -94,9 +99,10 @@ class BracketGenerator {
         while (mergeIndex + replaceCount < currentLevel.length && currentLevel[mergeIndex + replaceCount].startIndex <= end) {
             replaceCount++;
         }
+        
+        console.log(mergeIndex + ", " + replaceCount + ", " + levels);
 
         currentLevel.splice(mergeIndex, replaceCount, ...updatedSegment);
-        
         
         BracketGenerator.bracketMap[page.oid].updateCount++;
 
@@ -107,7 +113,7 @@ class BracketGenerator {
         
     }    
     
-    static buildTreeBottomUp(page, list) {
+    static buildTreeBottomUp(page, list, start = 0) {
         
         const brackets = [];
         const length = list.length;
@@ -123,7 +129,7 @@ class BracketGenerator {
 
             if ((canBeBracketed && (size === bracketSize || i === length - 1)) || (!canBeBracketed && size > 0)) {
                 const to = canBeBracketed ? i + 1 : i;
-                brackets.push(BracketGenerator.createBracket(page, list, from, to));
+                brackets.push(BracketGenerator.createBracket(page, list, start + from, start + to));
                 from = i + 1;
                 consecutiveBrackets++;
             }
@@ -134,7 +140,7 @@ class BracketGenerator {
 
             if (!canBeBracketed) {
                 consecutiveBrackets = 0;
-                brackets.list.push(list[i]);
+                brackets.push(list[i]);
                 from = i + 1;
             }
         }

@@ -29,7 +29,7 @@ class TargetManager {
         }
 
         if (!tmodel.isTargetEnabled(key)) {
-            tApp.manager.scheduleRun(10, `applyTargetValue-disabled-${tmodel.oid}__${key}`);
+            //tApp.manager.scheduleRun(10, `applyTargetValue-disabled-${tmodel.oid}__${key}`);
             return;
         }
 

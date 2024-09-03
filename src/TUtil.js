@@ -160,7 +160,7 @@ class TUtil {
             const gtab = g.isVisible() ? tab + '|  ': tab + 'x  ';
 
             if (g.type === 'BI') {
-                console.log(`${gtab}${g.oid} v:${g.isVisible()} x:${Math.floor(g.getX())} y:${Math.floor(g.getY())} w:${Math.floor(g.getWidth())} wi:${Math.floor(g.getInnerWidth())} h:${Math.floor(g.getHeight())} hi:${Math.floor(g.innerContentHeight)}`);
+                console.log(`${gtab}${g.oid} v:${g.isVisible()} x:${Math.floor(g.getX())} y:${Math.floor(g.getY())} w:${Math.floor(g.getWidth())} h:${Math.floor(g.getHeight())} ind:${g.startIndex}-${g.endIndex}`);
             } else {
                 console.log(`${gtab}${g.oid} v:${g.isVisible()} x:${Math.floor(g.getX())} y:${Math.floor(g.getY())} w:${Math.floor(g.getWidth())} h:${Math.floor(g.getHeight())} hc:${Math.floor(g.getContentHeight())}`);
             }

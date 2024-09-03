@@ -71,6 +71,10 @@ class Bracket extends TModel {
         this.newFlag = false;
         return result;
     }
+    
+    indexRange() {
+        return [this.startIndex, this.endIndex];
+    }
 
     getChildren() {
         return this.allChildren;
