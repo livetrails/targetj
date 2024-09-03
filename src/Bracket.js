@@ -25,7 +25,6 @@ class Bracket extends TModel {
     }
 
     getInnerXEast() {
-        this.initParents();        
         return TUtil.isDefined(this.getRealParent().val('innerXEast')) ? this.getRealParent().val('innerXEast') : this.getRealParent().absX + this.getRealParent().getWidth();
     }
 
@@ -34,17 +33,14 @@ class Bracket extends TModel {
     }
 
     getScrollTop() {
-        this.initParents();
         return this.getRealParent().getScrollTop();
     }
 
     getScrollLeft() {
-        this.initParents();
         return this.getRealParent().getScrollLeft();
     }
 
     getBoundingRect() {
-        this.initParents();
         return TUtil.getBoundingRect(this.getRealParent());
     }
 
@@ -59,17 +55,14 @@ class Bracket extends TModel {
     }
 
     addToUpdatingChildren(child) {
-        this.initParents();        
         this.getRealParent().addToUpdatingChildren(child);
     }
 
     createViewport() {
-        this.initParents();        
         return this.getRealParent().createViewport.call(this);
     }
 
     getRealParent() {
-        this.initParents();
         return this.realParent;
     }
 
@@ -80,46 +73,10 @@ class Bracket extends TModel {
     }
 
     getChildren() {
-        return this.actualValues.children;
+        return this.allChildren;
     }
 
     addToParentVisibleList() {}
-
-    initParents() {
-        if (this.realParent) {
-            return;
-        }
-
-        let parent = this.bracketParent;
-
-        while (parent) {
-            if (parent.type !== 'BI') {
-                break;
-            } else {
-                parent = parent.bracketParent;
-            }
-        }
-
-        this.realParent = parent;
-    }
-
-    getChildrenOids() {
-        let oids = [];
-        const list = this.getChildren();
-
-        for (let i = 0; i < list.length; i++) {
-            const item = list[i];
-            if (item.type === 'BI') {
-                const goids = item.getChildrenOids();
-                oids = [].concat(oids, [item.oid], goids);
-            } else {
-                oids.push(item.oid + ":" + item.getHeight());
-            }
-        }
-
-        return oids;
-    }
-
 }
 
 export { Bracket };

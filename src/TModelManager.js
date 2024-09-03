@@ -15,7 +15,6 @@ class TModelManager {
             restyle: [],
             reattach: [],
             invisibleDom: [],
-            deletedTModel: [],
             visibleNoDom: [],
             updatingTModels: [],
             updatingTargets: [],
@@ -88,10 +87,7 @@ class TModelManager {
         for (const tmodel of tApp.locationManager.hasLocationList) {
             const visible = tmodel.isVisible();
 
-            if (tmodel.isMarkedDeleted() && !this.lists.deletedTModel.includes(tmodel)) {
-                this.lists.deletedTModel = [...this.lists.deletedTModel, tmodel, ...TUtil.getDeepList(tmodel)];
-                lastVisibleMap[tmodel.oid] = null;
-            } else if (visible) {
+            if (visible) {
                 lastVisibleMap[tmodel.oid] = null;
 
                 if (tmodel.hasDom() && !tmodel.canHaveDom() && !this.lists.invisibleDom.includes(tmodel)) {
@@ -206,48 +202,12 @@ class TModelManager {
             tmodel.$dom = null;
         }
 
-        for (const tmodel of this.lists.deletedTModel) {
-            this.removeTModel(tmodel);
-        }
-
-        const rerun = this.lists.invisibleDom.length > 0 || this.lists.deletedTModel.length > 0;
+        const rerun = this.lists.invisibleDom.length > 0;
 
         this.lists.invisibleDom.length = 0;
-        this.lists.deletedTModel.length = 0;
 
         if (rerun) {
             this.scheduleRun(0, "deleteDoms");
-        }
-    }
-
-    removeTModel(tmodel) {
-        tmodel.markAsDeleted();
-
-        const parent = tmodel.getParent();
-
-        if (parent && parent.hasChildren()) {
-            parent.removeFromUpdatingChildren(tmodel);
-
-            let childIndex = parent.val('children').indexOf(tmodel);
-
-            if (childIndex >= 0) {
-                parent.val('children').splice(childIndex, 1);
-                parent.setActualValueLastUpdate('children');
-            }
-
-            childIndex = parent.val('addedChildren').indexOf(tmodel);
-
-            if (childIndex >= 0) {
-                parent.val('addedChildren').splice(childIndex, 1);
-                parent.setActualValueLastUpdate('addedChildren');
-            }
-
-            parent.setActualValueLastUpdate('allChildren');
-        }
-
-        if (tmodel.$dom) {
-            tmodel.$dom.detach();
-            tmodel.$dom = null;
         }
     }
 

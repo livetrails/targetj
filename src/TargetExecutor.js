@@ -15,9 +15,8 @@ class TargetExecutor {
         targetValue.isImperative = true;
         targetValue.originalTargetName = originalTargetName;
 
-        if (TargetUtil.isAddChildTarget(key, value)) {
-            tmodel.addChild(value);
-        } else if (TargetUtil.isListTarget(value)) {
+
+        if (TargetUtil.isListTarget(value)) {
             TargetExecutor.assignListTarget(targetValue, value.list, value.list[0], steps, interval, easing);
         } else {
             TargetExecutor.assignSingleTarget(targetValue, value, undefined, steps, 0, interval, easing);
@@ -98,7 +97,13 @@ class TargetExecutor {
         tmodel.targetValues[key] = targetValue;
         const easing = TUtil.isDefined(tmodel.targets[key].easing) ? tmodel.targets[key].easing : undefined;
 
-        if (TargetUtil.isListTarget(newValue)) {
+        if (TargetUtil.isChildrenTarget(key, newValue)) {
+            if (Array.isArray(newValue)) {
+                newValue.forEach((child) => tmodel.addChild(child));                      
+            } else {
+                tmodel.addChild(newValue);
+            }
+        } else if (TargetUtil.isListTarget(newValue)) {
             TargetExecutor.assignListTarget(targetValue, newValue.list, newValue.list[0], newSteps, newInterval, easing);
         } else {
             TargetExecutor.assignSingleTarget(targetValue, newValue, targetInitial, newSteps, newCycles, newInterval, easing);

@@ -41,7 +41,7 @@ class LocationManager {
 
     getChildren(container) {
         if (this.isProlificContainer(container)) {
-            return BracketGenerator.generate(container).list;
+            return BracketGenerator.generate(container);
         }
 
         return container.getChildren();
@@ -72,10 +72,6 @@ class LocationManager {
             const preY = child.domValues.y;
 
             this.calculateTargets(child);
-
-            if (child.getActualValueLastUpdate('canBeBracketed') > child.getParent().getActualValueLastUpdate("allChildren")) {
-                delete child.getParent().targetValues['allChildren'];
-            }
 
             viewport.setCurrentChild(child);
             child.setLocation(viewport);

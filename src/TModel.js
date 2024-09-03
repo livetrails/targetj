@@ -5,6 +5,7 @@ import { TUtil } from "./TUtil.js";
 import { TargetUtil } from "./TargetUtil.js";
 import { TargetExecutor } from "./TargetExecutor.js";
 import { Viewport } from "./Viewport.js";
+import { TModelUtil } from "./TModelUtil";
 
 class TModel {
     constructor(type, targets) {
@@ -48,8 +49,6 @@ class TModel {
             style: null,
             borderRadius: 0,
             children: [],
-            addedChildren: [],
-            allChildren: [],
             isInFlow: true,
             canHaveDom: true,
             canHandleEvents: false,
@@ -62,6 +61,11 @@ class TModel {
             calculateChildren: undefined,
             isVisible: undefined
         };
+
+        this.addedChildren = { count: 0, list: [] };
+        this.deletedChildren = [];
+        this.lastChildrenUpdate = { additions: [], deletions: [] };
+        this.allChildren = [];
 
         this.updatingTargetList = [];
         this.updatingTargetMap = {};
@@ -186,31 +190,38 @@ class TModel {
     }
 
     getChildren() {
-        const lastUpdateAllChildren = this.getActualValueLastUpdate('allChildren');
-        const lastUpdateChildren = this.getActualValueLastUpdate('children');
-        const lastUpdateAddedChildren = this.getActualValueLastUpdate('addedChildren');
+        if (this.addedChildren.count > 0) {
+            this.addedChildren.list.forEach(({ index, segment }) => {
+                
+                segment.forEach(t => t.parent = this);
 
-        if (!lastUpdateAllChildren ||
-            lastUpdateChildren >= lastUpdateAllChildren ||
-            lastUpdateAddedChildren >= lastUpdateAllChildren) {
+                if (index >= this.allChildren.length) {
+                    this.allChildren.push(...segment);
+                } else {
+                    this.allChildren.splice(index, 0, ...segment);
+                }
+            });
+            
+            this.lastChildrenUpdate.additions = this.lastChildrenUpdate.additions.concat(this.addedChildren.list);
 
-            const children = this.actualValues.children;
-            const addedChildren = this.actualValues.addedChildren;
-
-            this.actualValues.allChildren = [].concat(children, addedChildren);
-
-            if (children && children.length > 0) {
-                children.forEach(t => t.parent = this);
-                this.actualValues.allChildren.sort((a, b) => !a.canBeBracketed() && b.canBeBracketed() ? -1 : 1);
-            }
-            if (this.targetValues['allChildren']) {
-                this.setActualValueLastUpdate('allChildren');
-            } else {
-                this.setTarget('allChildren', this.actualValues.allChildren);
-            }
+            this.addedChildren.list.length = 0;
+            this.addedChildren.count = 0;
         }
-
-        return this.actualValues.allChildren;
+        
+        if (this.deletedChildren.length > 0) {
+            this.deletedChildren.forEach(child => {
+                const index = this.allChildren.indexOf(child);
+                if (index >= 0) {
+                    this.allChildren.splice(index, 1);
+                }
+            });
+            
+            this.lastChildrenUpdate.deletions = this.lastChildrenUpdate.deletions.concat(this.addedChildren);
+            
+            this.deletedChildren.length = 0;
+        }
+        
+        return this.allChildren;
     }
 
     getLastChild() {
@@ -231,12 +242,6 @@ class TModel {
 
     getChildrenOids() {
         return this.getChildren().oids();
-    }
-
-    filterChildren(type) {
-        return this.getChildren().filter(tmodel => {
-            return Array.isArray(type) ? type.includes(tmodel.type) : typeof type === 'function' ? type.call(tmodel) : tmodel.type === type;
-        });
     }
 
     findChild(type) {
@@ -328,15 +333,6 @@ class TModel {
 
     getBoundingRect() {
         return TUtil.getBoundingRect(this);
-    }
-
-    isMarkedDeleted() {
-        return this.val('tmodelDeletedFlag') === true;
-    }
-
-    markAsDeleted() {
-        this.val('tmodelDeletedFlag', true);
-        this.getChildren().forEach(tmodel => tmodel.markAsDeleted());
     }
 
     isTextOnly() {
@@ -706,35 +702,31 @@ class TModel {
         return this;
     }
 
-    multiplyValue(key, value) {
-        this.actualValues[key] *= value;
-        return this;
-    }
-
     addChild(child, index) {
-        const addedChildren = this.actualValues.addedChildren;
-
-        index = TUtil.isDefined(index) ? index : addedChildren.length;
-        child.parent = this;
-
-        if (index >= addedChildren.length) {
-            addedChildren.push(child);
-        } else {
-            addedChildren.splice(index, 0, child);
-        }
-
-        this.setActualValueLastUpdate('children');
-        if (this.targetValues['addedChildren']) {
-            this.setActualValueLastUpdate('addedChildren');
-        } else {
-            this.setTarget('addedChildren', addedChildren);
-        }
+        index = TUtil.isDefined(index) ? index : this.addedChildren.count + this.allChildren.length;
+        this.addedChildren.count++;
+        TModelUtil.addItem(this.addedChildren.list, child, index);
 
         tApp.manager.scheduleRun(10, 'addChild-' + this.oid + "-" + child.oid);
 
         return this;
     }
+    
+    removeChild(child) {
+        this.deletedChildren.push(child);
+        this.removeFromUpdatingChildren(child);
 
+        tApp.manager.scheduleRun(10, 'removeChild-' + this.oid + "-" + child.oid);
+
+        return this;
+    }
+    
+    removeAllChildren() {
+        this.allChildren.length = 0;
+        this.updatingChildrenList.length = 0;
+        this.updatingChildrenMap = {};
+    }
+   
     addToUpdatingChildren(child) {
         if (!this.updatingChildrenMap[child.oid]) {
             this.updatingChildrenMap[child.oid] = true;

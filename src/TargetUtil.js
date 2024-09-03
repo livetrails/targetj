@@ -107,8 +107,8 @@ class TargetUtil {
         return typeof value === 'object' && Array.isArray(value.list);
     }
 
-    static isAddChildTarget(key, value) {
-        return value instanceof TModel && key === 'addChild';
+    static isChildrenTarget(key, value) {
+        return key === 'children' && (Array.isArray(value) || value instanceof TModel);
     }
 
     static getValueStepsCycles(tmodel, key) {

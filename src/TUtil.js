@@ -6,7 +6,7 @@ import { getLocationManager, tRoot } from "./App.js";
 class TUtil {
     static getBoundingRect(tmodel) {
         let left, top, right, bottom, oid;
-
+        
         if (tmodel.actualValues.domHolder && tmodel.actualValues.domHolder.exists()) {
             if (tmodel.getParent() === tRoot()) {
                 left = tmodel.getX();
@@ -160,7 +160,7 @@ class TUtil {
             const gtab = g.isVisible() ? tab + '|  ': tab + 'x  ';
 
             if (g.type === 'BI') {
-                console.log(`${gtab}${g.oid} v:${g.isVisible()} x:${Math.floor(g.getX())} y:${Math.floor(g.getY())} w:${Math.floor(g.getWidth())} wi:${Math.floor(g.getInnerWidth())} h:${Math.floor(g.getHeight())} hi:${Math.floor(g.innerContentHeight)} p:${g.getRealParent().oid}`);
+                console.log(`${gtab}${g.oid} v:${g.isVisible()} x:${Math.floor(g.getX())} y:${Math.floor(g.getY())} w:${Math.floor(g.getWidth())} wi:${Math.floor(g.getInnerWidth())} h:${Math.floor(g.getHeight())} hi:${Math.floor(g.innerContentHeight)}`);
             } else {
                 console.log(`${gtab}${g.oid} v:${g.isVisible()} x:${Math.floor(g.getX())} y:${Math.floor(g.getY())} w:${Math.floor(g.getWidth())} h:${Math.floor(g.getHeight())} hc:${Math.floor(g.getContentHeight())}`);
             }
