@@ -14,14 +14,14 @@ npm install targetj
 
 ## What are targets?
 
-Targets provide a unified interface for variables and methods, giving them life cycles and the autonomy to operate independently, with various callbacks to adapt to changes, mimicking the behavior of living cells.
+Targets provide a unified interface for variable assignments and methods, giving them life cycles and the autonomy to operate independently, with various callbacks to adapt to changes, mimicking the behavior of living cells.
 
-For variables, targets enhance functionality by giving them the ability to iterate in steps until they reach the specified value, rather than being immediately assigned their values. They can introduce pauses between iterations and offer callbacks to monitor progress, track the progress of other variables, and manage their life cycles accordingly. Similarly, targets enhance methods by allowing them to manage their own life cycles. They can execute themselves under specific conditions, control the number of executions, and offer the same capabilities as those provided to variables.
+For variable assignments, targets enhance functionality by giving them the ability to iterate in steps until they reach the specified value, rather than being immediately assigned their values. They can introduce pauses between iterations and offer callbacks to monitor progress, track the progress of other variables, and manage their life cycles accordingly. Similarly, targets enhance methods by allowing them to manage their own life cycles. They can execute themselves under specific conditions, control the number of executions, and offer the same capabilities as those provided to variables.
 
 ## What does a target consist of?
 
 Each target consists of the following:
-1. Target Value and Actual Value. The target value represents a variable or the outcome of a method. The actual value is typically the value used by the rest of the application. When the target value differs from the actual value, TargetJ iteratively updates the actual value until it matches the target value. This process is managed by two additional variables: Step, which dictates the number of iterations, and Interval, which specifies the duration (in milliseconds) the system waits before executing the next iteration.
+1. Target Value and Actual Value. The target value is the value assigned to a variable or the result produced by a method.. The actual value is typically the value used by the rest of the application. When the target value differs from the actual value, TargetJ iteratively updates the actual value until it matches the target value. This process is managed by two additional variables: Step, which dictates the number of iterations, and Interval, which specifies the duration (in milliseconds) the system waits before executing the next iteration.
 
 2. State: Targets have four states that control their lifecycle: Active, Inactive, Updating, and Complete. Active: This is the default state for all targets. It indicates that the target is ready to be executed, and the target value needs to be initialized from the variable it represents or its value() method needs to be executed to calculate its output. Inactive: Indicates that the target is not ready to be executed. Updating: Indicates that the actual value is being adjusted to reach the target value. Complete: Indicates that the target execution is finished, and the actual value has matched the target value.
 
@@ -143,15 +143,15 @@ import { App, TModel, getScreenWidth, getScreenHeight } from "targetj";
 
 App(new TModel('declarative', {     
     add() { 
-        for (var i = 0; i < 10; i++) {
+        for (let i = 0; i < 10; i++) {
             this.addChild(new TModel("square", {
                 width: 50,
                 height: 50,
                 background: 'brown',
                 animate: {
                     value() {
-                        var width = this.getWidth();
-                        var parentWidth = this.getParentValue('width');
+                        const width = this.getWidth();
+                        const parentWidth = this.getParentValue('width');
                         this.setTarget('x', { list: [ -width, parentWidth + width ] }, Math.floor(30 + parentWidth * Math.random()));
                         this.setTarget('y',  Math.floor(Math.random() * (this.getParentValue('height') - this.getHeight())), 30);
                     },
@@ -164,8 +164,8 @@ App(new TModel('declarative', {
             }));
         }
     },
-    width() { return getScreenWidth(); },
-    height() { return getScreenHeight(); }         
+    width: getScreenWidth,
+    height: getScreenHeight       
 }));
 ```
 
@@ -185,8 +185,8 @@ import { App, TModel, getLoader, getScreenHeight, getScreenWidth } from "targetj
 App(
   new TModel("apiCall", {
     start() { this.users = 0; },
-    width() { return getScreenWidth(); },
-    height() { return getScreenHeight(); },
+    width: getScreenWidth,
+    height: getScreenHeight,
     load: {
       loop() { return !this.val(this.key); },
       interval: 50,
@@ -274,7 +274,7 @@ App(
 
 ## Animation API example
 
-TargetJ offers efficient and easy-to-control UI animation and manipulation through special targets such as x, y, width, height, scale, rotate, and opacity, which directly impact the UI. A complete list of these targets can be found in the "Special target names" section. For very intensive UI animations, you can leverage the Animation API. An example is provided below.
+TargetJ offers efficient and easy-to-control UI animation and manipulation through special targets such as x, y, width, height, scale, rotate, and opacity, which directly impact the UI. A complete list of these targets can be found in the "Special target names" section below. For very intensive UI animations, you can leverage the Animation API. An example is provided below.
 
 ![animation api example](https://targetj.io/img/animationApi.gif)
 
@@ -282,9 +282,7 @@ TargetJ offers efficient and easy-to-control UI animation and manipulation throu
 import { App, TModel } from "targetj";
 
 App(
-  new TModel("TargetJ vs Animation Api", {
-    x: 0,
-    y: 0,
+  new TModel("Animation Api", {
     width: 150,
     height: 150,
     animate: {
@@ -332,10 +330,7 @@ App(
       value() {
         const currentTime = this.val("animate").currentTime;
         this.setTarget("html", (currentTime / 5000).toFixed(1));
-        return currentTime < 5000 ? false : true;
-      },
-      onValueChange(newValue) {
-        if (newValue) {
+        if (currentTime === 5000) {
           this.activateTarget("animate");
         }
       },
@@ -354,64 +349,48 @@ This example demonstrates how to handle scroll events and develop a simple infin
 ![Single page app](https://targetj.io/img/infiniteScrolling3.gif)
 
 ```bash
-import { App, TModel, getEvents, getScreenHeight, getScreenWidth } from "targetj";
+import { App, TModel, getEvents, getScreenHeight, getScreenWidth, } from "targetj";
 
 App(
   new TModel("scroller", {
     canHandleEvents: "scrollTop",
     innerXEast: 0,
-    addChildren() {
-      const childrenCount = this.getChildren().length;
-      for (let i = 0; i < 10; i++) {
-        this.addChild(
-          new TModel("scrollItem", {
-            width: 300,
-            background: "brown",
-            height: 30,
-            lineHeight: "30",
-            color: "#fff",
-            style: { textAlign: "center" },
-            bottomMargin: 2,
-            x() {
-              return (this.getParentValue("width") - this.getWidth()) / 2;
-            },
-            html: childrenCount + i + 1,
-            domParent() {
-              return this.getParent();
-            },
-          })
-        );
-      }
-    },
-    scrollTop: {
-      value(cycle, lastValue) {
-        return Math.max(0, lastValue + getEvents().currentTouch.deltaY);
-      },
-      enabledOn() {
-        return getEvents().isScrollTopHandler(this);
-      },
-    },
-    addOnOverflow: {
+    addChildren: {
       loop() {
         return this.inFlowVisibles.length * 32 < this.getHeight();
       },
       value() {
-        this.activateTarget("addChildren");
+        const childrenCount = this.getChildren().length;
+        for (let i = 0; i < 10; i++) {
+          this.addChild(
+            new TModel("scrollItem", {
+              width: 300,
+              background: "brown",
+              height: 30,
+              lineHeight: 30,
+              color: "#fff",
+              style: { textAlign: "center" },
+              bottomMargin: 2,
+              x() { return (this.getParentValue("width") - this.getWidth()) / 2; },
+              html: childrenCount + i + 1,
+            })
+          );
+        }
       },
       enabledOn() {
         return this.inFlowVisibles.length * 32 < this.getHeight();
       },
     },
-    width() {
-      return getScreenWidth();
+    scrollTop(cycle, lastValue) {
+      return Math.max(0, lastValue + getEvents().deltaY();
     },
-    height() {
-      return getScreenHeight();
-    },
+    width: getScreenWidth,
+    height: getScreenHeight,
     onResize: ["width", "height"],
-    onScrollEvent: ["scrollTop", "addOnOverflow"],
+    onScrollEvent: ["scrollTop", "addChildren"],
   })
 );
+
 ```
 
 ## Simple Single Page App Example
@@ -429,9 +408,8 @@ App(
       const urlParts = window.location.href.split("/");
       this.pageName = urlParts[urlParts.length - 1];
     },
-    canHandleEvents: "touch",
-    width: () => getScreenWidth(),
-    height: () => getScreenHeight(),
+    width: getScreenWidth,
+    height: getScreenHeight,
     children() {
       switch (this.pageName) {
         case "page1":
@@ -442,7 +420,7 @@ App(
           return [Toolbar(), HomePage()];
       }
     },
-    onResize: ["width", "height"]
+    onResize: ["width", "height"],
   })
 );
 
@@ -460,49 +438,49 @@ const Toolbar = () =>
             outerXEast: 0,
             opacity: {
               loop() { return this.getOpacity() === 1; },
-              value () { return getEvents().isTouchHandler(this) ? [1, 20] : [0.5, 20]; }
+              value() { return getEvents().isTouchHandler(this) ? [1, 20] : [0.5, 20]; },
             },
             activePage: {
               active: false,
               value: () => getPager().openLink(menu),
             },
+            html: menu,
             onTouchEvent: ["opacity"],
-            onClickEvent: ["activePage"],
-            html: menu
+            onClickEvent: ["activePage"]
           })
         );
       });
     },
     height: 50,
-    width: () => getScreenWidth(),
+    width: getScreenWidth,
     onResize: ["width"],
   });
 
 const HomePage = () =>
   new TModel("homePage", {
     background: "yellow",
-    width: () => getScreenWidth(),
-    height: () => getScreenHeight(),
+    width: getScreenWidth,
+    height: getScreenHeight,
     html: "home page",
-    onResize: ["width", "height"]
+    onResize: ["width", "height"],
   });
 
 const Page1 = () =>
   new TModel("page1", {
     background: "blue",
-    width: () => getScreenWidth(),
-    height: () => getScreenHeight(),
+    width: getScreenWidth,
+    height: getScreenHeight,
     html: "page 1",
-    onResize: ["width", "height"]
+    onResize: ["width", "height"],
   });
 
 const Page2 = () =>
   new TModel("page2", {
     background: "green",
-    width: () => getScreenWidth(),
-    height: () => getScreenHeight(),
+    width: getScreenWidth,
+    height: getScreenHeight,
     html: "page 2",
-    onResize: ["width", "height"]
+    onResize: ["width", "height"],
   });
 ```
 
