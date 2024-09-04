@@ -202,13 +202,9 @@ class TModelManager {
             tmodel.$dom = null;
         }
 
-        const rerun = this.lists.invisibleDom.length > 0;
-
         this.lists.invisibleDom.length = 0;
 
-        if (rerun) {
-            this.scheduleRun(0, "deleteDoms");
-        }
+        this.scheduleRun(0, "deleteDoms");
     }
 
     fixStyles() {
@@ -456,7 +452,9 @@ class TModelManager {
                         break;
 
                     case 5:
-                        tApp.manager.deleteDoms();
+                        if (this.lists.invisibleDom.length > 0) {
+                            tApp.manager.deleteDoms();
+                        }
                         break;
 
                     case 6:
@@ -477,10 +475,10 @@ class TModelManager {
                     `it took: ${tApp.manager.cycleStats.duration}, ${oid}`
                 );
                 browser.log(tApp.debugLevel > 0 && tApp.manager.cycleStats.duration > 10)(
-                    `count: ${tApp.locationManager.locationCount}`
+                    `count: ${tApp.locationManager.locationList}`
                 );
                 browser.log(tApp.debugLevel > 1)(`request from: ${oid} delay:  ${delay}`);
-            }
+            }         
 
             tApp.manager.runningFlag = false;
 

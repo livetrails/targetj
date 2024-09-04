@@ -2,6 +2,9 @@ import { browser } from "./Browser.js";
 import { TUtil } from "./TUtil.js";
 import { getManager } from "./App.js";
 
+/**
+ * It serves as a wrapper for all DOM operations.
+ */
 class $Dom {
     constructor(elemSelector) {
         if (typeof elemSelector === 'string') {

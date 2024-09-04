@@ -11,7 +11,7 @@ class LocationManager {
         this.hasLocationMap = {};
 
         this.bracketThreshold = 6;
-        this.locationCount = [];
+        this.locationList = [];
 
         this.screenWidth = getScreenWidth();
         this.screenHeight = getScreenHeight();
@@ -21,7 +21,7 @@ class LocationManager {
     calculateAll() {
         this.hasLocationList.length = 0;
         this.hasLocationMap = {};
-        this.locationCount.length = 0;
+        this.locationList.length = 0;
         this.startTime = browser.now();
         this.resizeFlag = false;
 
@@ -43,7 +43,11 @@ class LocationManager {
         if (this.isProlificContainer(container)) {
             return BracketGenerator.generate(container);
         }
-
+        
+        if (BracketGenerator.bracketMap[container.oid]) {
+            delete BracketGenerator.bracketMap[container.oid];            
+        }
+        
         return container.getChildren();
     }
 
@@ -148,7 +152,7 @@ class LocationManager {
             }
 
             viewport.calcContentWidthHeight();
-            this.locationCount.push(`${child.oid}-${child.updatingTargetList.length}-${browser.now() - this.startTime}`);
+            this.locationList.push(`${child.oid}-${child.updatingTargetList.length}-${browser.now() - this.startTime}`);
         }
     }
 

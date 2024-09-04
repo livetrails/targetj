@@ -1,6 +1,13 @@
 import { tApp } from "./App.js";
 import { Bracket } from "./Bracket.js";
+import { TUtil } from "./TUtil.js";
 
+/**
+ * Generates a bottom-up tree from the children of a TModel. When the number of children
+ * exceeds a defined threshold, a tree is generated to limit the process loop to only
+ * the visible branches. A TModel can opt out of tree generation by setting
+ * `canBeBracketed` to false.
+ */
 class BracketGenerator {
     
     static bracketMap = {};
@@ -30,10 +37,6 @@ class BracketGenerator {
             const index = list.indexOf(item);
             affectedIndices.add(index);
         });
-        
-        if (affectedIndices.length) {
-            console.log('deleting: ' + affectedIndices);
-        }
         
         additions.forEach(({ index, segment }) => {
             segment.forEach((_, i) => affectedIndices.add(index + i)); // eslint-disable-line no-unused-vars
@@ -71,12 +74,9 @@ class BracketGenerator {
         const bracketSize = BracketGenerator.getBracketSize();
 
         let currentLevel = topBrackets;
-        let levels = 0;
         while (true) {
              let nextLevel = null;
-             for (const bracket of currentLevel) {
-                 console.log('update: ' + start + "-"+ end + ", " + bracket.startIndex + "-" + bracket.endIndex);
-                 
+             for (const bracket of currentLevel) {                 
                  if (bracket.startIndex <= start && bracket.endIndex >= end) {
                      nextLevel = bracket.getChildren();
                      break;
@@ -86,8 +86,6 @@ class BracketGenerator {
                  break;
              }
              currentLevel = nextLevel;
-             
-             levels++;
          }        
 
         let mergeIndex = 0;
@@ -99,21 +97,21 @@ class BracketGenerator {
         while (mergeIndex + replaceCount < currentLevel.length && currentLevel[mergeIndex + replaceCount].startIndex <= end) {
             replaceCount++;
         }
+                
+        var indexOffset = currentLevel.length > mergeIndex ? currentLevel[mergeIndex].startIndex : currentLevel[currentLevel.length - 1].endIndex;
         
-        console.log(mergeIndex + ", " + replaceCount + ", " + levels);
-
         currentLevel.splice(mergeIndex, replaceCount, ...updatedSegment);
+        
+        BracketGenerator.reindexSegment(updatedSegment, indexOffset);
         
         BracketGenerator.bracketMap[page.oid].updateCount++;
 
         if (currentLevel.length > bracketSize) {
             BracketGenerator.bracketMap[page.oid].brackets = BracketGenerator.buildTreeBottomUp(page, currentLevel); 
         }
-        
-        
     }    
     
-    static buildTreeBottomUp(page, list, start = 0) {
+    static buildTreeBottomUp(page, list) {
         
         const brackets = [];
         const length = list.length;
@@ -129,7 +127,7 @@ class BracketGenerator {
 
             if ((canBeBracketed && (size === bracketSize || i === length - 1)) || (!canBeBracketed && size > 0)) {
                 const to = canBeBracketed ? i + 1 : i;
-                brackets.push(BracketGenerator.createBracket(page, list, start + from, start + to));
+                brackets.push(BracketGenerator.createBracket(page, list, from, to));
                 from = i + 1;
                 consecutiveBrackets++;
             }
@@ -158,7 +156,7 @@ class BracketGenerator {
 
         bracket.allChildren = list.slice(startIndex, endIndex);
         bracket.startIndex = bracket.allChildren[0] instanceof Bracket ? bracket.allChildren[0].startIndex : startIndex;
-        bracket.endIndex = bracket.allChildren[bracket.allChildren.length - 1] instanceof Bracket ? bracket.allChildren[0].endIndex : endIndex;
+        bracket.endIndex = bracket.allChildren[bracket.allChildren.length - 1] instanceof Bracket ? bracket.allChildren[bracket.allChildren.length - 1].endIndex : endIndex;
         
         bracket.allChildren.forEach(t => {
             if (t instanceof Bracket) {
@@ -171,6 +169,25 @@ class BracketGenerator {
 
         return bracket;
     }
+    
+    static reindexSegment(segment, indexOffset) {
+        let queue = segment.slice(0); // Start with the root node in the queue
+
+        while (queue.length > 0) {
+            let bracket = queue.shift(); // Dequeue the first node
+
+            bracket.startIndex += indexOffset;
+            bracket.endIndex += indexOffset;
+
+            if (bracket instanceof Bracket) {
+                bracket.getChildren().forEach(child => {
+                    if (TUtil.isDefined(child.startIndex) && TUtil.isDefined(child.endIndex)) {
+                        queue.push(child);
+                    }
+                });
+            }
+        }
+    }        
     
     
     static getBracketSize() {
