@@ -98,7 +98,7 @@ class EventListener {
         const lastEvent = this.eventQueue.shift();
 
         if (lastEvent.eventName === 'resize') {
-            getBrowser.measureScreen();
+            getBrowser().measureScreen();
         } else {
             if (lastEvent.tmodel) {
                 this.findEventHandlers(lastEvent.tmodel);
