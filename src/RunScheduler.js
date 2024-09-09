@@ -55,8 +55,8 @@ class RunScheduler {
 
             if (nextRun && (!lastRun || nextRun.delay > lastRun.delay)) {
                 this.nextRuns.push(nextRun);
-            } else if (nextRun && firstRun && nextRun.delay <= firstRun.delay) {
-                this.nextRuns.shift(nextRun);
+            } else if (nextRun && firstRun && nextRun.delay < firstRun.delay) {
+                this.nextRuns.unshift(nextRun);
             }
         }
     }
@@ -64,7 +64,7 @@ class RunScheduler {
     run(delay, runId) {
         if (!tApp.isRunning()) {
             return;
-        }
+        } 
 
         if (this.runningFlag) {
             this.rerunId = runId;
@@ -73,7 +73,6 @@ class RunScheduler {
 
         this.runId = runId;
         this.runningFlag = true;
-
 
         window.requestAnimationFrame(() => {
             const startStep = this.runningStep;
@@ -192,7 +191,11 @@ class RunScheduler {
         if (this.nextRuns.length > 0) {
             const nextRun = this.nextRuns.pop();
             if (nextRun) {
-                this.schedule(Math.min(0, nextRun.timeStamp - TUtil.now()), nextRun.runId);
+                if (nextRun.timeStamp >= TUtil.now()) {
+                    this.schedule(nextRun.timeStamp - TUtil.now(), nextRun.runId);
+                } else {
+                    this.getNextRun();
+                }
             }
         }
     }
