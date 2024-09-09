@@ -1,4 +1,4 @@
-import { tApp, App } from "./App.js";
+import { tApp, App, getRunScheduler } from "./App.js";
 import { browser } from "./Browser.js";
 import { SearchUtil } from "./SearchUtil.js";
 import { TUtil } from "./TUtil.js";
@@ -57,6 +57,7 @@ class TModel {
             keepEventDefault: false,
             isIncluded: true,
             canBeBracketed: true,
+            bracketThreshold: 6,
             isDomDeletable: true,
             calculateChildren: undefined,
             isVisible: undefined
@@ -176,7 +177,7 @@ class TModel {
             this.addToActiveTargets(key);
         }
     }
-
+    
     hasDomHolderChanged() {
         return this.getDomHolder() && this.getDomHolder().exists() && this.$dom.parent().getAttribute("id") !== this.getDomHolder().attr("id");
     }
@@ -194,7 +195,7 @@ class TModel {
             this.addedChildren.list.forEach(({ index, segment }) => {
                 
                 segment.forEach(t => t.parent = this);
-
+                
                 if (index >= this.allChildren.length) {
                     this.allChildren.push(...segment);
                 } else {
@@ -356,10 +357,18 @@ class TModel {
         return this.actualValues.keepEventDefault;
     }
 
-    canBeBracketed() {
+    canBeBracketed() {        
         return this.actualValues.canBeBracketed;
     }
-
+    
+    getBracketThreshold() {
+        return this.actualValues.bracketThreshold;
+    }
+    
+    shouldBeBracketed() {
+        return this.canBeBracketed() && this.getChildren().length > this.getBracketThreshold();  
+    }
+   
     isIncluded() {
         return this.actualValues.isIncluded;
     }
@@ -707,7 +716,7 @@ class TModel {
         this.addedChildren.count++;
         TModelUtil.addItem(this.addedChildren.list, child, index);
 
-        tApp.manager.scheduleRun(10, 'addChild-' + this.oid + "-" + child.oid);
+        getRunScheduler().schedule(10, 'addChild-' + this.oid + "-" + child.oid);
 
         return this;
     }
@@ -716,7 +725,7 @@ class TModel {
         this.deletedChildren.push(child);
         this.removeFromUpdatingChildren(child);
 
-        tApp.manager.scheduleRun(10, 'removeChild-' + this.oid + "-" + child.oid);
+        getRunScheduler().schedule(10, 'removeChild-' + this.oid + "-" + child.oid);
 
         return this;
     }
@@ -770,7 +779,7 @@ class TModel {
             this.processNewTarget(key);
         });
 
-        tApp.manager.scheduleRun(10, 'addTargets-' + this.oid);
+        getRunScheduler().schedule(10, 'addTargets-' + this.oid);
     }
 
     addToActiveTargets(key) {
@@ -830,7 +839,7 @@ class TModel {
         this.addToActiveTargets(key);
         this.removeFromUpdatingTargets(key);
 
-        tApp.manager.scheduleRun(10, 'deleteTargetValue-' + this.oid + "-" + key);
+        getRunScheduler().schedule(10, 'deleteTargetValue-' + this.oid + "-" + key);
     }
 
     resetImperative(key) {
@@ -870,7 +879,7 @@ class TModel {
             }
         });
 
-        tApp.manager.scheduleRun(10, 'activateTargets-' + this.oid);
+        getRunScheduler().schedule(10, 'activateTargets-' + this.oid);
 
         return this;
     }

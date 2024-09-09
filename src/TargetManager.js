@@ -2,7 +2,7 @@ import { TUtil } from "./TUtil.js";
 import { TargetUtil } from "./TargetUtil.js";
 import { TargetExecutor } from "./TargetExecutor.js";
 import { SearchUtil } from "./SearchUtil.js";
-import { tApp } from "./App.js";
+import { getRunScheduler } from "./App.js";
 
 class TargetManager {
     applyTargetValues(tmodel) {
@@ -29,7 +29,6 @@ class TargetManager {
         }
 
         if (!tmodel.isTargetEnabled(key)) {
-            //tApp.manager.scheduleRun(10, `applyTargetValue-disabled-${tmodel.oid}__${key}`);
             return;
         }
 
@@ -51,7 +50,7 @@ class TargetManager {
 
         const schedulePeriod = TargetUtil.scheduleExecution(tmodel, key);
         if (schedulePeriod > 0) {
-            tApp.manager.scheduleRun(schedulePeriod, `actualInterval__${tmodel.oid}__${key}`);
+            getRunScheduler().schedule(schedulePeriod, `actualInterval__${tmodel.oid}__${key}`);
         }
     }
 
@@ -65,6 +64,8 @@ class TargetManager {
             if (schedulePeriod === 0) {
                 tmodel.addToStyleTargetList(key);
                 this.setActualValue(tmodel, key);
+            } else {
+                getRunScheduler().schedule(schedulePeriod, `setActualValues-${tmodel.oid}__${key}`);                
             }
         }
     }
@@ -77,7 +78,7 @@ class TargetManager {
         }
 
         if (!tmodel.isTargetEnabled(key)) {
-            tApp.manager.scheduleRun(10, `setActualValue-disabled-${tmodel.oid}__${key}`);
+            getRunScheduler().schedule(10, `setActualValue-disabled-${tmodel.oid}__${key}`);
             return;
         }
 
@@ -125,7 +126,7 @@ class TargetManager {
             tmodel.updateTargetStatus(key);
 
             if (tmodel.isTargetUpdating(key)) {
-                tApp.manager.scheduleRun(interval, `${tmodel.oid}---${key}-${step}/${steps}-${cycle}-${interval}`);
+                getRunScheduler().schedule(interval, `${tmodel.oid}---${key}-${step}/${steps}-${cycle}-${interval}`);
                 return;
             }
         }
@@ -180,7 +181,7 @@ class TargetManager {
 
         tmodel.updateTargetStatus(key);
 
-        tApp.manager.scheduleRun(scheduleTime, `${tmodel.oid}---${key}-${step}/${steps}-${cycle}-${interval}`);
+        getRunScheduler().schedule(scheduleTime, `${tmodel.oid}---${key}-${step}/${steps}-${cycle}-${interval}`);
     }
 }
 

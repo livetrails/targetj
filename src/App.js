@@ -8,6 +8,7 @@ import { LocationManager } from "./LocationManager.js";
 import { PageManager } from "./PageManager.js";
 import { SearchUtil } from "./SearchUtil.js";
 import { TModelManager } from "./TModelManager.js";
+import { RunScheduler } from "./RunScheduler.js";
 import { TUtil } from "./TUtil.js";
 import { TargetManager } from "./TargetManager.js";
 
@@ -37,6 +38,8 @@ const AppFn = (firstChild) => {
         my.locationManager = new LocationManager();
         my.targetManager = new TargetManager();
         my.manager = new TModelManager();
+        my.runScheduler = new RunScheduler();
+
 
         my.tRootFactory = () => {
             const tRoot = new TModel('tRoot');
@@ -114,10 +117,10 @@ const AppFn = (firstChild) => {
         my.events.addWindowHandlers();
 
         my.dim.measureScreen();
-        my.manager.resetRuns();
+        my.runScheduler.resetRuns();
 
         my.runningFlag = true;
-        my.manager.scheduleRun(0, "appStart");
+        my.runScheduler.schedule(0, "appStart");
 
         return my;
     };
@@ -133,7 +136,7 @@ const AppFn = (firstChild) => {
         });
 
         my.events.clearAll();
-        my.manager.resetRuns();
+        my.runScheduler.resetRuns();
 
         return my;
     };
@@ -181,6 +184,7 @@ const getEvents = () => tApp ? tApp.events : null;
 const getPager = () => tApp ? tApp.pager : null;
 const getLoader = () => tApp ? tApp.loader : null;
 const getManager = () => tApp ? tApp.manager : null;
+const getRunScheduler = () => tApp ? tApp.runScheduler : null;
 const getLocationManager = () => tApp ? tApp.locationManager : null;
 const getScreenWidth = () => tApp ? tApp.dim.screen.width : 0;
 const getScreenHeight = () => tApp ? tApp.dim.screen.height : 0;
@@ -196,6 +200,7 @@ export {
     getPager,
     getLoader,
     getManager,
+    getRunScheduler,
     getLocationManager,
     $Dom,
     getScreenWidth,

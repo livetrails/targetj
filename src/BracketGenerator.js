@@ -1,10 +1,9 @@
-import { tApp } from "./App.js";
 import { Bracket } from "./Bracket.js";
 import { TUtil } from "./TUtil.js";
 
 /**
  * Generates a bottom-up tree from the children of a TModel. When the number of children
- * exceeds a defined threshold, a tree is generated to limit the process loop to only
+ * exceeds a defined threshold (bracketThreshold), a tree is generated to limit the process loop to only
  * the visible branches. A TModel can opt out of tree generation by setting
  * `canBeBracketed` to false.
  */
@@ -31,7 +30,7 @@ class BracketGenerator {
         const list = page.getChildren();
         
         const affectedIndices = new Set();
-        const bracketSize = BracketGenerator.getBracketSize();
+        const bracketSize = page.getBracketThreshold() - 1;
 
         deletions.forEach(item => {
             const index = list.indexOf(item);
@@ -71,7 +70,7 @@ class BracketGenerator {
     static updateSegmentInTree(page, list, start, end) {
         const topBrackets = BracketGenerator.bracketMap[page.oid].brackets;
         const updatedSegment = BracketGenerator.buildTreeBottomUp(page, list.slice(start, end + 1));
-        const bracketSize = BracketGenerator.getBracketSize();
+        const bracketSize = page.getBracketThreshold() - 1;
 
         let currentLevel = topBrackets;
         while (true) {
@@ -113,12 +112,15 @@ class BracketGenerator {
     
     static buildTreeBottomUp(page, list) {
         
-        const brackets = [];
         const length = list.length;
-        const bracketSize = BracketGenerator.getBracketSize();
+        const bracketSize = page.getBracketThreshold() - 1;
         
-        let insertAnotherLevel = false;
-        let consecutiveBrackets = 0;
+        if (length <= bracketSize) {
+            return list;
+        }
+        
+        const brackets = [];
+
         let from = 0;
 
         for (let i = 0; i < length; i++) {
@@ -129,25 +131,15 @@ class BracketGenerator {
                 const to = canBeBracketed ? i + 1 : i;
                 brackets.push(BracketGenerator.createBracket(page, list, from, to));
                 from = i + 1;
-                consecutiveBrackets++;
-            }
-
-            if (consecutiveBrackets > bracketSize) {
-                insertAnotherLevel = true;
             }
 
             if (!canBeBracketed) {
-                consecutiveBrackets = 0;
                 brackets.push(list[i]);
                 from = i + 1;
             }
         }
 
-        if (insertAnotherLevel) {
-            return BracketGenerator.buildTreeBottomUp(page, brackets);
-        } else {
-            return brackets;
-        }
+        return BracketGenerator.buildTreeBottomUp(page, brackets);
     }
     
     static createBracket(page, list, startIndex, endIndex) {
@@ -188,11 +180,7 @@ class BracketGenerator {
             }
         }
     }        
-    
-    
-    static getBracketSize() {
-        return Math.max(2, tApp.locationManager.bracketThreshold - 1);
-    }
+
 }
 
 export { BracketGenerator };

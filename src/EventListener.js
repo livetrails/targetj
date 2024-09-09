@@ -2,7 +2,7 @@ import { $Dom } from "./$Dom.js";
 import { browser } from "./Browser.js";
 import { SearchUtil } from "./SearchUtil.js";
 import { TUtil } from "./TUtil.js";
-import { tApp } from "./App.js";
+import { tApp, getRunScheduler } from "./App.js";
 
 class EventListener {
     constructor() {
@@ -106,7 +106,7 @@ class EventListener {
             this.currentTouch.key = "";
         }
 
-        tApp.manager.scheduleRun(10, `captureEvents-${lastEvent}`);
+        getRunScheduler().schedule(10, `captureEvents-${lastEvent}`);
     }
 
     handleEvent(event) {
@@ -217,7 +217,7 @@ class EventListener {
                 break;
         }
 
-        tApp.manager.scheduleRun(0, `${originalName}-${eventName}-${(event.target.tagName || "").toUpperCase()}`);
+        getRunScheduler().schedule(0, `${originalName}-${eventName}-${(event.target.tagName || "").toUpperCase()}`);
     }
 
     findEventHandlers(tmodel) {
@@ -303,7 +303,7 @@ class EventListener {
                 this.touchTimeStamp = 0;
             }
 
-            tApp.manager.scheduleRun(runDelay, "scroll decay");
+            getRunScheduler().schedule(runDelay, "scroll decay");
         }
     }
 

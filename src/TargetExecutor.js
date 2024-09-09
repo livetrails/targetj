@@ -90,7 +90,7 @@ class TargetExecutor {
         const newSteps = valueArray[1] || 0;
         const newInterval = valueArray[2] || 0;
         const newCycles = valueArray[3] || 0;
-
+        
         const targetValue = tmodel.targetValues[key] || TargetUtil.emptyValue();
         const theValue = targetValue.value;
 
@@ -103,6 +103,8 @@ class TargetExecutor {
             } else {
                 tmodel.addChild(newValue);
             }
+            TargetExecutor.assignSingleTarget(targetValue, newValue, undefined, 0, newCycles, newInterval);
+
         } else if (TargetUtil.isListTarget(newValue)) {
             TargetExecutor.assignListTarget(targetValue, newValue.list, newValue.list[0], newSteps, newInterval, easing);
         } else {

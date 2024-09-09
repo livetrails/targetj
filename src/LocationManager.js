@@ -10,7 +10,6 @@ class LocationManager {
         this.hasLocationList = [];
         this.hasLocationMap = {};
 
-        this.bracketThreshold = 6;
         this.locationList = [];
 
         this.screenWidth = getScreenWidth();
@@ -40,7 +39,7 @@ class LocationManager {
     }
 
     getChildren(container) {
-        if (this.isProlificContainer(container)) {
+        if (container.shouldBeBracketed()) {
             return BracketGenerator.generate(container);
         }
         
@@ -49,10 +48,6 @@ class LocationManager {
         }
         
         return container.getChildren();
-    }
-
-    isProlificContainer(container) {
-        return container.canBeBracketed() && container.getChildren().length > this.bracketThreshold;
     }
 
     calculateContainer(container) {

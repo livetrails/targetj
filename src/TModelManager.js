@@ -1,7 +1,6 @@
 import { $Dom } from "./$Dom.js";
-import { browser } from "./Browser.js";
 import { TUtil } from "./TUtil.js";
-import { tApp } from "./App.js";
+import { tApp, getRunScheduler } from "./App.js";
 
 class TModelManager {
     constructor() {
@@ -25,31 +24,6 @@ class TModelManager {
         this.targetMethodMap = {};
 
         this.doneTargets = [];
-
-        this.nextRuns = [];
-        this.runningStep = 0;
-        this.runningFlag = false;
-        this.rerunOid = '';
-        this.cycleStats = {
-            duration: 0,
-            count: 0,
-            totalDuration: 0,
-            average: 0
-        };
-    }
-
-    resetRuns() {
-        this.nextRuns = [];
-        this.runningStep = 0;
-        this.runningFlag = false;
-        this.rerunOid = '';
-    }
-
-    resetCycle() {
-        this.cycleStats.duration = 0;
-        this.cycleStats.count = 0;
-        this.cycleStats.totalDuration = 0;
-        this.cycleStats.average = 0;
     }
 
     clear() {
@@ -64,20 +38,6 @@ class TModelManager {
         this.visibleTypeMap = {};
         this.visibleOidMap = {};
         this.targetMethodMap = {};
-    }
-
-    visibles(type) {
-        return this.lists.visible
-            .filter(tmodel => tmodel.type === type || !type)
-            .map(tmodel => tmodel.oid);
-    }
-
-    findVisible(type) {
-        return this.lists.visible.find(tmodel => tmodel.type === type);
-    }
-
-    findLastVisible(type) {
-        return this.lists.visible.reverse().find(tmodel => tmodel.type === type);
     }
 
     analyze() {
@@ -204,7 +164,7 @@ class TModelManager {
 
         this.lists.invisibleDom.length = 0;
 
-        this.scheduleRun(0, "deleteDoms");
+        getRunScheduler().schedule(0, "deleteDoms");
     }
 
     fixStyles() {
@@ -381,133 +341,7 @@ class TModelManager {
         });
 
         if (contentList.length) {
-            tApp.manager.scheduleRun(1, "createDom");
-        }
-    }
-
-    scheduleRun(delay, oid) {
-        if (delay < 1 && tApp.throttle === 0) {
-            tApp.manager.run(oid, delay);
-        } else {
-            const nextRun = browser.delay(() => {
-                tApp.manager.run(oid, delay);
-            }, oid, tApp.throttle === 0 ? delay || 0 : tApp.throttle);
-
-            const lastRun = this.nextRuns.length > 0 ? this.nextRuns[this.nextRuns.length - 1] : null;
-            if (nextRun && (!lastRun || nextRun.delay > lastRun.delay)) {
-                this.nextRuns.push(nextRun);
-            } else if (nextRun && lastRun && nextRun.delay <= lastRun.delay && tApp.manager.runningFlag) {
-                tApp.manager.rerunOid = oid;
-            }
-        }
-    }
-
-    run(oid, delay) {
-        if (!tApp.isRunning()) {
-            this.getNextRun();
-            return;
-        }
-
-        if (tApp.manager.runningFlag) {
-            tApp.manager.rerunOid = oid;
-            return;
-        }
-
-        tApp.manager.runningFlag = true;
-
-        window.requestAnimationFrame(() => {
-            const startStep = tApp.manager.runningStep;
-            const startTime = browser.now();
-
-            while ((browser.now() - startTime) < 25 && tApp.manager.runningStep < 7 && tApp.isRunning()) {
-                switch (tApp.manager.runningStep) {
-                    case 0:
-                        tApp.events.captureEvents();
-
-                        if (tApp.manager.doneTargets.length > 0) {
-                            tApp.manager.completeDoneTModels();
-                            tApp.manager.doneTargets.length = 0;
-                        }
-
-                        tApp.locationManager.calculateTargets(tApp.tRoot);
-                        tApp.locationManager.calculateAll();
-                        tApp.events.resetEventsOnTimeout();
-                        break;
-
-                    case 1:
-                        tApp.manager.analyze();
-                        break;
-
-                    case 2:
-                        tApp.manager.createDoms();
-                        break;
-
-                    case 3:
-                        tApp.manager.renderTModels();
-                        tApp.manager.reattachTModels();
-                        break;
-
-                    case 4:
-                        tApp.manager.fixStyles();
-                        break;
-
-                    case 5:
-                        if (this.lists.invisibleDom.length > 0) {
-                            tApp.manager.deleteDoms();
-                        }
-                        break;
-
-                    case 6:
-                        tApp.loader.singleLoad();
-                        tApp.loader.groupLoad();
-                        tApp.loader.imgLoad();
-                        break;
-                }
-
-                tApp.manager.runningStep++;
-            }
-
-            const cycleDuration = browser.now() - startTime;
-            tApp.manager.cycleStats.duration = startStep === 0 ? cycleDuration : tApp.manager.cycleStats.duration + cycleDuration;
-
-            if (tApp.debugLevel > 0) {
-                browser.log(tApp.debugLevel > 0 && tApp.manager.cycleStats.duration > 10)(
-                    `it took: ${tApp.manager.cycleStats.duration}, ${oid}`
-                );
-                browser.log(tApp.debugLevel > 0 && tApp.manager.cycleStats.duration > 10)(
-                    `count: ${tApp.locationManager.locationList}`
-                );
-                browser.log(tApp.debugLevel > 1)(`request from: ${oid} delay:  ${delay}`);
-            }         
-
-            tApp.manager.runningFlag = false;
-
-            if (tApp.manager.runningStep !== 7) {
-                tApp.manager.run(`rendering: ${oid} ${tApp.manager.runningStep}`);
-            } else {
-                tApp.manager.cycleStats.count++;
-                tApp.manager.cycleStats.totalDuration += tApp.manager.cycleStats.duration;
-                tApp.manager.cycleStats.average = tApp.manager.cycleStats.totalDuration / tApp.manager.cycleStats.count;
-
-                if (tApp.manager.rerunOid) {
-                    tApp.manager.runningStep = 0;
-                    const rerunOid = tApp.manager.rerunOid;
-                    tApp.manager.rerunOid = '';
-                    tApp.manager.run(rerunOid);
-                } else {
-                    tApp.manager.runningStep = 0;
-                    tApp.manager.getNextRun();
-                }
-            }
-        });
-    }
-
-    getNextRun() {
-        if (this.nextRuns.length > 0 && tApp.isRunning()) {
-            const nextRun = this.nextRuns.pop();
-            if (nextRun) {
-                tApp.manager.scheduleRun(nextRun.timeStamp - browser.now(), nextRun.oid);
-            }
+            getRunScheduler().schedule(1, "createDom");
         }
     }
 }

@@ -1,6 +1,5 @@
 const browser = {
     style: undefined,
-    delayProcess: {},
     setup() {
         if (!Array.prototype.oids) {
             Array.prototype.oids = function(separator) {
@@ -62,44 +61,6 @@ const browser = {
     },
     now: Date.now || function() {
         return new Date().getTime();
-    },
-    nowInSeconds() {
-        return Math.floor(this.now() / 1000);
-    },
-    delay(fn, oid, delay) {
-        const timeStamp = browser.now() + delay;
-        
-        let nextRun;
-        
-        if (this.delayProcess.id) {
-            if (timeStamp >= this.delayProcess.timeStamp) {
-                nextRun = { timeStamp, oid, delay };
-            } else if (timeStamp < this.delayProcess.timeStamp) {
-                nextRun = { timeStamp: this.delayProcess.timeStamp, oid: this.delayProcess.oid, delay: this.delayProcess.delay };
-                
-                clearTimeout(this.delayProcess.id);
-                                
-                this.delayProcess.oid = oid;
-                this.delayProcess.timeStamp = timeStamp;
-                this.delayProcess.delay = delay;
-                
-                this.delayProcess.id = setTimeout(() => {
-                    fn();
-                    browser.delayProcess = {};
-                }, delay);                
-            }
-        } else {
-            this.delayProcess.oid = oid;
-            this.delayProcess.timeStamp = timeStamp;
-            this.delayProcess.delay = delay;
-            
-            this.delayProcess.id = setTimeout(() => {
-                fn();
-                browser.delayProcess = {};
-            }, delay);             
-        }
-        
-        return nextRun;
     }
 };
 

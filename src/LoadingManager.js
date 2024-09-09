@@ -1,7 +1,7 @@
 import { $Dom } from "./$Dom.js";
 import { browser } from "./Browser.js";
 import { TUtil } from "./TUtil.js";
-import { tApp } from "./App.js";
+import { tApp, getRunScheduler } from "./App.js";
 
 class LoadingManager {
     constructor() {
@@ -190,12 +190,12 @@ class LoadingManager {
                 this.updateLoadStatus(fetchId, true);
                 this.resultMap[fetchId] = { ...this.loadingMap[fetchId], result: dataList };
                 this.updateStatistics(fetchId);
-                tApp.manager.scheduleRun(0, `singleAjax_success_${fetchId}`);
+                getRunScheduler().schedule(0, `singleAjax_success_${fetchId}`);
             },
             error: textStatus => {
                 this.resultMap[fetchId] = { error: textStatus, success: false };
                 this.updateLoadStatus(fetchId, false);
-                tApp.manager.scheduleRun(0, `singleAjax_error_${fetchId}`);
+                getRunScheduler().schedule(0, `singleAjax_error_${fetchId}`);
             }
         };
 
@@ -225,7 +225,7 @@ class LoadingManager {
                     }
                 });
 
-                tApp.manager.scheduleRun(0, `groupAjax_success_${query}`);
+                getRunScheduler().schedule(0, `groupAjax_success_${query}`);
             },
             error: textStatus => {
                 Object.keys(dataIdFetchIdMap).forEach(dataId => {
@@ -234,7 +234,7 @@ class LoadingManager {
                     this.updateLoadStatus(fetchId, false);
                 });
 
-                tApp.manager.scheduleRun(0, `groupAjax_error_${query}`);
+                getRunScheduler().schedule(0, `groupAjax_error_${query}`);
             }
         };
 
@@ -249,13 +249,13 @@ class LoadingManager {
             this.updateLoadStatus(fetchId, true);
             this.resultMap[fetchId] = { ...this.loadingMap[fetchId], width: image.width, height: image.height, $image: new $Dom(image) };
             this.updateStatistics(fetchId, 'image');
-            tApp.manager.scheduleRun(0, `imgAjax_success_${fetchId}`);
+            getRunScheduler().schedule(0, `imgAjax_success_${fetchId}`);
         };
 
         image.onerror = image.onabort = () => {
             this.resultMap[fetchId] = { result: "no image", success: false };
             this.updateLoadStatus(fetchId, false);
-            tApp.manager.scheduleRun(0, `imgAjax_error_${fetchId}`);
+            getRunScheduler().schedule(0, `imgAjax_error_${fetchId}`);
         };
     }
 

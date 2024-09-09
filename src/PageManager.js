@@ -1,5 +1,5 @@
 import { TUtil } from "./TUtil.js";
-import { tApp } from "./App.js";
+import { tApp, getRunScheduler } from "./App.js";
 
 class PageManager {
     constructor() {
@@ -37,7 +37,7 @@ class PageManager {
             this.openPage(state.browserUrl);
         }
 
-        tApp.manager.scheduleRun(0, "pagemanager-openLinkFromHistory");
+        getRunScheduler().schedule(0, "pagemanager-openLinkFromHistory");
     }
 
     openLink(link) {
@@ -56,7 +56,7 @@ class PageManager {
 
         this.openPage(link);
 
-        tApp.manager.scheduleRun(0, "pagemanager-processOpenLink");
+        getRunScheduler().schedule(0, "pagemanager-processOpenLink");
     }
 
     updateBrowserUrl(link) {
@@ -74,7 +74,7 @@ class PageManager {
             history.replaceState({ browserUrl: link }, "", link);
         }
 
-        tApp.manager.scheduleRun(0, "pagemanager-processUpdateBrowserUrl");
+        getRunScheduler().schedule(0, "pagemanager-processUpdateBrowserUrl");
     }
 
     back() {
