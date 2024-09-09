@@ -1,12 +1,18 @@
-const browser = {
-    style: undefined,
-    setup() {
-        if (!Array.prototype.oids) {
-            Array.prototype.oids = function(separator) {
-                return this.map(o => o.oid).join(separator || " ");
-            };
-        }
+/**
+ *  It provides utility functions for handling browser-specific features such as DOM manipulation and CSS transformation
+ */
+class Browser {
+    constructor() {
+        this.style = undefined;
+        this.screen = {
+            x: 0,
+            y: 0,
+            width: 0,
+            height: 0
+        };        
+    }
 
+    setup() {
         if (!document.getElementsByClassName) {
             const getElementsByClassName = (className, context) => {
                 let elems;
@@ -38,13 +44,10 @@ const browser = {
             transitionTimingFunction: this.prefixStyle('transitionTimingFunction'),
             transitionDuration: this.prefixStyle('transitionDuration')
         };
-    },
-    log(condition) {
-        return condition === true ? console.log : () => {};
-    },
+    }
+
     prefixStyle(style) {
         const elementStyle = document.createElement('div').style;
-        
         let vendor = '';
         const vendors = ['webkitT', 'MozT', 'msT', 'OT', 't'];
 
@@ -56,12 +59,15 @@ const browser = {
         }
 
         style = vendor === '' ? style : vendor + style.charAt(0).toUpperCase() + style.substr(1);
-        
         return style;
-    },
-    now: Date.now || function() {
-        return new Date().getTime();
     }
-};
+    
+    measureScreen() {
+        this.screen.width = document.documentElement.clientWidth || document.body.clientWidth;
+        this.screen.height = document.documentElement.clientHeight || document.body.clientHeight;
 
-export { browser };
+        return this.screen;
+    }
+}
+
+export { Browser };

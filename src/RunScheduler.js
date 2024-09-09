@@ -1,5 +1,10 @@
-import { browser } from "./Browser.js";
+import { TUtil } from "./TUtil.js";
 import { tApp } from "./App.js";
+
+/**
+ *  It is responsible for scheduling and managing the execution of TargetJ process cycle. 
+ *  It tracks execution timing and maintains statistics for each cycle.
+ */
 
 class RunScheduler {
     constructor() {
@@ -72,9 +77,9 @@ class RunScheduler {
 
         window.requestAnimationFrame(() => {
             const startStep = this.runningStep;
-            const startTime = browser.now();
+            const startTime = TUtil.now();
 
-            while ((browser.now() - startTime) < 25 && this.runningStep < 7 && tApp.isRunning()) {
+            while ((TUtil.now() - startTime) < 25 && this.runningStep < 7 && tApp.isRunning()) {
                 switch (this.runningStep) {
                     case 0:
                         tApp.events.captureEvents();
@@ -114,7 +119,7 @@ class RunScheduler {
                 this.runningStep++;
             }
 
-            const cycleDuration = browser.now() - startTime;
+            const cycleDuration = TUtil.now() - startTime;
             if (startStep === 0) {
                 this.cycleStats.duration = cycleDuration;
             } else {
@@ -122,24 +127,10 @@ class RunScheduler {
             }
 
             if (tApp.debugLevel > 0) {
-                browser.log(tApp.debugLevel > 0 && this.cycleStats.duration > 10)(
-                    `Cycle duration: ${this.cycleStats.duration}, RunId: ${runId}`
-                );
-                browser.log(tApp.debugLevel > 1)(`Request from: ${runId} delay: ${delay}`);
-            }
-
-            if (tApp.debugLevel > 0) {
-                browser.log(tApp.debugLevel > 0 && this.cycleStats.duration > 10)(
-                    `it took: ${this.cycleStats.duration}, ${runId}`
-                );
-                browser.log(tApp.debugLevel > 0 && this.cycleStats.duration > 10)(
-                    `count: ${tApp.locationManager.locationList}`
-                );
-                if (delay > 0) {
-                    browser.log(tApp.debugLevel > 1)(`request from: ${runId} delay:  ${delay}`);
-                }
+                TUtil.log(this.cycleStats.duration > 10)(`it took: ${this.cycleStats.duration}, RunId: ${runId}`);
+                TUtil.log(this.cycleStats.duration > 10)(`locations: ${tApp.locationManager.locationListStats}`);
+                TUtil.log(tApp.debugLevel > 1)(`request from: ${runId} delay:  ${delay}`);
             }  
-
 
             this.runningFlag = false;
             this.runId = '';
@@ -177,7 +168,7 @@ class RunScheduler {
     }
 
     delay(fn, delay, runId) {
-        const timeStamp = browser.now() + delay;
+        const timeStamp = TUtil.now() + delay;
 
         let nextRun;
 
@@ -201,7 +192,7 @@ class RunScheduler {
         if (this.nextRuns.length > 0) {
             const nextRun = this.nextRuns.pop();
             if (nextRun) {
-                this.schedule(Math.min(0, nextRun.timeStamp - browser.now()), nextRun.runId);
+                this.schedule(Math.min(0, nextRun.timeStamp - TUtil.now()), nextRun.runId);
             }
         }
     }

@@ -1,6 +1,9 @@
 import { TUtil } from "./TUtil.js";
 import { getScreenWidth, getScreenHeight } from "./App.js";
 
+/**
+ * It calculates the locations and visibility of objects
+ */
 class Viewport {
     constructor(tmodel) {
         this.tmodel = tmodel;

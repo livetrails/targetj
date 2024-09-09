@@ -1,3 +1,6 @@
+/**
+ * It provides helper functions for TModel.
+ */
 class TModelUtil {
     static addItem(list, child, index) {
         let merged = false;

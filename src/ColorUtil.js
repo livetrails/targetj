@@ -1,3 +1,6 @@
+/**
+ * It provides utility functions for morphing colors.
+ */
 class ColorUtil {
     static colors = {
         aliceblue: "#f0f8ff",

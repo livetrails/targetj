@@ -3,14 +3,17 @@ import { TUtil } from "./TUtil.js";
 import { TargetUtil } from "./TargetUtil.js";
 import { TargetExecutor } from "./TargetExecutor.js";
 import { tApp, getEvents, getScreenWidth, getScreenHeight } from "./App.js";
-import { browser } from "./Browser.js";
 
+/*
+ * It calculates the locations and dimensions of all objects and triggers the calculation of all targets. 
+ * It functions as an integral part of TargetJ process cycle, playing a crucial role."
+ */
 class LocationManager {
     constructor() {
         this.hasLocationList = [];
         this.hasLocationMap = {};
 
-        this.locationList = [];
+        this.locationListStats = [];
 
         this.screenWidth = getScreenWidth();
         this.screenHeight = getScreenHeight();
@@ -20,8 +23,8 @@ class LocationManager {
     calculateAll() {
         this.hasLocationList.length = 0;
         this.hasLocationMap = {};
-        this.locationList.length = 0;
-        this.startTime = browser.now();
+        this.locationListStats.length = 0;
+        this.startTime = TUtil.now();
         this.resizeFlag = false;
 
         if (this.screenWidth !== getScreenWidth() || this.screenHeight !== getScreenHeight()) {
@@ -147,7 +150,7 @@ class LocationManager {
             }
 
             viewport.calcContentWidthHeight();
-            this.locationList.push(`${child.oid}-${child.updatingTargetList.length}-${browser.now() - this.startTime}`);
+            this.locationListStats.push(`${child.oid}-${child.updatingTargetList.length}-${TUtil.now() - this.startTime}`);
         }
     }
 

@@ -3,6 +3,10 @@ import { getScreenWidth, getScreenHeight } from "./App.js";
 import { SearchUtil } from "./SearchUtil.js";
 import { getLocationManager, tRoot } from "./App.js";
 
+/**
+ * 
+ * It provide a variety of helping functions that are used by the framework.
+ */
 class TUtil {
     static getBoundingRect(tmodel) {
         let left, top, right, bottom, oid;
@@ -133,6 +137,14 @@ class TUtil {
         }
         const n = parseFloat(num.toString());
         return n.toFixed(precision);
+    }
+    
+    static now() {
+        return Date.now();
+    }
+    
+    static log(condition) {
+        return condition === true ? console.log : () => {};
     }
 
     static distance(x1, y1, x2, y2) {

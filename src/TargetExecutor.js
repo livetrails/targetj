@@ -2,6 +2,9 @@ import { TargetUtil } from "./TargetUtil.js";
 import { TUtil } from "./TUtil.js";
 import { Easing } from "./Easing.js";
 
+/**
+ * It is responsible for executing both declarative and imperative targets.
+ */
 class TargetExecutor {
     static executeDeclarativeTarget(tmodel, key) {
         TargetExecutor.resolveTargetValue(tmodel, key);

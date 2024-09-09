@@ -1,3 +1,6 @@
+/**
+ * It provides easing functions that can be ued smooth the transition of actual values toward target values.
+ */
 class Easing {
     static linear(t) {
         return t;

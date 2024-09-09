@@ -1,9 +1,11 @@
-import { browser } from "./Browser.js";
 import { TModel } from "./TModel.js";
 import { getManager } from "./App.js";
 import { TUtil } from "./TUtil.js";
 import { ColorUtil } from "./ColorUtil.js";
 
+/**
+ * It provides helper functions for target management, such as deriving the values for steps, intervals, and cycles from targets.
+ */
 class TargetUtil {
     static styleTargetMap = {
         x: true,
@@ -62,7 +64,7 @@ class TargetUtil {
             isImperative: false,
             originalTargetName: undefined,
             easing: undefined,
-            creationTime: browser.now()
+            creationTime: TUtil.now()
         };
     }
 
@@ -159,7 +161,7 @@ class TargetUtil {
     }
 
     static scheduleExecution(tmodel, key) {
-        const now = browser.now();
+        const now = TUtil.now();
         const interval = tmodel.getTargetInterval(key);
         const lastScheduledTime = tmodel.getScheduleTimeStamp(key);
 
@@ -183,7 +185,7 @@ class TargetUtil {
     }
 
     static getTargetSchedulePeriod(tmodel, key, intervalValue) {
-        const now = browser.now();
+        const now = TUtil.now();
         let pastPeriod;
         let schedulePeriod = 0;
 

@@ -1,8 +1,10 @@
 import { $Dom } from "./$Dom.js";
-import { browser } from "./Browser.js";
 import { TUtil } from "./TUtil.js";
 import { tApp, getRunScheduler } from "./App.js";
 
+/**
+ * It provides a central place for managing all loading of external APIs and images. 
+ */
 class LoadingManager {
     constructor() {
         this.resultMap = {};
@@ -99,7 +101,7 @@ class LoadingManager {
         if (TUtil.isDefined(this.loadingMap[fetchId])) {
             Object.assign(this.loadingMap[fetchId], {
                 loadingFlag: true,
-                startTime: browser.now(),
+                startTime: TUtil.now(),
                 loadingTime: undefined
             });
         } else {
@@ -108,7 +110,7 @@ class LoadingManager {
                 category,
                 loadingFlag: true,
                 attempts: 0,
-                startTime: browser.now(),
+                startTime: TUtil.now(),
                 loadingTime: undefined,
                 success: false
             };
@@ -269,19 +271,19 @@ class LoadingManager {
         if (this.statistics[category]) {
             this.statistics[category].count++;
             this.statistics[category].totalTime += this.resultMap[fetchId].loadingTime;
-            this.statistics[category].lastUpdate = browser.now();
+            this.statistics[category].lastUpdate = TUtil.now();
             delete this.statistics[category].averageTime;
         } else {
             this.statistics[category] = {
                 count: 1,
                 totalTime: this.resultMap[fetchId].loadingTime,
-                lastUpdate: browser.now()
+                lastUpdate: TUtil.now()
             };
         }
     }
 
     getAverageLoadingTime(category) {
-        const now = browser.now();
+        const now = TUtil.now();
 
         if (this.statistics[category]?.averageTime && (now - this.statistics[category].lastUpdate) < 500) {
             return this.statistics[category].averageTime;
@@ -299,7 +301,7 @@ class LoadingManager {
 
         if (this.statistics[category]) {
             this.statistics[category].averageTime = count > 0 ? totalTime / count : 0;
-            this.statistics[category].lastUpdate = browser.now();
+            this.statistics[category].lastUpdate = TUtil.now();
             return this.statistics[category].averageTime;
         }
 
@@ -309,7 +311,7 @@ class LoadingManager {
     updateLoadStatus(fetchId, success) {
         Object.assign(this.loadingMap[fetchId], {
             loadingFlag: false,
-            loadingTime: browser.now() - this.loadingMap[fetchId].startTime,
+            loadingTime: TUtil.now() - this.loadingMap[fetchId].startTime,
             success,
             attempts: this.loadingMap[fetchId].attempts + 1
         });

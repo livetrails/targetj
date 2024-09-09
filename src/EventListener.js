@@ -1,9 +1,11 @@
 import { $Dom } from "./$Dom.js";
-import { browser } from "./Browser.js";
 import { SearchUtil } from "./SearchUtil.js";
 import { TUtil } from "./TUtil.js";
-import { tApp, getRunScheduler } from "./App.js";
+import { tApp, getRunScheduler, getBrowser } from "./App.js";
 
+/**
+ * It provides a central place to manage all events. 
+ */
 class EventListener {
     constructor() {
         this.currentTouch = {
@@ -96,7 +98,7 @@ class EventListener {
         const lastEvent = this.eventQueue.shift();
 
         if (lastEvent.eventName === 'resize') {
-            tApp.dim.measureScreen();
+            getBrowser.measureScreen();
         } else {
             if (lastEvent.tmodel) {
                 this.findEventHandlers(lastEvent.tmodel);
@@ -123,7 +125,7 @@ class EventListener {
 
         const { to: eventName, inputType, eventType, order: eventOrder } = eventItem;
 
-        const now = browser.now();
+        const now = TUtil.now();
         this.touchTimeStamp = Math.max(now, this.touchTimeStamp);
 
         const tmodel = this.getTModelFromEvent(event);
@@ -283,7 +285,7 @@ class EventListener {
 
     resetEventsOnTimeout() {
         if (this.touchTimeStamp > 0) {
-            const diff = browser.now() - this.touchTimeStamp;
+            const diff = TUtil.now() - this.touchTimeStamp;
             let runDelay = 0;
 
             if (
@@ -423,7 +425,7 @@ class EventListener {
             originalX: x,
             originalY: y,
             target: e.target,
-            timeStamp: browser.now()
+            timeStamp: TUtil.now()
         };
     }
 
@@ -464,12 +466,12 @@ class EventListener {
                 momentum = TUtil.momentum(0, deltaX, period);
                 this.currentTouch.deltaX = momentum.distance;
                 this.currentTouch.manualMomentumFlag = true;
-                this.touchTimeStamp = browser.now() + momentum.duration;
+                this.touchTimeStamp = TUtil.now() + momentum.duration;
             } else if (this.currentTouch.orientation === "vertical" && Math.abs(deltaY) > 1) {
                 momentum = TUtil.momentum(0, deltaY, period);
                 this.currentTouch.deltaY = momentum.distance;
                 this.currentTouch.manualMomentumFlag = true;
-                this.touchTimeStamp = browser.now() + momentum.duration;
+                this.touchTimeStamp = TUtil.now() + momentum.duration;
             }
         }
     }

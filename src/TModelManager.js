@@ -2,6 +2,10 @@ import { $Dom } from "./$Dom.js";
 import { TUtil } from "./TUtil.js";
 import { tApp, getRunScheduler } from "./App.js";
 
+/**
+ * It analyzes all objects and based on their needs, creates or removes DOM elements, restyles objects, and rerenders them. 
+ * It plays a crucial role in the TargetJ process cycle.
+ */
 class TModelManager {
     constructor() {
         this.init();

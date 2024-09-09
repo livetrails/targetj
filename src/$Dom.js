@@ -1,6 +1,5 @@
-import { browser } from "./Browser.js";
 import { TUtil } from "./TUtil.js";
-import { getManager } from "./App.js";
+import { getManager, getBrowser } from "./App.js";
 
 /**
  * It serves as a wrapper for all DOM operations.
@@ -257,8 +256,8 @@ class $Dom {
 
     transform(x, y, rotate, scale) {
         const transformValue = this.createTransformValue(x, y, rotate, scale);
-        if (transformValue !== this.element.style[browser.style.transform]) {
-            this.element.style[browser.style.transform] = transformValue;
+        if (transformValue !== this.element.style[getBrowser().style.transform]) {
+            this.element.style[getBrowser().style.transform] = transformValue;
         }
     }
 

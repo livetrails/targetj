@@ -1,6 +1,9 @@
 import { TUtil } from "./TUtil.js";
 import { tApp } from "./App.js";
 
+/**
+ * It provides search functions to find an object by a specific target, type, or oid
+ */
 class SearchUtil {
     static foundParentWithType = {};
     static foundParentWithTarget = {};

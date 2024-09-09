@@ -1,7 +1,6 @@
 import { $Dom } from "./$Dom.js";
 import { TModel } from "./TModel.js";
-import { browser } from "./Browser.js";
-import { Dim } from "./Dim.js";
+import { Browser } from "./Browser.js";
 import { EventListener } from "./EventListener.js";
 import { LoadingManager } from "./LoadingManager.js";
 import { LocationManager } from "./LocationManager.js";
@@ -22,8 +21,10 @@ const AppFn = (firstChild) => {
     my.runningFlag = false;
 
     my.init = function() {
-        browser.setup();
-
+        my.browser = new Browser();
+        my.browser.setup();
+        my.browser.measureScreen();
+        
         my.$window = new $Dom(window);
         my.$window.addEvent("popstate", function(event) {
             if (event.state) {
@@ -33,7 +34,6 @@ const AppFn = (firstChild) => {
 
         my.loader = new LoadingManager();
         my.pager = new PageManager();
-        my.dim = new Dim().measureScreen();
         my.events = new EventListener();
         my.locationManager = new LocationManager();
         my.targetManager = new TargetManager();
@@ -116,7 +116,7 @@ const AppFn = (firstChild) => {
         my.events.removeWindowHandlers();
         my.events.addWindowHandlers();
 
-        my.dim.measureScreen();
+        my.browser.measureScreen();
         my.runScheduler.resetRuns();
 
         my.runningFlag = true;
@@ -186,8 +186,9 @@ const getLoader = () => tApp ? tApp.loader : null;
 const getManager = () => tApp ? tApp.manager : null;
 const getRunScheduler = () => tApp ? tApp.runScheduler : null;
 const getLocationManager = () => tApp ? tApp.locationManager : null;
-const getScreenWidth = () => tApp ? tApp.dim.screen.width : 0;
-const getScreenHeight = () => tApp ? tApp.dim.screen.height : 0;
+const getBrowser = () => tApp ? tApp.browser : null;
+const getScreenWidth = () => tApp ? tApp.browser.screen.width : 0;
+const getScreenHeight = () => tApp ? tApp.browser.screen.height : 0;
 
 window.t = window.t || SearchUtil.find;
 
@@ -202,7 +203,7 @@ export {
     getManager,
     getRunScheduler,
     getLocationManager,
-    $Dom,
+    getBrowser,
     getScreenWidth,
     getScreenHeight
 };

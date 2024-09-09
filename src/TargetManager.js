@@ -4,6 +4,9 @@ import { TargetExecutor } from "./TargetExecutor.js";
 import { SearchUtil } from "./SearchUtil.js";
 import { getRunScheduler } from "./App.js";
 
+/**
+ * It is responsible for managing target execution and cycles, as well as updating actual values toward target values.
+ */
 class TargetManager {
     applyTargetValues(tmodel) {
         tmodel.targetMethodMap = {};

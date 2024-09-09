@@ -1,5 +1,8 @@
 import { getScreenWidth } from "./App.js";
 
+/**
+ * It offers utility functions for common movement patterns.
+ */
 class Moves {
     static bounce(from, to, initialX = getScreenWidth() / 2, initialWidth = 50, initialHeight = 50, bounceFactor = 0.6, compressionFactor = 0.2) {
         let bounce = to * bounceFactor;

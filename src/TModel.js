@@ -1,5 +1,4 @@
 import { tApp, App, getRunScheduler } from "./App.js";
-import { browser } from "./Browser.js";
 import { SearchUtil } from "./SearchUtil.js";
 import { TUtil } from "./TUtil.js";
 import { TargetUtil } from "./TargetUtil.js";
@@ -7,6 +6,10 @@ import { TargetExecutor } from "./TargetExecutor.js";
 import { Viewport } from "./Viewport.js";
 import { TModelUtil } from "./TModelUtil";
 
+/**
+ * It provides the base class for all objects in an app where targets are defined. 
+ * These objects typically have a DOM but can also operate without one.
+ */
 class TModel {
     constructor(type, targets) {
         if (arguments.length === 1 && typeof type === 'object') {
@@ -242,7 +245,7 @@ class TModel {
     }
 
     getChildrenOids() {
-        return this.getChildren().oids();
+        return this.getChildren().map(o => o.oid).join(" ");
     }
 
     findChild(type) {
@@ -675,7 +678,7 @@ class TModel {
 
     setActualValueLastUpdate(key) {
         if (this.targetValues[key]) {
-            this.targetValues[key].actualValueLastUpdate = browser.now();
+            this.targetValues[key].actualValueLastUpdate = TUtil.now();
         }
     }
 

@@ -1,6 +1,10 @@
 import { TUtil } from "./TUtil.js";
 import { tApp, getRunScheduler } from "./App.js";
 
+/**
+ * It enables opening new pages and managing history. It alo provide page caching.
+ * It is used to provide a single page app experience.
+ */
 class PageManager {
     constructor() {
         this.lastLink = document.URL;
