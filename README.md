@@ -382,7 +382,7 @@ App(
       },
     },
     scrollTop(cycle, lastValue) {
-      return Math.max(0, lastValue + getEvents().deltaY();
+      return Math.max(0, lastValue + getEvents().deltaY());
     },
     width: getScreenWidth,
     height: getScreenHeight,
