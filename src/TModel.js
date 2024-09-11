@@ -715,8 +715,8 @@ shouldCalculateChildren() {
         return this;
     }
 
-    addChild(child, index) {
-        index = TUtil.isDefined(index) ? index : this.addedChildren.count + this.allChildren.length;
+    addChild(child) {
+        const index = this.addedChildren.count + this.allChildren.length;
         this.addedChildren.count++;
         TModelUtil.addItem(this.addedChildren.list, child, index);
 
