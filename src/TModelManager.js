@@ -156,7 +156,7 @@ class TModelManager {
 
             const activateTargets = [].concat(tmodel.targets['onInvisibleEvent'], tmodel.targets['onResize']);
 
-            activateTargets?.forEach(key => {
+            activateTargets.forEach(key => {
                 if (tmodel.targets[key] && tmodel.isTargetComplete(key)) {
                     tmodel.activateTarget(key);
                 }

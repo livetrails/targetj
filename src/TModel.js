@@ -59,8 +59,7 @@ class TModel {
             heightFromDom: false,
             keepEventDefault: false,
             isIncluded: true,
-            canBeBracketed: true,
-            bracketThreshold: 6,
+            bracketThreshold: 5,
             isDomDeletable: true,
             calculateChildren: undefined,
             isVisible: undefined
@@ -192,7 +191,7 @@ class TModel {
     hasChildren() {
         return this.getChildren().length > 0;
     }
-
+    
     getChildren() {
         if (this.addedChildren.count > 0) {
             this.addedChildren.list.forEach(({ index, segment }) => {
@@ -207,7 +206,7 @@ class TModel {
             });
             
             this.lastChildrenUpdate.additions = this.lastChildrenUpdate.additions.concat(this.addedChildren.list);
-
+            
             this.addedChildren.list.length = 0;
             this.addedChildren.count = 0;
         }
@@ -215,13 +214,12 @@ class TModel {
         if (this.deletedChildren.length > 0) {
             this.deletedChildren.forEach(child => {
                 const index = this.allChildren.indexOf(child);
+                this.lastChildrenUpdate.deletions.push(index);
                 if (index >= 0) {
                     this.allChildren.splice(index, 1);
                 }
             });
-            
-            this.lastChildrenUpdate.deletions = this.lastChildrenUpdate.deletions.concat(this.addedChildren);
-            
+                        
             this.deletedChildren.length = 0;
         }
         
@@ -315,10 +313,14 @@ class TModel {
         return TUtil.isDefined(this.actualValues.isVisible) ? this.actualValues.isVisible : this.visible;
     }
 
-    shouldCalculateChildren() {
-        return TUtil.isDefined(this.actualValues.calculateChildren) ? this.actualValues.calculateChildren : this.isVisible() && this.isIncluded() && (this.hasChildren() || this.getContentHeight() > 0);
+shouldCalculateChildren() {
+
+    if (TUtil.isDefined(this.actualValues.calculateChildren)) {
+        return this.actualValues.calculateChildren;
     }
 
+    return this.isVisible() && this.isIncluded() && (this.hasChildren() || this.addedChildren.count > 0 || this.getContentHeight() > 0);
+}
     createViewport() {
         this.viewport = this.viewport ? this.viewport.reset() : new Viewport(this);
         return this.viewport;
@@ -359,17 +361,16 @@ class TModel {
     keepEventDefault() {
         return this.actualValues.keepEventDefault;
     }
-
-    canBeBracketed() {        
-        return this.actualValues.canBeBracketed;
-    }
     
     getBracketThreshold() {
         return this.actualValues.bracketThreshold;
     }
     
     shouldBeBracketed() {
-        return this.canBeBracketed() && this.getChildren().length > this.getBracketThreshold();  
+        if (TUtil.isDefined(this.actualValues.shouldBeBracketed)) {
+            return this.actualValues.shouldBeBracketed;
+        }        
+        return this.getChildren().length > this.getBracketThreshold();  
     }
    
     isIncluded() {

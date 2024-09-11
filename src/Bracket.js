@@ -15,6 +15,10 @@ class Bracket extends TModel {
         this.parent = parent;
         this.newFlag = true;
     }
+    
+    shouldBeBracketed() {
+        return false;
+    }
 
     getWidth() {
         return this.getContentWidth();
@@ -47,7 +51,7 @@ class Bracket extends TModel {
     getBoundingRect() {
         return TUtil.getBoundingRect(this.getRealParent());
     }
-
+    
     calculateAbsolutePosition(x, y) {
         const rect = this.getBoundingRect();
         this.absX = rect.left + x;
