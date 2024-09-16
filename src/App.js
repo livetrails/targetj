@@ -25,6 +25,7 @@ const AppFn = (firstChild) => {
         my.browser.setup();
         my.browser.measureScreen();
         
+        my.$document = new $Dom(document);
         my.$window = new $Dom(window);
         my.$window.addEvent("popstate", function(event) {
             if (event.state) {
@@ -44,7 +45,7 @@ const AppFn = (firstChild) => {
         my.tRootFactory = () => {
             const tRoot = new TModel('tRoot');
 
-            tRoot.addChild = (child, index) => {
+            tRoot.addChild = child => {
                 if (!TUtil.isDefined(child.targets['domHolder'])) {
                     child.addTarget('domHolder', {
                         value: function() {
@@ -64,22 +65,7 @@ const AppFn = (firstChild) => {
                     });
                 }
 
-                if (!TUtil.isDefined(child.targets['addEventHandler'])) {
-                    child.addTarget('addEventHandler', {
-                        value: function() {
-                            my.events.removeHandlers(this.$dom);
-                            my.events.addHandlers(this.$dom);
-                            if (this.hasDom) {
-                                this.$dom.focus();
-                            }
-                        },
-                        enabledOn: function() {
-                            return this.hasDom();
-                        }
-                    });
-                }
-
-                TModel.prototype.addChild.call(tRoot, child, index);
+                TModel.prototype.addChild.call(tRoot, child);
             };
 
             if (my.tRoot) {
@@ -109,9 +95,9 @@ const AppFn = (firstChild) => {
         my.runningFlag = false;
 
         my.events.clearAll();
-        my.tRoot.getChildren().forEach(child => {
-            child.deleteTargetValue('addEventHandler');
-        });
+               
+        my.events.removeHandlers(my.$document);
+        my.events.addHandlers(my.$document);
 
         my.events.removeWindowHandlers();
         my.events.addWindowHandlers();
@@ -129,12 +115,8 @@ const AppFn = (firstChild) => {
         my.runningFlag = false;
 
         my.events.removeWindowHandlers();
-        my.tRoot.getChildren().forEach(child => {
-            if (child.hasDom()) {
-                my.events.removeHandlers(child.$dom);
-            }
-        });
-
+        my.events.removeHandlers(my.$document);
+        
         my.events.clearAll();
         my.runScheduler.resetRuns();
 

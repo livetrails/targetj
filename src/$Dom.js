@@ -116,10 +116,12 @@ class $Dom {
     }
 
     style(name, value) {
-        if (TUtil.isDefined(value)) {
+        if (TUtil.isDefined(value) && TUtil.isDefined(name)) {
             this.element.style[name] = value;
-        } else {
+        } else if (TUtil.isDefined(name)) {
             return this.element.style[name];
+        } else {
+            return this.element.style;
         }
     }
 

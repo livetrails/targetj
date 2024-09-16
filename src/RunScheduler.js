@@ -1,5 +1,5 @@
 import { TUtil } from "./TUtil.js";
-import { tApp } from "./App.js";
+import { tApp, getEvents } from "./App.js";
 
 /**
  *  It is responsible for scheduling and managing the execution of TargetJ process cycle. 
@@ -81,7 +81,7 @@ class RunScheduler {
             while ((TUtil.now() - startTime) < 25 && this.runningStep < 7 && tApp.isRunning()) {
                 switch (this.runningStep) {
                     case 0:
-                        tApp.events.captureEvents();
+                        getEvents().captureEvents();
                         if (tApp.manager.doneTargets.length > 0) {
                             tApp.manager.completeDoneTModels();
                             tApp.manager.doneTargets.length = 0;

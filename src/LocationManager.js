@@ -189,30 +189,51 @@ class LocationManager {
             activateTargets = activateTargets.concat(tmodel.targets['onResize']);
         }
 
-        if (getEvents().isTouchHandler(tmodel) && tmodel.targets['onTouchEvent']) {
-            activateTargets = activateTargets.concat(tmodel.targets['onTouchEvent']);
-        }
 
-        if (getEvents().isClickHandler(tmodel) && tmodel.targets['onClickEvent']) {
-            activateTargets = activateTargets.concat(tmodel.targets['onClickEvent']);
-        }
+        switch(getEvents().getEventType()) {
+            case 'click': 
+                if (getEvents().isClickHandler(tmodel) && tmodel.targets['onClickEvent']) {
+                    activateTargets = activateTargets.concat(tmodel.targets['onClickEvent']);
+                }  
+                break;
+               
+            case 'end':
+                if (tmodel.targets['onTouchEnd']) {
+                    activateTargets = activateTargets.concat(tmodel.targets['onTouchEnd']);
+                }
+                break;
+                
+            case 'key':
+                if (getEvents().currentKey && tmodel.targets['onKeyEvent']) {
+                    activateTargets = activateTargets.concat(tmodel.targets['onKeyEvent']);
+                }
+                break;
 
-        if ((getEvents().isScrollLeftHandler(tmodel) && getEvents().deltaX()) || (getEvents().isScrollTopHandler(tmodel) && getEvents().deltaY())) {
-            if (tmodel.targets['onScrollEvent']) {
-                activateTargets = activateTargets.concat(tmodel.targets['onScrollEvent']);
-            }
-        }
-
-        if (getEvents().currentKey && tmodel.targets['onKeyEvent']) {
-            activateTargets = activateTargets.concat(tmodel.targets['onKeyEvent']);
-        }
-
-        activateTargets.forEach(target => {
-            const key = typeof target === 'object' ? target.key : target;
-            const obj = typeof target === 'object' && target.tmodel ? target.tmodel : tmodel;
-
-            if (obj.targets[key] && (obj.isTargetComplete(key) || obj.getTargetStatus(key) === '')) {
-                obj.activateTarget(key);
+            default:
+                if (getEvents().isSwipeEvent() && tmodel.targets['onSwipeEvent']) {
+                    activateTargets = activateTargets.concat(tmodel.targets['onSwipeEvent']);
+                } else if (getEvents().isTouchHandler(tmodel) && tmodel.targets['onTouchEvent']) {
+                    activateTargets = activateTargets.concat(tmodel.targets['onTouchEvent']);
+                } else if ((getEvents().isScrollLeftHandler(tmodel) && getEvents().deltaX()) || (getEvents().isScrollTopHandler(tmodel) && getEvents().deltaY())) {
+                    if (tmodel.targets['onScrollEvent']) {
+                        activateTargets = activateTargets.concat(tmodel.targets['onScrollEvent']);
+                    }
+                }                 
+        };
+        
+        activateTargets.forEach(key => {
+            if (typeof key === 'function') {
+                let targets = key.call(tmodel);
+                targets = Array.isArray(targets) ? targets : [ targets ];
+                targets.forEach(({ key, handler }) => {
+                    if (handler.targets[key] && (handler.isTargetComplete(key) || handler.getTargetStatus(key) === '')) {
+                        handler.activateTarget(key);
+                    }                           
+                });
+            } else {
+                if (tmodel.targets[key] && (tmodel.isTargetComplete(key) || tmodel.getTargetStatus(key) === '')) {
+                    tmodel.activateTarget(key);
+                }                
             }
         });
     }

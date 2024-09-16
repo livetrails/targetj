@@ -319,7 +319,7 @@ class TModelManager {
             Object.assign(style, tmodel.getStyle());
 
             const $dom = new $Dom();
-            $dom.create('div');
+            $dom.create(tmodel.getBaseElement());
             $dom.setSelector(`#${tmodel.oid}`);
             $dom.setId(tmodel.oid);
             $dom.css(tmodel.getCss());

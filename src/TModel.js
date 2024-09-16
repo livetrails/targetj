@@ -53,6 +53,7 @@ class TModel {
             borderRadius: 0,
             children: [],
             isInFlow: true,
+            baseElement: 'div',
             canHaveDom: true,
             canHandleEvents: false,
             widthFromDom: false,
@@ -379,6 +380,10 @@ shouldCalculateChildren() {
 
     canHaveDom() {
         return this.actualValues.canHaveDom;
+    }
+    
+    getBaseElement() {
+        return this.actualValues.baseElement;
     }
 
     isDomDeletable() {
@@ -738,6 +743,10 @@ shouldCalculateChildren() {
         this.allChildren.length = 0;
         this.updatingChildrenList.length = 0;
         this.updatingChildrenMap = {};
+        
+        getRunScheduler().schedule(10, 'removeAllChildren-' + this.oid);
+
+        return this;        
     }
    
     addToUpdatingChildren(child) {
@@ -790,20 +799,22 @@ shouldCalculateChildren() {
         if (!this.activeTargetMap[key]) {
             this.activeTargetMap[key] = true;
 
-            if (key === 'start') {
-                this.activeTargetList.unshift('start');
-            } else if (key === 'width' || key === 'height') {
-                const startIndex = this.activeTargetList.indexOf('start');
-                if (startIndex !== -1) {
-                    this.activeTargetList.splice(1, 0, key);
-                } else {
-                    this.activeTargetList.unshift(key);
-                }
+            const priorityOrder = ['y', 'x', 'height', 'width', 'start'];
+            const priorityIndex = priorityOrder.indexOf(key);
+
+            if (priorityIndex !== -1) {
+                this.activeTargetList = this.activeTargetList.filter(item => !priorityOrder.includes(item));
+
+                priorityOrder.forEach(priorityKey => {
+                    if (this.activeTargetMap[priorityKey]) {
+                        this.activeTargetList.unshift(priorityKey);
+                    }
+                });
             } else {
                 this.activeTargetList.push(key);
             }
         }
-    }
+}
 
     removeFromActiveTargets(key) {
         if (this.activeTargetMap[key]) {

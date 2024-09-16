@@ -112,7 +112,7 @@ class TargetManager {
                 originalTModel = tmodel;
                 if (!originalTarget) {
                     originalTModel = SearchUtil.findParentByTarget(tmodel, originalTargetName);
-                    originalTarget = originalTModel.targets[targetValue.originalTargetName];
+                    originalTarget = originalTModel ? originalTModel.targets[targetValue.originalTargetName] : null;
                 }
                 if (originalTarget && typeof originalTarget.onImperativeStep === 'function') {
                     originalTarget.onImperativeStep.call(originalTModel, key, originalTModel.actualValues[key], step, steps);
@@ -157,7 +157,7 @@ class TargetManager {
                 originalTModel = tmodel;
                 if (!originalTarget) {
                     originalTModel = SearchUtil.findParentByTarget(tmodel, originalTargetName);
-                    originalTarget = originalTModel.targets[targetValue.originalTargetName];
+                    originalTarget = originalTModel ? originalTModel.targets[targetValue.originalTargetName] : null;
                 }
                 if (originalTarget && typeof originalTarget.onImperativeStep === 'function') {
                     originalTarget.onImperativeStep.call(originalTModel, key, originalTModel.actualValues[key], step, steps);
