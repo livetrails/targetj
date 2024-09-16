@@ -227,7 +227,6 @@ App(
       value() {
         //Loading is fast: We can load additional details about the user or more users.
         this.users++;
-        this.targetValues['load'].executionCount = 0;
         this.activateTarget("load");
       },
       enabledOn() {
@@ -382,7 +381,7 @@ App(
       },
     },
     scrollTop(cycle, lastValue) {
-      return Math.max(0, lastValue + getEvents().deltaY();
+      return Math.max(0, lastValue + getEvents().deltaY());
     },
     width: getScreenWidth,
     height: getScreenHeight,
@@ -503,13 +502,12 @@ The following are special target names to impact the UI or control properties of
 13. canHandleEvents: Sets what events the object can handle
 14. widthFromDom and heightFromDom: Boolean flags that control if the width and height should be calculated from the DOM element.
 15. textOnly: A boolean flag that sets the type of content to be text or HTML.
-16. canBeBracketed: A boolean flag that controls if the object will be optimized and included in the TargetJ task process only when visible.
-17. isInFlow: A boolean flag that determines if the object will be used to calculate the content height and width of its parent.
-18. onResize: An array of targets that will be activated and executed after a resize event.
-19. onClickEvent: An array of targets that will be activated and executed after a click event.
-20. onTouchEvent: An array of targets that will be activated and executed after a touch event.
-21. onScrollEvent: An array of targets that will be activated and executed after a scroll event.
-22. onKeyEvent: An array of targets that will be activated and executed after a key event.
+16. isInFlow: A boolean flag that determines if the object will be used to calculate the content height and width of its parent.
+17. onResize: An array of targets that will be activated and executed after a resize event.
+18. onClickEvent: An array of targets that will be activated and executed after a click event.
+19. onTouchEvent: An array of targets that will be activated and executed after a touch event.
+20. onScrollEvent: An array of targets that will be activated and executed after a scroll event.
+21. onKeyEvent: An array of targets that will be activated and executed after a key event.
 22. onInvisibleEvent: An array of targets that will be activated and executed after the component becomes invisisble.
 
 ## Features
