@@ -7,44 +7,82 @@ import { ColorUtil } from "./ColorUtil.js";
  * It provides helper functions for target management, such as deriving the values for steps, intervals, and cycles from targets.
  */
 class TargetUtil {
-    static styleTargetMap = {
-        x: true,
-        y: true,
-        width: true,
-        height: true,
-        rotate: true,
-        scale: true,
-        opacity: true,
-        zIndex: true,
-        fontSize: true,
-        lineHeight: true,
-        borderRadius: true,
-        padding: true,
-        backgroundColor: true,
-        background: true,
-        color: true,
-        css: true,
-        style: true,
-        transform: true,
-        dim: true
-    };
 
     static transformMap = {
         x: true,
         y: true,
+        z: true,
+        perspective: true,
         rotate: true,
-        scale: true
+        rotateX: true,
+        rotateY: true,
+        rotateZ: true,
+        rotate3DX: true,
+        rotate3DY: true,
+        rotate3DZ: true,
+        rotate3DAngle: true,
+        scale: true,
+        scaleX: true,
+        scaleY: true,
+        scaleZ: true,
+        scale3DX: true,
+        scale3DY: true,
+        scale3DZ: true,        
+        skewX: true,
+        skewY: true
     };
-
+  
     static dimMap = {
         width: true,
         height: true
     };
+    
+    static styleWithUnitMap = {
+        fontSize: true,
+        lineHeight: true,
+        borderRadius: true,
+        padding: true        
+    }
 
     static colorMap = {
         color: true,
         background: true,
         backgroundColor: true
+    };
+    
+    static styleTargetMap = {
+        ...TargetUtil.transformMap,
+        ...TargetUtil.dimMap,
+        ...TargetUtil.styleWithUnitMap,
+        ...TargetUtil.colorMap,
+        opacity: true,
+        zIndex: true,
+        css: true,
+        style: true
+    };
+    
+    static scaleMap = {
+        scale: true,
+        scaleX: true,
+        scaleY: true,
+        scaleZ: true,
+        scale3DX: true,
+        scale3DY: true,
+        scale3DZ: true        
+    };    
+    
+    static rotate3D = {
+        rotate3DX: true,
+        rotate3DY: true,
+        rotate3DZ: true       
+    };
+    
+    
+    static cssFunctionMap = {
+        skew: { x: 0, y: 0 },
+        translate3d: { x: 0, y: 0, z: 0 },
+        rotate3d: { x: 0, y: 0, z: 0, a: 0 },
+        scale3d: { x: 0, y: 0, z: 0 }
     };
 
     static emptyValue() {
@@ -109,6 +147,10 @@ class TargetUtil {
         return typeof value === 'object' && Array.isArray(value.list);
     }
 
+    static isObjectTarget(key , value) {
+        return key !== 'style' && typeof value === 'object' && !(value instanceof TModel) && value !== null && !Array.isArray(value);       
+    }
+    
     static isChildrenTarget(key, value) {
         return key === 'children' && (Array.isArray(value) || value instanceof TModel);
     }
@@ -175,10 +217,6 @@ class TargetUtil {
                 schedulePeriod = interval;
                 tmodel.setScheduleTimeStamp(key, now);
             }
-        }
-
-        if (schedulePeriod > 0 && !TUtil.isDefined(lastScheduledTime)) {
-            tmodel.setScheduleTimeStamp(key, now);
         }
 
         return schedulePeriod;

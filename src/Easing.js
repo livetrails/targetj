@@ -27,7 +27,11 @@ class Easing {
     }
 
     static inOut(t) {
-        return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+        if (t < 0.5) {
+          return 2 * t * t;
+        } else {
+          return -1 + (4 - 2 * t) * t;
+        }
     }
 
     static outElastic(t) {

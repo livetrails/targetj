@@ -4,42 +4,48 @@ import { getScreenWidth } from "./App.js";
  * It offers utility functions for common movement patterns.
  */
 class Moves {
-static bounce(from, to, initialX = getScreenWidth() / 2, initialWidth = 50, initialHeight = 50, 
-        bounceFactor = 0.6, compressionFactor = 0.2, initialRotation = 0, rotationIncrement = 360) {
-    let bounce = to * bounceFactor;
-    const ys = [from];
-    const xs = [initialX];
-    const widths = [initialWidth];
-    const heights = [initialHeight];
-    const rotations = [initialRotation];
+    static bounce(from, to, initialX = getScreenWidth() / 2, initialWidth = 50, initialHeight = 50, 
+            bounceFactor = 0.6, compressionFactor = 0.2, initialRotation = 0, rotationIncrement = 360) {
+        let bounce = to * bounceFactor;
+        const ys = [from];
+        const xs = [initialX];
+        const widths = [initialWidth];
+        const heights = [initialHeight];
+        const rotations = [initialRotation];
 
-    while ((bounce | 0) > 1) {
-        ys.push(to);
-        ys.push(to - bounce);
-             
-        const compressedWidth = initialWidth * (1 + compressionFactor);
-        const compressedHeight = initialHeight * (1 - compressionFactor);
+        while ((bounce | 0) > 1) {
+            ys.push(to);
+            ys.push(to - bounce);
 
-        widths.push(compressedWidth);
-        widths.push(initialWidth);
+            const compressedWidth = initialWidth * (1 + compressionFactor);
+            const compressedHeight = initialHeight * (1 - compressionFactor);
 
-        heights.push(compressedHeight);
-        heights.push(initialHeight);
+            widths.push(compressedWidth);
+            widths.push(initialWidth);
 
-        xs.push(initialX - (compressedWidth - initialWidth) / 2);
-        xs.push(initialX);
+            heights.push(compressedHeight);
+            heights.push(initialHeight);
 
-        rotations.push((rotations[rotations.length - 1] + rotationIncrement));
+            xs.push(initialX - (compressedWidth - initialWidth) / 2);
+            xs.push(initialX);
 
-        bounce *= bounceFactor;
-        rotationIncrement *= 0.8;
-        compressionFactor *= bounceFactor;
+            rotations.push((rotations[rotations.length - 1] + rotationIncrement));
+
+            bounce *= bounceFactor;
+            rotationIncrement *= 0.8;
+            compressionFactor *= bounceFactor;
+        }
+
+        rotations[rotations.length - 1] += 360 - (rotations[rotations.length - 1] % 360) ;
+
+        return { 
+            x: { list: xs }, 
+            y: { list: ys },
+            width: { list: widths }, 
+            height: { list: heights }, 
+            rotate: { list: rotations } 
+        };
     }
-    
-    rotations[rotations.length - 1] += 360 - (rotations[rotations.length - 1] % 360) ;
-
-    return { x: xs, y: ys, width: widths, height: heights, rotate: rotations };
-}
 
     static spiral(startAngle, endAngle, angleStep, x, y, width, height) {
         const xCoords = [], yCoords = [], rotations = [];
@@ -51,7 +57,11 @@ static bounce(from, to, initialX = getScreenWidth() / 2, initialWidth = 50, init
             rotations.push(90 + angle);
         }
 
-        return { x: xCoords, y: yCoords, rotate: rotations };
+        return {
+            x: { list: xCoords },
+            y: { list: yCoords },
+            rotate: { list: rotations }
+        };
     }
 }
 

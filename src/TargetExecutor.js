@@ -21,6 +21,11 @@ class TargetExecutor {
 
         if (TargetUtil.isListTarget(value)) {
             TargetExecutor.assignListTarget(targetValue, value.list, value.list[0], steps, interval, easing);
+        } else if (TargetUtil.isObjectTarget(key, value)) {
+            const completeValue = TargetUtil.cssFunctionMap[key] ? { ...TargetUtil.cssFunctionMap[key], ...value } : value; 
+            Object.keys(completeValue).forEach(objectKey => {
+                TargetExecutor.executeImperativeTarget(tmodel, objectKey, completeValue[objectKey], steps, interval, easing, originalTargetName);
+            });
         } else {
             TargetExecutor.assignSingleTarget(targetValue, value, undefined, steps, 0, interval, easing);
             targetValue.step = 0;

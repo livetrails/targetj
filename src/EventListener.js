@@ -89,6 +89,32 @@ class EventListener {
             tApp.$window.addEvent(key, this.bindedHandleEvent);
         });
     }
+    
+    resetEventsOnTimeout() {
+        if (this.touchTimeStamp > 0) {
+            const diff = TUtil.now() - this.touchTimeStamp;
+            let runDelay = 0;
+
+            if (
+                Math.abs(this.currentTouch.deltaY) > 0.001 ||
+                Math.abs(this.currentTouch.deltaX) > 0.001 ||
+                Math.abs(this.currentTouch.pinchDelta) > 0.001
+            ) {
+                if (diff > 70) {
+                    this.clearTouch();
+                } else if (this.currentTouch.manualMomentumFlag) {
+                    this.currentTouch.deltaY *= 0.85;
+                    this.currentTouch.deltaX *= 0.85;
+                    runDelay = 10;
+                }
+            } else if (diff > 600) {
+                this.clearTouch();
+                this.touchTimeStamp = 0;
+            }
+
+            getRunScheduler().schedule(runDelay, "scroll decay");
+        }
+    }    
 
     captureEvents() {
         if (this.eventQueue.length === 0) {
@@ -206,8 +232,10 @@ class EventListener {
                 }
 
                 this.clearStart();
-                this.clearTouch();
                 this.touchCount = 0;
+                if (!this.currentHandlers.scrollTop && !this.currentHandlers.scrollLeft) {
+                    this.clearTouch();
+                }                
 
                 event.stopPropagation();
                 break;
@@ -286,32 +314,6 @@ class EventListener {
         this.clearTouch();
         this.eventQueue.length = 0;
         this.touchTimeStamp = 0;
-    }
-
-    resetEventsOnTimeout() {
-        if (this.touchTimeStamp > 0) {
-            const diff = TUtil.now() - this.touchTimeStamp;
-            let runDelay = 0;
-
-            if (
-                Math.abs(this.currentTouch.deltaY) > 0.001 ||
-                Math.abs(this.currentTouch.deltaX) > 0.001 ||
-                Math.abs(this.currentTouch.pinchDelta) > 0.001
-            ) {
-                if (diff > 70) {
-                    this.clearTouch();
-                } else if (this.currentTouch.manualMomentumFlag) {
-                    this.currentTouch.deltaY *= 0.85;
-                    this.currentTouch.deltaX *= 0.85;
-                    runDelay = 10;
-                }
-            } else if (diff > 600) {
-                this.clearTouch();
-                this.touchTimeStamp = 0;
-            }
-
-            getRunScheduler().schedule(runDelay, "scroll decay");
-        }
     }
 
     deltaX() {
@@ -423,17 +425,23 @@ class EventListener {
     }
 
     isTouchHandlerOrAncestor(target) {
-        let handler = this.getTouchHandler();
+        const handler = this.getTouchHandler();
 
-        while (handler) {
-            if (handler === target) {
+        while (target) {
+            if (target === handler) {
                 return true;
             }
-            handler = handler.getParent();
+            target = target.getParent();
         }
 
         return false;
     }
+    
+    isTouchHandlerOrParent(target) {
+        const handler = this.getTouchHandler();
+
+        return target === handler || target.getParent() === handler;
+    }    
 
     countTouches(event) {
         return event.touches?.length ||

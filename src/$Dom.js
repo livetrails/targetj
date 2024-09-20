@@ -98,27 +98,14 @@ class $Dom {
 
     setStyleByMap(attrMap) {
         Object.keys(attrMap).forEach(key => {
-            const value = attrMap[key];
-            switch (key) {
-                case 'transform':
-                    this.transform(...value);
-                    break;
-                case 'width':
-                    this.width(value);
-                    break;
-                case 'height':
-                    this.height(value);
-                    break;
-                default:
-                    this.style(key, value);
-            }
+            this.style(key, attrMap[key]);
         });
     }
 
     style(name, value) {
-        if (TUtil.isDefined(value) && TUtil.isDefined(name)) {
+        if (arguments.length === 2) {
             this.element.style[name] = value;
-        } else if (TUtil.isDefined(name)) {
+        } else if (arguments.length === 1) {
             return this.element.style[name];
         } else {
             return this.element.style;
@@ -256,18 +243,8 @@ class $Dom {
         }
     }
 
-    transform(x, y, rotate, scale) {
-        const transformValue = this.createTransformValue(x, y, rotate, scale);
-        if (transformValue !== this.element.style[getBrowser().style.transform]) {
-            this.element.style[getBrowser().style.transform] = transformValue;
-        }
-    }
-
-    createTransformValue(x, y, rotate, scale) {
-        const xy = TUtil.isDefined(x) && TUtil.isDefined(y) ? `translate(${x !== 0 ? `${x}px` : '0'},${y !== 0 ? `${y}px` : '0'}) ` : '';
-        rotate = TUtil.isDefined(rotate) ? `rotate(${rotate}deg) ` : '';
-        scale = TUtil.isDefined(scale) ? `scale(${scale})` : '';
-        return (xy + rotate + scale).trim();
+    transform(transformString) {
+        this.element.style[getBrowser().style.transform] = transformString;
     }
 
     animate(keyFrames, options) {

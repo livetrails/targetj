@@ -70,8 +70,8 @@ class LocationManager {
             let outerXEast;
             let innerXEast;
 
-            const preX = child.domValues.x;
-            const preY = child.domValues.y;
+            const preX = child.getX();
+            const preY = child.getY();
 
             this.calculateTargets(child);
 
@@ -92,7 +92,7 @@ class LocationManager {
             if (child.isIncluded() && !this.hasLocationMap[child.oid]) {
                 this.addToLocationList(child);
             }
-
+            
             if (child.isTargetEnabled('x') && !child.isTargetUpdating('x') && !child.isTargetImperative('x') && child.getTargetSteps('x') === 0) {
                 TargetExecutor.resolveTargetValue(child, 'x');
                 TargetExecutor.snapActualToTarget(child, 'x');
@@ -107,8 +107,12 @@ class LocationManager {
                 child.val('y', child.y);
             }
 
-            if (preX !== child.getX() || preY !== child.getY()) {
-                child.addToStyleTargetList('transform');
+            if (preX !== child.getX()) {
+                child.addToStyleTargetList('x');
+            }
+            
+            if (preY !== child.getY()) {
+                child.addToStyleTargetList('y');                
             }
 
             child.calculateAbsolutePosition(child.getX(), child.getY());
@@ -155,29 +159,36 @@ class LocationManager {
     }
 
     calculateTargets(tmodel) {
+        const childrenCount = tmodel.getChildren().length;
         this.activateTargetsOnEvents(tmodel);
         tApp.targetManager.applyTargetValues(tmodel);
         tApp.targetManager.setActualValues(tmodel);
+
+        if (childrenCount !== tmodel.getChildren().length && tmodel.targets['onChildrenUpdate']) {
+            this.activateTargets(tmodel, [ tmodel.targets['onChildrenUpdate'] ]);
+        }
 
         if (tmodel.hasDom()) {
             const preWidth = tmodel.getWidth();
             const preHeight = tmodel.getHeight();
 
-            if (
-                (!TUtil.isDefined(tmodel.targetValues.width) && !TUtil.isDefined(tmodel.targets.width) && !TUtil.isDefined(tmodel.targetValues.contentWidth)) ||
+            if ((!TUtil.isDefined(tmodel.targetValues.width) && !TUtil.isDefined(tmodel.targets.width) && !TUtil.isDefined(tmodel.targetValues.contentWidth)) ||
                 tmodel.getTargetValue('widthFromDom')
             ) {
                 TargetUtil.setWidthFromDom(tmodel);
             }
-            if (
-                (!TUtil.isDefined(tmodel.targetValues.height) && !TUtil.isDefined(tmodel.targets.height) && !TUtil.isDefined(tmodel.targetValues.contentHeight)) ||
+            if ((!TUtil.isDefined(tmodel.targetValues.height) && !TUtil.isDefined(tmodel.targets.height) && !TUtil.isDefined(tmodel.targetValues.contentHeight)) ||
                 tmodel.getTargetValue('heightFromDom')
             ) {
                 TargetUtil.setHeightFromDom(tmodel);
             }
 
-            if (preWidth !== tmodel.getWidth() || preHeight !== tmodel.getHeight()) {
-                tmodel.addToStyleTargetList('dim');
+            if (preWidth !== tmodel.getWidth()) {
+                tmodel.addToStyleTargetList('width');
+            }
+            
+            if (preHeight !== tmodel.getHeight()) {
+                tmodel.addToStyleTargetList('height');                
             }
         }
     }
@@ -210,7 +221,7 @@ class LocationManager {
                 break;
 
             default:
-                if (getEvents().isSwipeEvent() && tmodel.targets['onSwipeEvent']) {
+                if (getEvents().isSwipeEvent() && tmodel.targets['onSwipeEvent']) {                    
                     activateTargets = activateTargets.concat(tmodel.targets['onSwipeEvent']);
                 } else if (getEvents().isTouchHandler(tmodel) && tmodel.targets['onTouchEvent']) {
                     activateTargets = activateTargets.concat(tmodel.targets['onTouchEvent']);
@@ -221,21 +232,38 @@ class LocationManager {
                 }                 
         };
         
-        activateTargets.forEach(key => {
-            if (typeof key === 'function') {
-                let targets = key.call(tmodel);
-                targets = Array.isArray(targets) ? targets : [ targets ];
-                targets.forEach(({ key, handler }) => {
-                    if (handler.targets[key] && (handler.isTargetComplete(key) || handler.getTargetStatus(key) === '')) {
-                        handler.activateTarget(key);
-                    }                           
-                });
+        this.activateTargets(tmodel, activateTargets);
+    }
+    
+    
+    activateTargets(tmodel, targetList) {
+        targetList.forEach(targetName => {
+            if (typeof targetName === 'function') {
+                let targets = targetName.call(tmodel);
+                if (targets) {
+                    targets = Array.isArray(targets) ? targets : [targets];
+                    targets.forEach(target => {
+                        if (typeof target === 'object') {
+                            const { key, handler } = target;
+                            this.activateSingleTarget(handler, key);
+                        } else {
+                            this.activateSingleTarget(tmodel, target);
+                        }                        
+                    })
+                }
+            } else if (typeof targetName === 'object') {
+                const { key, handler } = targetName;
+                this.activateSingleTarget(handler, key);
             } else {
-                if (tmodel.targets[key] && (tmodel.isTargetComplete(key) || tmodel.getTargetStatus(key) === '')) {
-                    tmodel.activateTarget(key);
-                }                
+                this.activateSingleTarget(tmodel, targetName);
             }
         });
+    }
+
+    activateSingleTarget(tmodel, targetName) {
+        if (tmodel.targets[targetName] && (tmodel.isTargetComplete(targetName) || tmodel.getTargetStatus(targetName) === '')) {
+            tmodel.activateTarget(targetName);
+        }
     }
 
     addToLocationList(child) {

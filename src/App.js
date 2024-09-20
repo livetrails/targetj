@@ -5,11 +5,13 @@ import { EventListener } from "./EventListener.js";
 import { LoadingManager } from "./LoadingManager.js";
 import { LocationManager } from "./LocationManager.js";
 import { PageManager } from "./PageManager.js";
-import { SearchUtil } from "./SearchUtil.js";
 import { TModelManager } from "./TModelManager.js";
 import { RunScheduler } from "./RunScheduler.js";
-import { TUtil } from "./TUtil.js";
 import { TargetManager } from "./TargetManager.js";
+import { TUtil } from "./TUtil.js";
+import { SearchUtil } from "./SearchUtil.js";
+import { TargetUtil } from "./TargetUtil.js";
+
 
 let tApp;
 
@@ -124,7 +126,15 @@ const AppFn = (firstChild) => {
     };
 
     my.reset = function() {
-        my.manager.lists.visible.forEach(tmodel => tmodel.domValues = {});
+        my.manager.lists.visible.forEach(tmodel => { 
+            tmodel.transformMap = {};
+            tmodel.styleMap = {};
+            Object.keys(TargetUtil.styleTargetMap).forEach(function(key) {
+                if (TUtil.isDefined(tmodel.val(key))) {
+                    tmodel.addToStyleTargetList(key);
+                }
+            });             
+        });
         my.manager.clear();
         my.locationManager.hasLocationList.length = 0;
         my.locationManager.screenWidth = 0;

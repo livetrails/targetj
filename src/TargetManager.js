@@ -36,9 +36,11 @@ class TargetManager {
         }
 
         if (tmodel.isExecuted(key) && tmodel.getTargetStep(key) === tmodel.getTargetSteps(key)) {
-            if (TargetUtil.scheduleExecution(tmodel, key) > 0) {
+            const schedulePeriod = TargetUtil.scheduleExecution(tmodel, key);
+            if (schedulePeriod > 0) {
+                getRunScheduler().schedule(schedulePeriod, `actualInterval__${tmodel.oid}__${key}`);
                 return;
-            }
+            }            
         }
 
         tmodel.resetScheduleTimeStamp(key);
@@ -50,11 +52,9 @@ class TargetManager {
         }
 
         TargetExecutor.executeDeclarativeTarget(tmodel, key);
-
-        const schedulePeriod = TargetUtil.scheduleExecution(tmodel, key);
-        if (schedulePeriod > 0) {
-            getRunScheduler().schedule(schedulePeriod, `actualInterval__${tmodel.oid}__${key}`);
-        }
+       
+        tmodel.setScheduleTimeStamp(key, TUtil.now());
+        getRunScheduler().schedule(tmodel.getTargetInterval(key), `actualInterval__${tmodel.oid}__${key}`);
     }
 
     setActualValues(tmodel) {

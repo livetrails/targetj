@@ -1,6 +1,8 @@
 import { $Dom } from "./$Dom.js";
 import { TUtil } from "./TUtil.js";
-import { tApp, getRunScheduler } from "./App.js";
+import { getLocationManager,  getRunScheduler } from "./App.js";
+import { TModelUtil } from "./TModelUtil.js";
+import { TargetUtil } from "./TargetUtil.js";
 
 /**
  * It analyzes all objects and based on their needs, creates or removes DOM elements, restyles objects, and rerenders them. 
@@ -48,7 +50,7 @@ class TModelManager {
         const lastVisibleMap = TUtil.list2map(this.lists.visible);
         this.clear();
 
-        for (const tmodel of tApp.locationManager.hasLocationList) {
+        for (const tmodel of getLocationManager().hasLocationList) {
             const visible = tmodel.isVisible();
 
             if (visible) {
@@ -99,7 +101,7 @@ class TModelManager {
             .filter(tmodel => tmodel !== null && tmodel.hasDom() && tmodel.isDomDeletable());
 
         lastVisible.forEach(tmodel => {
-            tApp.manager.lists.invisibleDom.push(tmodel);
+            this.lists.invisibleDom.push(tmodel);
         });
     }
 
@@ -152,7 +154,8 @@ class TModelManager {
 
     deleteDoms() {
         for (const tmodel of this.lists.invisibleDom) {
-            tmodel.domValues = {};
+            tmodel.styleMap = {};
+            tmodel.transformMap = {};
 
             const activateTargets = [].concat(tmodel.targets['onInvisibleEvent'], tmodel.targets['onResize']);
 
@@ -173,82 +176,67 @@ class TModelManager {
 
     fixStyles() {
         for (const tmodel of this.lists.restyle) {
-            tmodel.styleTargetList.forEach(key => {
-                switch (key) {
-                    case 'transform': {
-                        const x = Math.floor(tmodel.getX());
-                        const y = Math.floor(tmodel.getY());
-                        const rotate = Math.floor(tmodel.getRotate());
-                        const scale = TUtil.formatNum(tmodel.getScale(), 2);
-
-                        if (
-                            tmodel.domValues.x !== x ||
-                            tmodel.domValues.y !== y ||
-                            tmodel.domValues.rotate !== rotate ||
-                            tmodel.domValues.scale !== scale
-                        ) {
-                            tmodel.$dom.transform(x, y, rotate, scale);
-                            tmodel.domValues.y = y;
-                            tmodel.domValues.x = x;
-                            tmodel.domValues.rotate = rotate;
-                            tmodel.domValues.scale = scale;
-                        }
-
-                        break;
-                    }
-                    case 'dim': {
-                        const width = Math.floor(tmodel.getWidth());
-                        const height = Math.floor(tmodel.getHeight());
-
-                        if (tmodel.$dom.width() !== width || tmodel.$dom.height() !== height) {
-                            tmodel.$dom.width(width);
-                            tmodel.$dom.height(height);
-                        }
-                        break;
-                    }
-                    case 'style': {
-                        const style = tmodel.getStyle();
-                        if (TUtil.isDefined(style) && tmodel.domValues.style !== style) {
-                            tmodel.$dom.setStyleByMap(tmodel.getStyle());
-                            tmodel.domValues.style = style;
-                        }
-                        break;
-                    }
-                    case 'css': {
-                        const css = tmodel.getCss();
-                        if (tmodel.$dom.css() !== css) {
-                            tmodel.$dom.css(css);
-                        }
-                        break;
-                    }
-                    case 'borderRadius':
-                    case 'padding':
-                    case 'lineHeight':
-                    case 'fontSize': {
-                        if (TUtil.isDefined(tmodel.val(key)) && tmodel.domValues[key] !== tmodel.val(key)) {
-                            tmodel.$dom.style(
-                                key,
-                                TUtil.isNumber(tmodel.val(key)) ? `${tmodel.val(key)}px` : tmodel.val(key)
-                            );
-                            tmodel.domValues[key] = tmodel.val(key);
-                        }
-                        break;
-                    }
-                    default:
-                        if (TUtil.isDefined(tmodel.val(key)) && tmodel.domValues[key] !== tmodel.val(key)) {
-                            tmodel.$dom.style(key, tmodel.val(key));
-                            tmodel.domValues[key] = tmodel.val(key);
-                        }
-                }
-            });
-
-            tmodel.styleTargetMap = {};
-            tmodel.styleTargetList.length = 0;
+            this.fixStyle(tmodel);
         }
+    }
+    
+    fixStyle(tmodel) {
+
+        let transformUpdate = false;
+        tmodel.styleTargetList.forEach(key => {
+            if (TargetUtil.transformMap[key]) {
+                const value = TargetUtil.rotate3D[key] ? tmodel.val(key) : TargetUtil.scaleMap[key] ? TUtil.formatNum(tmodel.val(key), 2) : tmodel.floorVal(key);
+                if (tmodel.transformMap[key] !== value) {
+                    tmodel.transformMap[key] = value;
+                    transformUpdate = true;
+                } 
+            } else if (key === 'width') {
+                const width = Math.floor(tmodel.getWidth());
+
+                if (tmodel.$dom.width() !== width) {
+                    tmodel.$dom.width(width);
+                }
+            } else if (key === 'height') {
+                const height = Math.floor(tmodel.getHeight());
+
+                if (tmodel.$dom.height() !== height) {
+                    tmodel.$dom.height(height);
+                }                    
+            } else if (key === 'style') {
+                const style = tmodel.getStyle();
+                if (TUtil.isDefined(style) && tmodel.styleMap.style !== style) {
+                    tmodel.$dom.setStyleByMap(tmodel.getStyle());
+                    tmodel.styleMap.style = style;
+                }                    
+            } else if (key === 'css') {
+                const css = tmodel.getCss();
+                if (tmodel.$dom.css() !== css) {
+                    tmodel.$dom.css(css);
+                }                    
+            } else if (TargetUtil.styleWithUnitMap[key]) {
+                if (TUtil.isDefined(tmodel.val(key)) && tmodel.styleMap[key] !== tmodel.val(key)) {
+                    tmodel.$dom.style(key, TUtil.isNumber(tmodel.val(key)) ? `${tmodel.val(key)}px` : tmodel.val(key));
+                    tmodel.styleMap[key] = tmodel.val(key);
+                }                    
+            } else {
+                if (TUtil.isDefined(tmodel.val(key)) && tmodel.styleMap[key] !== tmodel.val(key)) {
+                    tmodel.$dom.style(key, tmodel.val(key));
+                    tmodel.styleMap[key] = tmodel.val(key);
+                }                    
+            }
+        });
+            
+        if (transformUpdate) {
+            tmodel.$dom.transform(TModelUtil.getTransformString(tmodel));
+        }
+        
+        tmodel.styleTargetMap = {};
+        tmodel.styleTargetList.length = 0;
+        
     }
 
     completeDoneTModels() {
-        tApp.manager.doneTargets.forEach(target => {
+        this.doneTargets.forEach(target => {
             const tmodel = target.tmodel;
             const key = target.key;
             if (tmodel.isTargetDone(key)) {
@@ -282,52 +270,27 @@ class TModelManager {
         }
         
         for (const tmodel of needsDom) {
-            const x = Math.floor(tmodel.getX());
-            const y = Math.floor(tmodel.getY());
-            const rotate = Math.floor(tmodel.getRotate());
-            const scale = TUtil.formatNum(tmodel.getScale(), 2);
-            const width = Math.floor(tmodel.getWidth());
-            const height = Math.floor(tmodel.getHeight());
-            const zIndex = Math.floor(tmodel.getZIndex());
-            const opacity = tmodel.getOpacity() ? tmodel.getOpacity().toFixed(2) : 0;
+            
+            tmodel.$dom = new $Dom();
+            tmodel.$dom.create(tmodel.getBaseElement());
+            tmodel.$dom.setSelector(`#${tmodel.oid}`);
+            tmodel.$dom.setId(tmodel.oid);
 
-            const style = {
+            tmodel.$dom.setStyleByMap({
                 position: 'absolute',
                 top: 0,
-                left: 0,
-                transform: [x, y, rotate, scale],
-                width: `${width}px`,
-                height: `${height}px`,
-                opacity,
-                zIndex
-            };
-
-            ['fontSize', 'borderRadius', 'padding', 'lineHeight'].forEach(prop => {
-                const value = tmodel.val(prop);
-                if (value) {
-                    style[prop] = TUtil.isNumber(value) ? `${value}px` : value;
+                left: 0               
+            });
+            
+            tmodel.transformMap = {};
+            tmodel.styleMap = {};
+            Object.keys(TargetUtil.styleTargetMap).forEach(function(key) {
+                if (TUtil.isDefined(tmodel.val(key))) {
+                    tmodel.addToStyleTargetList(key);
                 }
             });
-
-            ['backgroundColor', 'background', 'color'].forEach(prop => {
-                const value = tmodel.val(prop);
-                if (value) {
-                    style[prop] = value;
-                }
-            });
-
-            Object.assign(style, tmodel.getStyle());
-
-            const $dom = new $Dom();
-            $dom.create(tmodel.getBaseElement());
-            $dom.setSelector(`#${tmodel.oid}`);
-            $dom.setId(tmodel.oid);
-            $dom.css(tmodel.getCss());
-            $dom.setStyleByMap(style);
-
-            tmodel.domValues = { x, y, rotate, scale, style };
-
-            tmodel.$dom = $dom;
+                
+            this.fixStyle(tmodel);
 
             const contentItem = contentList.find(item => item.domHolder === tmodel.getDomHolder());
 
