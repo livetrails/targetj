@@ -12,6 +12,9 @@ class TargetUtil {
         x: true,
         y: true,
         z: true,
+        translateX: true,
+        translateY: true,
+        translateZ: true,
         perspective: true,
         rotate: true,
         rotateX: true,
@@ -27,7 +30,8 @@ class TargetUtil {
         scaleZ: true,
         scale3DX: true,
         scale3DY: true,
-        scale3DZ: true,        
+        scale3DZ: true,
+        skew: true,
         skewX: true,
         skewY: true
     };
@@ -41,7 +45,9 @@ class TargetUtil {
         fontSize: true,
         lineHeight: true,
         borderRadius: true,
-        padding: true        
+        padding: true,
+        left: true,
+        top: true
     }
 
     static colorMap = {
@@ -55,10 +61,21 @@ class TargetUtil {
         ...TargetUtil.dimMap,
         ...TargetUtil.styleWithUnitMap,
         ...TargetUtil.colorMap,
+        position: true,
         opacity: true,
         zIndex: true,
         css: true,
-        style: true
+        style: true,
+        textAlign: true,
+        border: true,
+        boxSizing: true,
+        transformStyle: true,
+        transformOrigin: true,
+        attributes: true,
+        justifyContent: true,
+        alignItems: true,
+        display: true,
+        fontWeight: true
     };
     
     static scaleMap = {

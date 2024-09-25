@@ -4,6 +4,31 @@ import { TUtil } from "./TUtil.js";
  * It provides helper functions for TModel.
  */
 class TModelUtil {
+    
+    static transformOrder = {
+        perspective: 0,
+        translateX: 1,
+        translateY: 1,
+        translateZ: 1,
+        translate: 1,
+        translate3d: 1,        
+        rotate: 2,
+        rotateX: 2,
+        rotateY: 2,
+        rotateZ: 2,
+        rotate3d: 2,
+        skew: 3,
+        skewX: 3,
+        skewY: 3,        
+        scale: 4,
+        scaleX: 4,
+        scaleY: 4,
+        scaleZ: 4,
+        scale3DX: 4,
+        scale3DY: 4,
+        scale3DZ: 4
+    };    
+    
     static addItem(list, child, index) {
         let merged = false;
        
@@ -44,8 +69,11 @@ class TModelUtil {
     
     static initializeActualValues() {
         return {
+            position: 'absolute',
             x: 0,
             y: 0,
+            left: 0,
+            top: 0,
             width: 0,
             height: 0,
             leftMargin: 0,
@@ -65,6 +93,7 @@ class TModelUtil {
             html: undefined,
             css: '',
             style: null,
+            attributes: null,
             borderRadius: 0,
             children: [],
             isInFlow: true,
@@ -84,25 +113,36 @@ class TModelUtil {
     
     static getTransformString(tmodel) {
         const processed = {};
+       
+        const transformMap = {};
         
-        const transformStrings = [];
+        if (tmodel.transformMap['translateX'] || tmodel.transformMap['translateY'] || tmodel.transformMap['translateZ']) {
+            delete tmodel.transformMap['x'];
+            delete tmodel.transformMap['y'];            
+        }
         
-        var keys = Object.keys(tmodel.transformMap);
-
+        let keys = Object.keys(tmodel.transformMap);
+  
         for (const key of keys) {
             if (processed[key]) {
                 continue;
             } 
                                                 
             switch(key) {
+                case 'translateX':
+                case 'translateY':
+                case 'translateZ':  
+                    transformMap[key] = `${key}(${tmodel.transformMap[key]}px)`;                   
+                    processed[key] = true;                       
+                break;
+                
                 case 'x':
                 case 'y':
                 case 'z':
                     if (TUtil.isDefined(tmodel.getZ())) {
-                        transformStrings.push(`translate3d(${tmodel.transformMap.x}px, ${tmodel.transformMap.y}px, ${tmodel.transformMap.z}px)`);
-
+                       transformMap['translate3d'] = `translate3d(${tmodel.transformMap.x}px, ${tmodel.transformMap.y}px, ${tmodel.transformMap.z}px)`;
                     } else if (TUtil.isDefined(tmodel.getX()) || TUtil.isDefined(tmodel.getY())) {
-                        transformStrings.push(`translate(${tmodel.transformMap.x}px, ${tmodel.transformMap.y}px)`);
+                       transformMap['translate'] = `translate(${tmodel.transformMap.x}px, ${tmodel.transformMap.y}px)`;
                     }
                     
                     processed['x'] = true;
@@ -121,15 +161,14 @@ class TModelUtil {
                     if (TUtil.isDefined(tmodel.val('rotate3DX')) && TUtil.isDefined(tmodel.val('rotate3DY'))
                             && TUtil.isDefined(tmodel.val('rotate3DZ')) && TUtil.isDefined(tmodel.val('rotate3DAngle'))) {
 
-                        transformStrings.push(`rotate3d(${tmodel.transformMap.rotate3DX}, ${tmodel.transformMap.rotate3DY}, ${tmodel.transformMap.rotate3DZ}, ${tmodel.transformMap.rotate3DAngle}deg)`);
+                        transformMap['rotate3d'] = `rotate3d(${tmodel.transformMap.rotate3DX}, ${tmodel.transformMap.rotate3DY}, ${tmodel.transformMap.rotate3DZ}, ${tmodel.transformMap.rotate3DAngle}deg)`;
 
                         processed['rotate3DX'] = true;
                         processed['rotate3DY'] = true;
                         processed['rotate3DZ'] = true;
                         processed['rotate3DAngle'] = true;                        
                     } else if (TUtil.isDefined(tmodel.val(key))) {
-                        transformStrings.push(`${key}(${tmodel.transformMap[key]}deg)`);
-                                                
+                        transformMap[key] = `${key}(${tmodel.transformMap[key]}deg)`;                   
                         processed[key] = true;                       
                     }
                    
@@ -144,13 +183,13 @@ class TModelUtil {
                 case 'scale3DZ':
                     if (TUtil.isDefined(tmodel.val('scale3DX')) && TUtil.isDefined(tmodel.val('scale3DY')) && TUtil.isDefined(tmodel.val('scale3DZ'))) {  
 
-                        transformStrings.push(`scale3d(${tmodel.transformMap.scale3DX}, ${tmodel.transformMap.scale3DY}, ${tmodel.transformMap.scale3DZ})`);
+                        transformMap['scale3d'] = `scale3d(${tmodel.transformMap.scale3DX}, ${tmodel.transformMap.scale3DY}, ${tmodel.transformMap.scale3DZ})`;
  
                         processed['scale3DX'] = true;
                         processed['scale3DY'] = true;
                         processed['scale3DZ'] = true;
                     } else if (TUtil.isDefined(tmodel.val(key))) {
-                        transformStrings.push(`${key}(${tmodel.transformMap[key]})`);
+                        transformMap[key] = `${key}(${tmodel.transformMap[key]})`;
                         
                         processed[key] = true;  
                     }                 
@@ -160,14 +199,14 @@ class TModelUtil {
                 case 'skewY':
                     if (TUtil.isDefined(tmodel.val('skewX')) && TUtil.isDefined(tmodel.val('skewY'))) {
 
-                        transformStrings.push(`skew(${tmodel.transformMap.skewX}deg, ${tmodel.transformMap.skewY}deg)`);
+                        transformMap[key] = `skew(${tmodel.transformMap.skewX}deg, ${tmodel.transformMap.skewY}deg)`;
                         
                         processed['skewX'] = true;
                         processed['skewY'] = true;
                         
                     } else if (TUtil.isDefined(tmodel.val(key))) {
                         
-                        transformStrings.push(`${key}(${tmodel.transformMap[key]}deg)`);
+                        transformMap[key] = `${key}(${tmodel.transformMap[key]}deg)`;
                           
                         processed[key] = true;                        
                     }
@@ -177,15 +216,31 @@ class TModelUtil {
                 case 'perspective':
                     if (TUtil.isDefined(tmodel.val('perspective'))) {
                         
-                        transformStrings.push(`perspective(${tmodel.transformMap.perspective}px)`);
+                        transformMap[key] = `perspective(${tmodel.transformMap.perspective}px)`;
                         
                         processed['perspective'] = true;
                     }
                     break;                
             }
         }
+        
+        let transformOrder = {};
+        
+        if (tmodel.val('transformOrder')) {
+            tmodel.val('transformOrder').forEach((name, index) => {
+                transformOrder[name] = index;
+            });
+        } else {
+            transformOrder = TModelUtil.transformOrder;
+        }
+ 
+        const sortedKeys = Object.keys(transformMap).sort((a, b) => {
+            return transformOrder[a] - transformOrder[b];
+        });
 
-        return transformStrings.join(' ');
+        const sortedTransforms = sortedKeys.map(key => transformMap[key]);
+
+        return sortedTransforms.join(' ');        
     };
 }
 

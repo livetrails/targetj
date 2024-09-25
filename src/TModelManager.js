@@ -207,7 +207,15 @@ class TModelManager {
                 if (TUtil.isDefined(style) && tmodel.styleMap.style !== style) {
                     tmodel.$dom.setStyleByMap(tmodel.getStyle());
                     tmodel.styleMap.style = style;
-                }                    
+                }
+            } else if (key === 'attributes') {
+                const attributes = tmodel.getAttributes();
+                if (TUtil.isDefined(attributes) && tmodel.styleMap.attributes !== attributes) {
+                    Object.keys(attributes).forEach(key => {
+                        tmodel.$dom.attr(key, attributes[key]);
+                    });
+                    tmodel.styleMap.attributes = attributes;
+                }                  
             } else if (key === 'css') {
                 const css = tmodel.getCss();
                 if (tmodel.$dom.css() !== css) {
@@ -276,12 +284,6 @@ class TModelManager {
             tmodel.$dom.setSelector(`#${tmodel.oid}`);
             tmodel.$dom.setId(tmodel.oid);
 
-            tmodel.$dom.setStyleByMap({
-                position: 'absolute',
-                top: 0,
-                left: 0               
-            });
-            
             tmodel.transformMap = {};
             tmodel.styleMap = {};
             Object.keys(TargetUtil.styleTargetMap).forEach(function(key) {

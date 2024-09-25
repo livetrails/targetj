@@ -311,6 +311,10 @@ class $Dom {
             parent.removeChild(element);
         }
     }
+    
+    static hasFocus(tmodel) {
+        return tmodel.hasDom() && document.activeElement === tmodel.$dom.element;
+    }
 
     static ready(callback) {
         const $doc = new $Dom(document);

@@ -30,7 +30,17 @@ class EventListener {
 
         this.currentEventName = "";
         this.currentEventType = "";
-        this.currentHandlers = { touch: null, scrollLeft: null, scrollTop: null, pinch: null };
+        this.currentHandlers = { 
+            touch: null, 
+            scrollLeft: null, 
+            scrollTop: null, 
+            pinch: null,
+            enterEvent: null,
+            leaveEvent: null,
+            focus: null,
+            focusIn: null,
+            focusOut: null
+        };
 
         this.eventQueue = [];
 
@@ -57,7 +67,7 @@ class EventListener {
             keyup: { eventName: 'key', inputType: '', eventType: 'key', order: 1, windowEvent: true },
             keydown: { eventName: 'key', inputType: '', eventType: 'key', order: 1, windowEvent: true },
             resize: { eventName: 'resize', inputType: '', eventType: 'resize', order: 1, windowEvent: true },
-            orientationchange: { eventName: 'resize', inputType: '', eventType: 'resize', order: 1, windowEvent: true }
+            orientationchange: { eventName: 'resize', inputType: '', eventType: 'resize', order: 1, windowEvent: true }          
         };
 
         this.domEvents = Object.keys(this.eventMap).filter(key => !this.eventMap[key].windowEvent);
@@ -114,6 +124,40 @@ class EventListener {
 
             getRunScheduler().schedule(runDelay, "scroll decay");
         }
+    } 
+    
+    findEventHandlers(tmodel) {
+        const touchHandler = SearchUtil.findFirstTouchHandler(tmodel);
+        const scrollLeftHandler = this.end0 ? this.currentHandlers.scrollLeft : SearchUtil.findFirstScrollLeftHandler(tmodel);
+        const scrollTopHandler = this.end0 ? this.currentHandlers.scrollTop : SearchUtil.findFirstScrollTopHandler(tmodel);
+        const pinchHandler = SearchUtil.findFirstPinchHandler(tmodel);
+        const focusHandler = $Dom.hasFocus(tmodel) ? tmodel : this.currentHandlers.focus;
+
+        if (this.currentHandlers.scrollLeft !== scrollLeftHandler || this.currentHandlers.scrollTop !== scrollTopHandler) {
+            this.clearTouch();
+        }
+
+        this.currentHandlers.enterEvent = null;
+        this.currentHandlers.leaveEvent = null;
+        this.currentHandlers.focusIn = null;
+        this.currentHandlers.focusOut = null;
+        
+        if (this.currentHandlers.touch !== touchHandler) {
+            this.currentHandlers.enterEvent = touchHandler;
+            this.currentHandlers.leaveEvent = this.currentHandlers.touch;  
+        }
+        
+        if (this.currentHandlers.focus !== focusHandler) {
+            this.currentHandlers.focusIn = focusHandler;
+            this.currentHandlers.focusOut = this.currentHandlers.focus;
+            this.eventQueue.push({ eventName: 'focus', eventType: 'focus', tmodel, timeStamp: TUtil.now() });
+        }
+       
+        this.currentHandlers.touch = touchHandler;
+        this.currentHandlers.scrollLeft = scrollLeftHandler;
+        this.currentHandlers.scrollTop = scrollTopHandler;
+        this.currentHandlers.pinch = pinchHandler;
+        this.currentHandlers.focus = focusHandler;
     }    
 
     captureEvents() {
@@ -138,7 +182,7 @@ class EventListener {
         }
 
         getRunScheduler().schedule(10, `captureEvents-${lastEvent}`);
-    }
+    }    
 
     handleEvent(event) {
         if (!event) {
@@ -232,7 +276,7 @@ class EventListener {
                 }
 
                 this.clearStart();
-                this.touchCount = 0;
+                this.touchCount = 0;             
                 if (!this.currentHandlers.scrollTop && !this.currentHandlers.scrollLeft) {
                     this.clearTouch();
                 }                
@@ -253,22 +297,6 @@ class EventListener {
         }
 
         getRunScheduler().schedule(0, `${originalName}-${eventName}-${(event.target.tagName || "").toUpperCase()}`);
-    }
-
-    findEventHandlers(tmodel) {
-        const touchHandler = SearchUtil.findFirstTouchHandler(tmodel);
-        const scrollLeftHandler = this.end0 ? this.currentHandlers.scrollLeft : SearchUtil.findFirstScrollLeftHandler(tmodel);
-        const scrollTopHandler = this.end0 ? this.currentHandlers.scrollTop : SearchUtil.findFirstScrollTopHandler(tmodel);
-        const pinchHandler = SearchUtil.findFirstPinchHandler(tmodel);
-
-        if (this.currentHandlers.scrollLeft !== scrollLeftHandler || this.currentHandlers.scrollTop !== scrollTopHandler) {
-            this.clearTouch();
-        }
-
-        this.currentHandlers.touch = touchHandler;
-        this.currentHandlers.scrollLeft = scrollLeftHandler;
-        this.currentHandlers.scrollTop = scrollTopHandler;
-        this.currentHandlers.pinch = pinchHandler;
     }
 
     preventDefault(tmodel, eventName) {
@@ -402,6 +430,26 @@ class EventListener {
 
     isTouchHandler(handler) {
         return this.getTouchHandler() === handler && handler.canHandleEvents('touch');
+    }
+    
+    isEnterEventHandler(handler) {
+        return this.currentHandlers.enterEvent === handler;
+    }
+    
+    isLeaveEventHandler(handler) {
+        return this.currentHandlers.leaveEvent === handler;
+    }
+    
+    onFocus(handler) {
+        return this.currentHandlers.focusIn === handler;        
+    }
+    
+    onFocusOut(handler) {
+        return this.currentHandlers.focusOut === handler;        
+    } 
+    
+    hasFocus(handler) {
+        return this.currentHandlers.focus === handler;
     }
     
     isTouchHandlerType(type) {

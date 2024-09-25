@@ -165,6 +165,10 @@ class BaseModel {
     isExecuted(key) {
         return this.targetValues[key] && this.targetValues[key].executionFlag;
     }
+    
+    neverExecuted(key) {
+        return !this.targetValues[key];
+    }
 
     isTargetImperative(key) {
         return this.targetValues[key] ? this.targetValues[key].isImperative : false;
@@ -357,6 +361,17 @@ class BaseModel {
                 this.getParent().removeFromUpdatingChildren(this);
             }
         }
+    }
+    
+    hasUpdatingTargets(originalTargetName) {
+        
+        for (const target of this.updatingTargetList) {
+            if (this.isTargetImperative(target) && this.targetValues[target].originalTargetName === originalTargetName) {
+                return true;
+            }
+        }
+        
+        return false;
     }
 
     deleteTargetValue(key) {

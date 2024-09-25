@@ -165,7 +165,7 @@ class LocationManager {
         tApp.targetManager.setActualValues(tmodel);
 
         if (childrenCount !== tmodel.getChildren().length && tmodel.targets['onChildrenUpdate']) {
-            this.activateTargets(tmodel, [ tmodel.targets['onChildrenUpdate'] ]);
+            this.activateTargets(tmodel, Array.isArray(tmodel.targets['onChildrenUpdate']) ? tmodel.targets['onChildrenUpdate'] : [ tmodel.targets['onChildrenUpdate'] ]);
         }
 
         if (tmodel.hasDom()) {
@@ -199,7 +199,10 @@ class LocationManager {
         if (this.resizeFlag && tmodel.targets['onResize']) {
             activateTargets = activateTargets.concat(tmodel.targets['onResize']);
         }
-
+        
+        if (tmodel.targets['onFocusEvent'] && (getEvents().onFocusOut(tmodel) || getEvents().onFocus(tmodel))) {
+            activateTargets = activateTargets.concat(tmodel.targets['onFocusEvent']);            
+        }
 
         switch(getEvents().getEventType()) {
             case 'click': 
@@ -249,7 +252,7 @@ class LocationManager {
                         } else {
                             this.activateSingleTarget(tmodel, target);
                         }                        
-                    })
+                    });
                 }
             } else if (typeof targetName === 'object') {
                 const { key, handler } = targetName;

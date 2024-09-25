@@ -43,12 +43,17 @@ class TModel extends BaseModel {
     }
     
     processNewTarget(key) {
+        if (!TUtil.isDefined(this.targets[key])) {
+            delete this.actualValues[key];
+            return;
+        }
+        
         TargetUtil.bindTargetName(this.targets, key);
 
         if (TUtil.isDefined(this.targets[key].initialValue)) {
             this.actualValues[key] = this.targets[key].initialValue;
             this.addToStyleTargetList(key);
-        }
+        } 
         if (this.targets[key].active !== false) {
             this.addToActiveTargets(key);
         }
@@ -95,7 +100,7 @@ class TModel extends BaseModel {
     }
     
     floorVal(key) {
-        return Math.floor(this.actualValues[key]);
+        return Math.floor(this.val(key));
     }
     
     addValue(key, value) {
@@ -344,7 +349,11 @@ class TModel extends BaseModel {
     getStyle() {
         return this.actualValues.style;
     }
-
+    
+    getAttributes() {
+        return this.actualValues.attributes;
+    }
+    
 }
 
 export { TModel };
