@@ -1,4 +1,5 @@
 import { getScreenWidth } from "./App.js";
+import { TUtil } from "/TUtil.js";
 
 /**
  * It offers utility functions for common movement patterns. They generate 
@@ -12,6 +13,7 @@ class Moves {
             yStart = undefined,
             xStart = getScreenWidth() / 2, 
             widthStart = 50, 
+            endWidth = undefined,
             heightStart = 50, 
             bFactor = 0.6, 
             cFactor = 0.2, 
@@ -25,16 +27,24 @@ class Moves {
         const widths = [widthStart];
         const heights = [heightStart];
         const rotations = [rotationStart];
-
+        
+        if (!TUtil.isDefined(endWidth)) {
+            endWidth = widthStart;
+        }
+        
+        const widthDecrementStep = (widthStart - endWidth) / Math.log(Math.abs(bounce)); 
+        
         while (Math.abs(bounce | 0) > 1) {
             ys.push(to);
             ys.push(to - bounce);
             
             const compressedWidth = widthStart * (1 + cFactor);
+            const currentWidth = Math.max(endWidth, widthStart - widthDecrementStep);
+
             const compressedHeight = heightStart * (1 - cFactor);
 
             widths.push(compressedWidth);
-            widths.push(widthStart);
+            widths.push(currentWidth);
 
             heights.push(compressedHeight);
             heights.push(heightStart);
@@ -75,14 +85,13 @@ class Moves {
         const yStart = tmodel.getY();
         const xStart = (tmodel.getParentValue('width') - tmodel.getWidth()) / 2;
         const widthStart = tmodel.getWidth();
-        const heightStart = tmodel.getHeight();       
+        const heightStart = tmodel.getHeight();
+        const rIncrement = 0;
         
         const bounce = Moves.bounce(from, to, {
-            yStart, xStart, widthStart, heightStart, bFactor, cFactor
+            yStart, xStart, widthStart, heightStart, bFactor, cFactor, rIncrement
         });
-        
-        delete bounce.rotate;
-        
+                
         return bounce;
     }
     
