@@ -1,5 +1,5 @@
 import { TModel } from "./TModel.js";
-import { getManager } from "./App.js";
+import { getManager, getEvents, getLocationManager } from "./App.js";
 import { TUtil } from "./TUtil.js";
 import { ColorUtil } from "./ColorUtil.js";
 
@@ -47,7 +47,8 @@ class TargetUtil {
         borderRadius: true,
         padding: true,
         left: true,
-        top: true
+        top: true,
+        fontWeight: true
     }
 
     static colorMap = {
@@ -75,7 +76,7 @@ class TargetUtil {
         justifyContent: true,
         alignItems: true,
         display: true,
-        fontWeight: true
+        cursor: true
     };
     
     static scaleMap = {
@@ -102,6 +103,33 @@ class TargetUtil {
         scale3d: { x: 0, y: 0, z: 0 }
     };
 
+    static eventTargetMap = {
+        onResize: true,
+        onFocusEvent: true,
+        onClickEvent: true,
+        onTouchEnd: true,
+        onKeyEvent: true,
+        onSwipeEvent: true,
+        onTouchEvent: true,
+        onEnterEvent: true,
+        onLeaveEvent: true,
+        onScrollEvent: true
+    };
+    
+    static targetConditionList = {
+        onResize: () => getLocationManager().resizeFlag,
+        onFocusEvent: tmodel => getEvents().onFocusOut(tmodel) || getEvents().onFocus(tmodel),
+        onClickEvent: tmodel => getEvents().getEventType() === 'click' && getEvents().isClickHandler(tmodel),
+        onTouchEnd: () => getEvents().getEventType() === 'end',
+        onKeyEvent: () => getEvents().getEventType() === 'key' && getEvents().currentKey,
+        onSwipeEvent: () => getEvents().isSwipeEvent(),
+        onTouchEvent: tmodel => getEvents().isTouchHandler(tmodel),
+        onEnterEvent: tmodel => getEvents().isEnterEventHandler(tmodel),
+        onLeaveEvent: tmodel => getEvents().isLeaveEventHandler(tmodel),
+        onScrollEvent: tmodel => (getEvents().isScrollLeftHandler(tmodel) && getEvents().deltaX()) || 
+                      (getEvents().isScrollTopHandler(tmodel) && getEvents().deltaY())
+    };
+
     static emptyValue() {
         return {
             value: undefined,
@@ -122,7 +150,7 @@ class TargetUtil {
             creationTime: TUtil.now()
         };
     }
-
+   
     static bindTargetName(targetInstance, key) {
         const target = targetInstance[key];
 

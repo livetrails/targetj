@@ -1,10 +1,12 @@
 import { tApp, App, getRunScheduler } from "./App.js";
 import { TargetExecutor } from "./TargetExecutor.js";
-import { Viewport } from "./Viewport.js";
 import { TUtil } from "./TUtil.js";
-import { SearchUtil } from "./SearchUtil.js";
 import { TModelUtil } from "./TModelUtil.js";
+ import { TargetUtil } from "./TargetUtil.js";
 
+/**
+ * It provides the target state and associated logic to the TModel.
+ */
 class BaseModel {
     constructor(type, targets) {
         if (arguments.length === 1 && typeof type === 'object') {
@@ -19,7 +21,8 @@ class BaseModel {
         this.oidNum = uniqueId.num;
 
         this.targetValues = {};
-        
+        this.actualValues = [];
+
         this.activeTargetList = [];
         this.activeTargetMap = {};
         
@@ -32,23 +35,13 @@ class BaseModel {
         this.updatingChildrenList = [];
         this.updatingChildrenMap = {};
         
-        this.addedChildren = { count: 0, list: [] };
-        this.deletedChildren = [];
-        this.lastChildrenUpdate = { additions: [], deletions: [] };
-        this.allChildren = [];
-
-        this.x = 0;
-        this.y = 0;
-        this.absX = 0;
-        this.absY = 0;
+        this.eventTargets = [];
+        
+        this.styleTargetList = [];
+        this.styleTargetMap = {};        
         
         this.parent = null;
-        
-        this.visibilityStatus = { top: false, right: false, bottom: false, left: false };
-        this.visible = false;
-        
-        this.inFlowVisibles = [];        
-        
+
         this.targetMethodMap = {};
     }
     
@@ -58,8 +51,72 @@ class BaseModel {
 
     getRealParent() {
         return this.parent;
+    }
+    
+    initTargets() {
+        this.actualValues = TModelUtil.initializeActualValues();
+        this.targetValues = {};
+        this.activeTargetMap = {};
+        this.activeTargetList = [];
+        Object.keys(this.targets).forEach(key => {
+            this.processNewTarget(key);
+        });
     }    
     
+    processNewTarget(key) {
+        if (!TUtil.isDefined(this.targets[key])) {
+            delete this.actualValues[key];
+            return;
+        }
+        
+        TargetUtil.bindTargetName(this.targets, key);
+
+        if (TUtil.isDefined(this.targets[key].initialValue)) {
+            this.actualValues[key] = this.targets[key].initialValue;
+            this.addToStyleTargetList(key);
+        } 
+        
+        if (TargetUtil.eventTargetMap[key] && this.eventTargets.indexOf((key) === -1)) {
+            this.eventTargets.push(key)
+        }
+        
+        if (this.targets[key].active !== false) {
+            this.addToActiveTargets(key);
+        }
+    }    
+    
+    addToStyleTargetList(key) {
+        if (!TargetUtil.styleTargetMap[key]) {
+            return;
+        }
+
+        if (!this.styleTargetMap[key]) {
+            this.styleTargetList.push(key);
+            this.styleTargetMap[key] = true;
+        }
+    }    
+    
+    removeTarget(key) {
+        delete this.targets[key];
+        this.removeFromActiveTargets(key);
+        this.removeFromUpdatingTargets(key);
+        delete this.targetValues[key];
+    }
+
+    addTarget(key, target) {
+        this.addTargets({ [key]: target });
+    }
+
+    addTargets(targets) {
+        Object.keys(targets).forEach(key => {
+            this.targets[key] = targets[key];
+            this.removeFromUpdatingTargets(key);
+            this.processNewTarget(key);
+        });
+
+        getRunScheduler().schedule(10, 'addTargets-' + this.oid);
+    }
+        
     getTargetStepPercent(key, step) {
         const steps = this.getTargetSteps(key);
         step = !TUtil.isDefined(step) ? this.getTargetStep(key) : step;
@@ -185,10 +242,6 @@ class BaseModel {
     }
 
     isTargetEnabled(key) {
-        if (this.isTargetImperative(key)) {
-            return true;
-        }
-
         const target = this.targets[key];
 
         if (!TUtil.isDefined(target)) {
@@ -373,6 +426,27 @@ class BaseModel {
         
         return false;
     }
+    
+    addToUpdatingChildren(child) {
+        if (!this.updatingChildrenMap[child.oid]) {
+            this.updatingChildrenMap[child.oid] = true;
+            this.updatingChildrenList.push(child.oid);
+        }
+    }
+
+    removeFromUpdatingChildren(child) {
+        if (this.updatingChildrenMap[child.oid]) {
+            delete this.updatingChildrenMap[child.oid];
+            const index = this.updatingChildrenList.indexOf(child.oid);
+            if (index >= 0) {
+                this.updatingChildrenList.splice(index, 1);
+            }
+        }
+    }   
+    
+    hasUpdatingChildren() {
+        return this.updatingChildrenList.length > 0;
+    }
 
     deleteTargetValue(key) {
         delete this.targetValues[key];
@@ -423,8 +497,7 @@ class BaseModel {
 
         return this;
     }
-    
-
+   
     setTargetMethodName(targetName, methodName) {
         if (!this.targetMethodMap[targetName]) {
             this.targetMethodMap[targetName] = [];
@@ -432,169 +505,7 @@ class BaseModel {
         if (!this.targetMethodMap[targetName].includes(methodName)) {
             this.targetMethodMap[targetName].push(methodName);
         }
-    }    
-    
-    addToUpdatingChildren(child) {
-        if (!this.updatingChildrenMap[child.oid]) {
-            this.updatingChildrenMap[child.oid] = true;
-            this.updatingChildrenList.push(child.oid);
-        }
-    }
-
-    removeFromUpdatingChildren(child) {
-        if (this.updatingChildrenMap[child.oid]) {
-            delete this.updatingChildrenMap[child.oid];
-            const index = this.updatingChildrenList.indexOf(child.oid);
-            if (index >= 0) {
-                this.updatingChildrenList.splice(index, 1);
-            }
-        }
-    }
-
-    hasUpdatingChildren() {
-        return this.updatingChildrenList.length > 0;
-    }
-    
-    addChild(child) {
-        const index = this.addedChildren.count + this.allChildren.length;
-        this.addedChildren.count++;
-        TModelUtil.addItem(this.addedChildren.list, child, index);
-
-        getRunScheduler().schedule(10, 'addChild-' + this.oid + "-" + child.oid);
-
-        return this;
-    }
-    
-    removeChild(child) {
-        this.deletedChildren.push(child);
-        this.removeFromUpdatingChildren(child);
-
-        getRunScheduler().schedule(10, 'removeChild-' + this.oid + "-" + child.oid);
-
-        return this;
-    }
-    
-    removeAllChildren() {
-        this.allChildren.length = 0;
-        this.updatingChildrenList.length = 0;
-        this.updatingChildrenMap = {};
-        
-        getRunScheduler().schedule(10, 'removeAllChildren-' + this.oid);
-
-        return this;        
-    }    
-    
-    addToParentVisibleList() {
-        if (this.isVisible() && this.isInFlow() && this.getParent()) {
-            this.getParent().inFlowVisibles.push(this);
-        }
-    }
-    
-    shouldCalculateChildren() {
-
-        if (TUtil.isDefined(this.actualValues.calculateChildren)) {
-            return this.actualValues.calculateChildren;
-        }
-
-        return this.isVisible() && this.isIncluded() && (this.hasChildren() || this.addedChildren.count > 0 || this.getContentHeight() > 0);
-    }
-       
-    createViewport() {
-        this.viewport = this.viewport ? this.viewport.reset() : new Viewport(this);
-        return this.viewport;
-    }
-
-    setLocation(viewport) {
-        this.x = viewport.getXNext();
-        this.y = viewport.getYNext();
-    }
-
-    calculateAbsolutePosition(x, y) {
-        const rect = this.getBoundingRect();
-        this.absX = rect.left + x;
-        this.absY = rect.top + y;
-    }
-
-    getBoundingRect() {
-        return TUtil.getBoundingRect(this);
-    }    
-    
-    getFirstChild() {
-        return this.hasChildren() ? this.getChildren()[0] : undefined;
-    }
-    
-    hasChildren() {
-        return this.getChildren().length > 0;
-    }
-    
-    getChildren() {
-        if (this.addedChildren.count > 0) {
-            this.addedChildren.list.forEach(({ index, segment }) => {
-                
-                segment.forEach(t => t.parent = this);
-                
-                if (index >= this.allChildren.length) {
-                    this.allChildren.push(...segment);
-                } else {
-                    this.allChildren.splice(index, 0, ...segment);
-                }
-            });
-            
-            this.lastChildrenUpdate.additions = this.lastChildrenUpdate.additions.concat(this.addedChildren.list);
-            
-            this.addedChildren.list.length = 0;
-            this.addedChildren.count = 0;
-        }
-        
-        if (this.deletedChildren.length > 0) {
-            this.deletedChildren.forEach(child => {
-                const index = this.allChildren.indexOf(child);
-                this.lastChildrenUpdate.deletions.push(index);
-                if (index >= 0) {
-                    this.allChildren.splice(index, 1);
-                }
-            });
-                        
-            this.deletedChildren.length = 0;
-        }
-        
-        return this.allChildren;
-    }
-
-    getLastChild() {
-        return this.hasChildren() ? this.getChildren()[this.getChildren().length - 1] : undefined;
-    }
-    
-
-    getChild(index) {
-        return this.hasChildren() ? this.getChildren()[index] : undefined;
-    }
-
-    getChildIndex(child) {
-        return this.getChildren().indexOf(child);
-    }
-
-    getChildrenOids() {
-        return this.getChildren().map(o => o.oid).join(" ");
-    }
-
-    findChild(type) {
-        return this.getChildren().find(child => {
-            return typeof type === 'function' ? type.call(child) : child.type === type;
-        });
-    }
-
-    findLastChild(type) {
-        return this.getChildren().findLast(child => {
-            return typeof type === 'function' ? type.call(child) : child.type === type;
-        });
-    }
-
-    getParentValue(targetName) {
-        const parent = SearchUtil.findParentByTarget(this, targetName);
-        return parent ? parent.val(targetName) : undefined;
-    }
-
+    }  
 }
 
 export { BaseModel };

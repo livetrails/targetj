@@ -171,16 +171,17 @@ App.getOid = function(type) {
 };
 
 const isRunning = () => tApp ? tApp.runningFlag : false;
-const tRoot = () => tApp ? tApp.tRoot : null;
-const getEvents = () => tApp ? tApp.events : null;
-const getPager = () => tApp ? tApp.pager : null;
-const getLoader = () => tApp ? tApp.loader : null;
-const getManager = () => tApp ? tApp.manager : null;
-const getRunScheduler = () => tApp ? tApp.runScheduler : null;
-const getLocationManager = () => tApp ? tApp.locationManager : null;
-const getBrowser = () => tApp ? tApp.browser : null;
+const tRoot = () => tApp ? tApp.tRoot : undefined;
+const getEvents = () => tApp ? tApp.events : undefined;
+const getPager = () => tApp ? tApp.pager : undefined;
+const getLoader = () => tApp ? tApp.loader : undefined;
+const getManager = () => tApp ? tApp.manager : undefined;
+const getRunScheduler = () => tApp ? tApp.runScheduler : undefined;
+const getLocationManager = () => tApp ? tApp.locationManager : undefined;
+const getBrowser = () => tApp ? tApp.browser : undefined;
 const getScreenWidth = () => tApp ? tApp.browser.screen.width : 0;
 const getScreenHeight = () => tApp ? tApp.browser.screen.height : 0;
+const getVisibles = () => tApp ? tApp.manager.lists.visible : undefined;
 
 window.t = window.t || SearchUtil.find;
 
@@ -197,5 +198,6 @@ export {
     getLocationManager,
     getBrowser,
     getScreenWidth,
-    getScreenHeight
+    getScreenHeight,
+    getVisibles
 };

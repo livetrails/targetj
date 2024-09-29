@@ -2,7 +2,7 @@ import { BracketGenerator } from "./BracketGenerator.js";
 import { TUtil } from "./TUtil.js";
 import { TargetUtil } from "./TargetUtil.js";
 import { TargetExecutor } from "./TargetExecutor.js";
-import { tApp, getEvents, getScreenWidth, getScreenHeight } from "./App.js";
+import { tApp, getScreenWidth, getScreenHeight } from "./App.js";
 
 /*
  * It calculates the locations and dimensions of all objects and triggers the calculation of all targets. 
@@ -14,7 +14,7 @@ class LocationManager {
         this.hasLocationMap = {};
 
         this.locationListStats = [];
-
+               
         this.screenWidth = getScreenWidth();
         this.screenHeight = getScreenHeight();
         this.resizeFlag = false;
@@ -196,49 +196,15 @@ class LocationManager {
     activateTargetsOnEvents(tmodel) {
         let activateTargets = [];
 
-        if (this.resizeFlag && tmodel.targets['onResize']) {
-            activateTargets = activateTargets.concat(tmodel.targets['onResize']);
-        }
-        
-        if (tmodel.targets['onFocusEvent'] && (getEvents().onFocusOut(tmodel) || getEvents().onFocus(tmodel))) {
-            activateTargets = activateTargets.concat(tmodel.targets['onFocusEvent']);            
-        }
+        tmodel.eventTargets.forEach(target => {
+            if (TargetUtil.targetConditionList[target](tmodel)) {
+                activateTargets = activateTargets.concat(tmodel.targets[target]);
+            }
+        });
 
-        switch(getEvents().getEventType()) {
-            case 'click': 
-                if (getEvents().isClickHandler(tmodel) && tmodel.targets['onClickEvent']) {
-                    activateTargets = activateTargets.concat(tmodel.targets['onClickEvent']);
-                }  
-                break;
-               
-            case 'end':
-                if (tmodel.targets['onTouchEnd']) {
-                    activateTargets = activateTargets.concat(tmodel.targets['onTouchEnd']);
-                }
-                break;
-                
-            case 'key':
-                if (getEvents().currentKey && tmodel.targets['onKeyEvent']) {
-                    activateTargets = activateTargets.concat(tmodel.targets['onKeyEvent']);
-                }
-                break;
-
-            default:
-                if (getEvents().isSwipeEvent() && tmodel.targets['onSwipeEvent']) {                    
-                    activateTargets = activateTargets.concat(tmodel.targets['onSwipeEvent']);
-                } else if (getEvents().isTouchHandler(tmodel) && tmodel.targets['onTouchEvent']) {
-                    activateTargets = activateTargets.concat(tmodel.targets['onTouchEvent']);
-                } else if ((getEvents().isScrollLeftHandler(tmodel) && getEvents().deltaX()) || (getEvents().isScrollTopHandler(tmodel) && getEvents().deltaY())) {
-                    if (tmodel.targets['onScrollEvent']) {
-                        activateTargets = activateTargets.concat(tmodel.targets['onScrollEvent']);
-                    }
-                }                 
-        };
-        
         this.activateTargets(tmodel, activateTargets);
     }
-    
-    
+
     activateTargets(tmodel, targetList) {
         targetList.forEach(targetName => {
             if (typeof targetName === 'function') {
@@ -264,8 +230,12 @@ class LocationManager {
     }
 
     activateSingleTarget(tmodel, targetName) {
-        if (tmodel.targets[targetName] && (tmodel.isTargetComplete(targetName) || tmodel.getTargetStatus(targetName) === '')) {
-            tmodel.activateTarget(targetName);
+        if (tmodel.targets[targetName]) {
+            if (tmodel.isTargetEnabled(targetName)) {
+                tmodel.activateTarget(targetName);
+            } else {
+                tmodel.addToActiveTargets(targetName);
+            }
         }
     }
 

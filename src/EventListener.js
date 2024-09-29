@@ -144,7 +144,7 @@ class EventListener {
         
         if (this.currentHandlers.touch !== touchHandler) {
             this.currentHandlers.enterEvent = touchHandler;
-            this.currentHandlers.leaveEvent = this.currentHandlers.touch;  
+            this.currentHandlers.leaveEvent = this.currentHandlers.touch; 
         }
         
         if (this.currentHandlers.focus !== focusHandler) {

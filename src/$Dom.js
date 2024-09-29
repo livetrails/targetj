@@ -41,6 +41,10 @@ class $Dom {
     focus() {
         this.element.focus();
     }
+    
+    blur() {
+        this.element.blur();
+    }
 
     attr(name, value) {
         if (!this.element) {

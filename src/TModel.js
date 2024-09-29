@@ -1,8 +1,8 @@
-import { getRunScheduler } from "./App.js";
 import { BaseModel } from "./BaseModel.js";
+import { getRunScheduler } from "./App.js";
+import { Viewport } from "./Viewport.js";
 import { TUtil } from "./TUtil.js";
 import { SearchUtil } from "./SearchUtil.js";
- import { TargetUtil } from "./TargetUtil.js";
  import { TModelUtil } from "./TModelUtil.js";
 
 /**
@@ -13,7 +13,17 @@ class TModel extends BaseModel {
     constructor(type, targets) {
         super(type, targets);
 
+        this.addedChildren = { count: 0, list: [] };
+        this.deletedChildren = [];
+        this.lastChildrenUpdate = { additions: [], deletions: [] };
+        this.allChildren = [];
+
         this.$dom = null;
+
+        this.x = 0;
+        this.y = 0;
+        this.absX = 0;
+        this.absY = 0;
 
         this.domHeight = undefined;
         this.domWidth = undefined;
@@ -22,74 +32,157 @@ class TModel extends BaseModel {
         this.innerContentHeight = 0;
         this.contentWidth = 0;
         this.contentHeight = 0;
-        
-        this.styleTargetList = [];
-        this.styleTargetMap = {};        
 
         this.styleMap = {};
         this.transformMap = {};
+        
+        this.visibilityStatus = { top: false, right: false, bottom: false, left: false };
+        this.visible = false;
+        
+        this.inFlowVisibles = [];         
 
-        this.actualValues = TModelUtil.initializeActualValues();
         this.initTargets();        
     }
-   
-    initTargets() {
-        this.targetValues = {};
-        this.activeTargetMap = {};
-        this.activeTargetList = [];
-        Object.keys(this.targets).forEach(key => {
-            this.processNewTarget(key);
-        });
+
+    createViewport() {
+        this.viewport = this.viewport ? this.viewport.reset() : new Viewport(this);
+        return this.viewport;
+    }
+
+    setLocation(viewport) {
+        this.x = viewport.getXNext();
+        this.y = viewport.getYNext();
+    }
+
+    calculateAbsolutePosition(x, y) {
+        const rect = this.getBoundingRect();
+        this.absX = rect.left + x;
+        this.absY = rect.top + y;
+    }
+
+    getBoundingRect() {
+        return TUtil.getBoundingRect(this);
+    }     
+    
+    addChild(child) {
+        const index = this.addedChildren.count + this.allChildren.length;
+        this.addedChildren.count++;
+        TModelUtil.addItem(this.addedChildren.list, child, index);
+
+        getRunScheduler().schedule(10, 'addChild-' + this.oid + "-" + child.oid);
+
+        return this;
     }
     
-    processNewTarget(key) {
-        if (!TUtil.isDefined(this.targets[key])) {
-            delete this.actualValues[key];
-            return;
+    removeChild(child) {
+        this.deletedChildren.push(child);
+        this.removeFromUpdatingChildren(child);
+
+        getRunScheduler().schedule(10, 'removeChild-' + this.oid + "-" + child.oid);
+
+        return this;
+    }
+    
+    removeAllChildren() {
+        this.allChildren.length = 0;
+        this.updatingChildrenList.length = 0;
+        this.updatingChildrenMap = {};
+        
+        getRunScheduler().schedule(10, 'removeAllChildren-' + this.oid);
+
+        return this;        
+    }    
+    
+    addToParentVisibleList() {
+        if (this.isVisible() && this.isInFlow() && this.getParent()) {
+            this.getParent().inFlowVisibles.push(this);
+        }
+    }
+    
+    shouldCalculateChildren() {
+
+        if (TUtil.isDefined(this.actualValues.calculateChildren)) {
+            return this.actualValues.calculateChildren;
+        }
+
+        return this.isVisible() && this.isIncluded() && (this.hasChildren() || this.addedChildren.count > 0 || this.getContentHeight() > 0);
+    }
+         
+    getFirstChild() {
+        return this.hasChildren() ? this.getChildren()[0] : undefined;
+    }
+    
+    hasChildren() {
+        return this.getChildren().length > 0;
+    }
+    
+    getChildren() {
+        if (this.addedChildren.count > 0) {
+            this.addedChildren.list.forEach(({ index, segment }) => {
+                
+                segment.forEach(t => t.parent = this);
+                
+                if (index >= this.allChildren.length) {
+                    this.allChildren.push(...segment);
+                } else {
+                    this.allChildren.splice(index, 0, ...segment);
+                }
+            });
+            
+            this.lastChildrenUpdate.additions = this.lastChildrenUpdate.additions.concat(this.addedChildren.list);
+            
+            this.addedChildren.list.length = 0;
+            this.addedChildren.count = 0;
         }
         
-        TargetUtil.bindTargetName(this.targets, key);
-
-        if (TUtil.isDefined(this.targets[key].initialValue)) {
-            this.actualValues[key] = this.targets[key].initialValue;
-            this.addToStyleTargetList(key);
-        } 
-        if (this.targets[key].active !== false) {
-            this.addToActiveTargets(key);
+        if (this.deletedChildren.length > 0) {
+            this.deletedChildren.forEach(child => {
+                const index = this.allChildren.indexOf(child);
+                this.lastChildrenUpdate.deletions.push(index);
+                if (index >= 0) {
+                    this.allChildren.splice(index, 1);
+                }
+            });
+                        
+            this.deletedChildren.length = 0;
         }
-    }    
-    
-    addToStyleTargetList(key) {
-        if (!TargetUtil.styleTargetMap[key]) {
-            return;
-        }
-
-        if (!this.styleTargetMap[key]) {
-            this.styleTargetList.push(key);
-            this.styleTargetMap[key] = true;
-        }
-    }    
-    
-    removeTarget(key) {
-        delete this.targets[key];
-        this.removeFromActiveTargets(key);
-        this.removeFromUpdatingTargets(key);
-        delete this.targetValues[key];
+        
+        return this.allChildren;
     }
 
-    addTarget(key, target) {
-        this.addTargets({ [key]: target });
+    getLastChild() {
+        return this.hasChildren() ? this.getChildren()[this.getChildren().length - 1] : undefined;
+    }
+    
+
+    getChild(index) {
+        return this.hasChildren() ? this.getChildren()[index] : undefined;
     }
 
-    addTargets(targets) {
-        Object.keys(targets).forEach(key => {
-            this.targets[key] = targets[key];
-            this.removeFromUpdatingTargets(key);
-            this.processNewTarget(key);
+    getChildIndex(child) {
+        return this.getChildren().indexOf(child);
+    }
+
+    getChildrenOids() {
+        return this.getChildren().map(o => o.oid).join(" ");
+    }
+
+    findChild(type) {
+        return this.getChildren().find(child => {
+            return typeof type === 'function' ? type.call(child) : child.type === type;
         });
+    }
 
-        getRunScheduler().schedule(10, 'addTargets-' + this.oid);
-    }    
+    findLastChild(type) {
+        return this.getChildren().findLast(child => {
+            return typeof type === 'function' ? type.call(child) : child.type === type;
+        });
+    }
+
+    getParentValue(targetName) {
+        const parent = SearchUtil.findParentByTarget(this, targetName);
+        return parent ? parent.val(targetName) : undefined;
+    }
     
     val(key, value) {
         if (arguments.length === 2) {
@@ -241,6 +334,14 @@ class TModel extends BaseModel {
     getOpacity() {
         return this.actualValues.opacity;
     }
+    
+    getCenterX() {
+        return (this.getParentValue('width') - this.getWidth()) / 2;
+    }
+    
+    getCenterY() {
+        return (this.getParentValue('height') - this.getHeight()) / 2;
+    }    
 
     getX() {
         return this.actualValues.x;
@@ -353,7 +454,6 @@ class TModel extends BaseModel {
     getAttributes() {
         return this.actualValues.attributes;
     }
-    
 }
 
 export { TModel };

@@ -1,8 +1,8 @@
+import { TargetExecutor } from "./TargetExecutor.js";
+import { getRunScheduler, getVisibles } from "./App.js";
 import { TUtil } from "./TUtil.js";
 import { TargetUtil } from "./TargetUtil.js";
-import { TargetExecutor } from "./TargetExecutor.js";
 import { SearchUtil } from "./SearchUtil.js";
-import { getRunScheduler } from "./App.js";
 
 /**
  * It is responsible for managing target execution and cycles, as well as updating actual values toward target values.
@@ -72,6 +72,11 @@ class TargetManager {
             }
         }
     }
+    
+    findOriginalTModel(tmodel, originalTargetName) {
+        let originalTModel = SearchUtil.findParentByTarget(tmodel, originalTargetName);
+        return originalTModel ? originalTModel : getVisibles().find(tmodel => tmodel.targets[originalTargetName]);
+    }
 
     setActualValue(tmodel, key) {
         const targetValue = tmodel.targetValues[key];
@@ -80,7 +85,7 @@ class TargetManager {
             return;
         }
 
-        if (!tmodel.isTargetEnabled(key)) {
+        if (!tmodel.isTargetImperative(key) && !tmodel.isTargetEnabled(key)) {
             getRunScheduler().schedule(10, `setActualValue-disabled-${tmodel.oid}__${key}`);
             return;
         }
@@ -111,11 +116,11 @@ class TargetManager {
                 originalTarget = tmodel.targets[targetValue.originalTargetName];
                 originalTModel = tmodel;
                 if (!originalTarget) {
-                    originalTModel = SearchUtil.findParentByTarget(tmodel, originalTargetName);
+                    originalTModel = this.findOriginalTModel(tmodel, originalTargetName);
                     originalTarget = originalTModel ? originalTModel.targets[targetValue.originalTargetName] : null;
                 }
                 if (originalTarget && typeof originalTarget.onImperativeStep === 'function') {
-                    originalTarget.onImperativeStep.call(originalTModel, key, originalTModel.actualValues[key], step, steps);
+                    originalTarget.onImperativeStep.call(originalTModel, key, originalTModel.actualValues[key], theValue, step, steps);
                     originalTModel.setTargetMethodName(originalTargetName, 'onImperativeStep');
                 }
             } else {
@@ -160,7 +165,7 @@ class TargetManager {
                     originalTarget = originalTModel ? originalTModel.targets[targetValue.originalTargetName] : null;
                 }
                 if (originalTarget && typeof originalTarget.onImperativeStep === 'function') {
-                    originalTarget.onImperativeStep.call(originalTModel, key, originalTModel.actualValues[key], step, steps);
+                    originalTarget.onImperativeStep.call(originalTModel, key, originalTModel.actualValues[key], theValue, step, steps);
                     originalTModel.setTargetMethodName(originalTargetName, 'onImperativeStep');
                 }
                 if (originalTarget && typeof originalTarget.onImperativeEnd === 'function') {
