@@ -350,46 +350,44 @@ This example demonstrates how to handle scroll events and develop a simple infin
 ```bash
 import { App, TModel, getEvents, getScreenHeight, getScreenWidth, } from "targetj";
 
-App(
-  new TModel("scroller", {
-    canHandleEvents: "scrollTop",
+App(new TModel("scroller", {
+    canHandleEvents: 'scrollTop',
     innerXEast: 0,
-    addChildren: {
-      loop() {
-        return this.inFlowVisibles.length * 32 < this.getHeight();
-      },
-      value() {
-        const childrenCount = this.getChildren().length;
-        for (let i = 0; i < 10; i++) {
-          this.addChild(
-            new TModel("scrollItem", {
-              width: 300,
-              background: "brown",
-              height: 30,
-              lineHeight: 30,
-              color: "#fff",
-              style: { textAlign: "center" },
-              bottomMargin: 2,
-              x() { return (this.getParentValue("width") - this.getWidth()) / 2; },
-              html: childrenCount + i + 1,
-            })
-          );
-        }
-      },
-      enabledOn() {
-        return this.inFlowVisibles.length * 32 < this.getHeight();
-      },
+    children: {
+        value() { 
+            const childrenCount = this.getChildren().length;
+            return Array.from({ length: 5 }, (_, i) => 
+                new TModel('scrollItem', { 
+                    width: 300,
+                    background: 'brown',                
+                    height: 30,
+                    color: '#fff',
+                    style: {
+                        textAlign: 'center',
+                        lineHeight: '30px'
+                    },                
+                    bottomMargin: 2,
+                    x() { return (this.getParentValue('width') - this.getWidth()) / 2; },                
+                    html: childrenCount + i,
+                    domParent() {
+                        return this.getParent();
+                    }
+                })
+            );
+        },
+        enabledOn() {
+            return this.visibleChildren.length * 32 < this.getHeight(); 
+        }    
     },
-    scrollTop(cycle, lastValue) {
-      return Math.max(0, lastValue + getEvents().deltaY());
-    },
-    width: getScreenWidth,
-    height: getScreenHeight,
-    onResize: ["width", "height"],
-    onScrollEvent: ["scrollTop", "addChildren"],
-  })
-);
-
+    scrollTop(cycle, lastValue) {          
+        return Math.max(0, lastValue + getEvents().deltaY());
+    },           
+    width() { return getScreenWidth(); },
+    height() { return getScreenHeight(); },  
+    onResize: [ 'width', 'height' ],
+    onScrollEvent: [ 'scrollTop', 'children' ],
+    onVisibleChildrenChange: [ 'children' ]
+}));
 ```
 
 ## Simple Single Page App Example
