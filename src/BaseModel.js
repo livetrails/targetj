@@ -9,13 +9,13 @@ import { TModelUtil } from "./TModelUtil.js";
  */
 class BaseModel {
     constructor(type, targets) {
-        if (arguments.length === 1 && typeof type === 'object') {
+        if (typeof type === 'object' && typeof targets === 'undefined') {
             targets = type;
             type = "";
         }        
         this.type = type || 'blank';
         this.targets = Object.assign({}, targets);
-        
+                
         const uniqueId = App.getOid(this.type);
         this.oid = uniqueId.oid;
         this.oidNum = uniqueId.num;
