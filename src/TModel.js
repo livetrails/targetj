@@ -39,7 +39,7 @@ class TModel extends BaseModel {
         this.visibilityStatus = { top: false, right: false, bottom: false, left: false };
         this.visible = false;
         
-        this.inFlowVisibles = [];         
+        this.visibleChildren = [];         
 
         this.initTargets();        
     }
@@ -93,9 +93,10 @@ class TModel extends BaseModel {
         return this;        
     }    
     
-    addToVisibleList(child) {
-        if (child.isVisible() && child.isInFlow()) {
-            this.inFlowVisibles.push(child);
+    //we need to use the parent so in case there is a bracket, the child will be added to the real parent
+    addToParentVisibleChildren() {
+        if (this.isVisible() && this.isInFlow() && this.getParent()) {
+            this.getParent().visibleChildren.push(this);
         }
     }
     

@@ -56,13 +56,13 @@ class LocationManager {
     calculateContainer(container) {
         const allChildren = this.getChildren(container);
         const viewport = container.createViewport();
-        const inFlowVisibleCount = container.inFlowVisibles.length;
-        container.inFlowVisibles.length = 0;
-
+        const visibleChildrenCount = container.visibleChildren.length;
+        container.visibleChildren.length = 0;
+        
         let i = 0;
-        const length = allChildren.length;
+        const childrenLength = allChildren.length;
 
-        while (i < length && tApp.isRunning()) {
+        while (i < childrenLength && tApp.isRunning()) {
             const child = allChildren[i++];
             if (!child) {
                 continue;
@@ -118,8 +118,8 @@ class LocationManager {
 
             child.calculateAbsolutePosition(child.getX(), child.getY());
             viewport.isVisible(child);
-            container.addToVisibleList(child);
-
+            child.addToParentVisibleChildren();
+           
             if (child.shouldCalculateChildren()) {
                 this.calculateContainer(child);
             }
@@ -158,8 +158,9 @@ class LocationManager {
             this.locationListStats.push(`${child.oid}-${child.updatingTargetList.length}-${TUtil.now() - this.startTime}`);
         }
         
-        console.log("inflow: " + container.oid + ", " + container.inFlowVisibles.length + ', ' + inFlowVisibleCount)
-        
+        if (visibleChildrenCount !== container.visibleChildren.length && container.targets['onVisibleChildrenChange']) {
+            this.activateTargets(container, container.targets['onVisibleChildrenChange']);
+        }        
         
     }
 
@@ -169,8 +170,8 @@ class LocationManager {
         tApp.targetManager.applyTargetValues(tmodel);
         tApp.targetManager.setActualValues(tmodel);
 
-        if (childrenCount !== tmodel.getChildren().length && tmodel.targets['onChildrenUpdate']) {
-            this.activateTargets(tmodel, Array.isArray(tmodel.targets['onChildrenUpdate']) ? tmodel.targets['onChildrenUpdate'] : [ tmodel.targets['onChildrenUpdate'] ]);
+        if (childrenCount !== tmodel.getChildren().length && tmodel.targets['onChildrenChange']) {
+            this.activateTargets(tmodel, tmodel.targets['onChildrenChange']);
         }
 
         if (tmodel.hasDom()) {
@@ -211,27 +212,31 @@ class LocationManager {
     }
 
     activateTargets(tmodel, targetList) {
-        targetList.forEach(targetName => {
-            if (typeof targetName === 'function') {
-                let targets = targetName.call(tmodel);
-                if (targets) {
-                    targets = Array.isArray(targets) ? targets : [targets];
-                    targets.forEach(target => {
-                        if (typeof target === 'object') {
-                            const { key, handler } = target;
-                            this.activateSingleTarget(handler, key);
-                        } else {
-                            this.activateSingleTarget(tmodel, target);
-                        }                        
-                    });
+        if (Array.isArray(targetList)) {
+            targetList.forEach(targetName => {
+                if (typeof targetName === 'function') {
+                    let targets = targetName.call(tmodel);
+                    if (targets) {
+                        targets = Array.isArray(targets) ? targets : [targets];
+                        targets.forEach(target => {
+                            if (typeof target === 'object') {
+                                const { key, handler } = target;
+                                this.activateSingleTarget(handler, key);
+                            } else {
+                                this.activateSingleTarget(tmodel, target);
+                            }                        
+                        });
+                    }
+                } else if (typeof targetName === 'object') {
+                    const { key, handler } = targetName;
+                    this.activateSingleTarget(handler, key);
+                } else {
+                    this.activateSingleTarget(tmodel, targetName);
                 }
-            } else if (typeof targetName === 'object') {
-                const { key, handler } = targetName;
-                this.activateSingleTarget(handler, key);
-            } else {
-                this.activateSingleTarget(tmodel, targetName);
-            }
-        });
+            });
+        } else {
+            this.activateSingleTarget(tmodel, targetList);            
+        }
     }
 
     activateSingleTarget(tmodel, targetName) {
