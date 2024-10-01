@@ -21,7 +21,7 @@ class BaseModel {
         this.oidNum = uniqueId.num;
 
         this.targetValues = {};
-        this.actualValues = [];
+        this.actualValues = {};
 
         this.activeTargetList = [];
         this.activeTargetMap = {};
@@ -76,7 +76,7 @@ class BaseModel {
             this.addToStyleTargetList(key);
         } 
         
-        if (TargetUtil.eventTargetMap[key] && this.eventTargets.indexOf((key) === -1)) {
+        if (TargetUtil.targetConditionMap[key] && this.eventTargets.indexOf((key) === -1)) {
             this.eventTargets.push(key)
         }
         

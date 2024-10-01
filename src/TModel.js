@@ -1,7 +1,7 @@
 import { BaseModel } from "./BaseModel.js";
 import { getRunScheduler } from "./App.js";
 import { Viewport } from "./Viewport.js";
-import { TUtil } from "./TUtil.js";
+    import { TUtil } from "./TUtil.js";
 import { SearchUtil } from "./SearchUtil.js";
  import { TModelUtil } from "./TModelUtil.js";
 
@@ -453,6 +453,10 @@ class TModel extends BaseModel {
     
     getAttributes() {
         return this.actualValues.attributes;
+    }
+    
+    getInputValue() {
+        return this.hasDom() ? this.$dom.value() : undefined;
     }
 }
 

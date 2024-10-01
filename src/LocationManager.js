@@ -197,7 +197,7 @@ class LocationManager {
         let activateTargets = [];
 
         tmodel.eventTargets.forEach(target => {
-            if (TargetUtil.targetConditionList[target](tmodel)) {
+            if (TargetUtil.targetConditionMap[target](tmodel)) {
                 activateTargets = activateTargets.concat(tmodel.targets[target]);
             }
         });

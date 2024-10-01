@@ -1,5 +1,5 @@
 import { getScreenWidth } from "./App.js";
-import { TUtil } from "/TUtil.js";
+import { TUtil } from "./TUtil.js"
 
 /**
  * It offers utility functions for common movement patterns. They generate 
@@ -13,7 +13,6 @@ class Moves {
             yStart = undefined,
             xStart = getScreenWidth() / 2, 
             widthStart = 50, 
-            endWidth = undefined,
             heightStart = 50, 
             bFactor = 0.6, 
             cFactor = 0.2, 
@@ -21,30 +20,22 @@ class Moves {
             rIncrement = 360 
         } = {}) 
     {
-        let bounce = (to - from) * bFactor;
-        const ys = yStart ? [yStart, from] : [from];
+        let bounce = Math.max(10, (to - from) * bFactor);        
+        const ys = TUtil.isDefined(yStart) ? [yStart, from] : [from];
         const xs = [xStart];
         const widths = [widthStart];
         const heights = [heightStart];
         const rotations = [rotationStart];
-        
-        if (!TUtil.isDefined(endWidth)) {
-            endWidth = widthStart;
-        }
-        
-        const widthDecrementStep = (widthStart - endWidth) / Math.log(Math.abs(bounce)); 
         
         while (Math.abs(bounce | 0) > 1) {
             ys.push(to);
             ys.push(to - bounce);
             
             const compressedWidth = widthStart * (1 + cFactor);
-            const currentWidth = Math.max(endWidth, widthStart - widthDecrementStep);
-
             const compressedHeight = heightStart * (1 - cFactor);
 
             widths.push(compressedWidth);
-            widths.push(currentWidth);
+            widths.push(widthStart);
 
             heights.push(compressedHeight);
             heights.push(heightStart);
@@ -63,7 +54,11 @@ class Moves {
         ys.push(to);
         widths.push(widthStart);
         heights.push(heightStart);
-        rotations.push(360);
+        
+        const lastRotation = rotations[rotations.length - 1] % 360;
+        if (lastRotation > 0 && lastRotation < 360) {
+           rotations.push(360); 
+        }
 
         return { 
             x: { list: xs }, 
@@ -75,17 +70,24 @@ class Moves {
     }
     
     static bounceSimple(tmodel, {
-            shift = 40,
+            from = undefined,
+            to = undefined,
+            widthStart = undefined,
+            heightStart = undefined,
+            xStart = undefined,
+            yStart = undefined,
             bFactor = 0.7,
             cFactor = 0.2
         } = {}) 
     {
-        const from = tmodel.getY() - shift;
-        const to = tmodel.getY();
-        const yStart = tmodel.getY();
-        const xStart = (tmodel.getParentValue('width') - tmodel.getWidth()) / 2;
-        const widthStart = tmodel.getWidth();
-        const heightStart = tmodel.getHeight();
+        from = TUtil.isDefined(from) ? from : tmodel.getY();
+        to = TUtil.isDefined(to) ? to : tmodel.getY();
+        widthStart = TUtil.isDefined(widthStart) ? widthStart : tmodel.getWidth();
+        heightStart = TUtil.isDefined(heightStart) ? heightStart : tmodel.getHeight();
+        
+        yStart = TUtil.isDefined(yStart) ? yStart : tmodel.getY();
+        xStart = TUtil.isDefined(xStart) ? xStart : tmodel.getX();
+        
         const rIncrement = 0;
         
         const bounce = Moves.bounce(from, to, {

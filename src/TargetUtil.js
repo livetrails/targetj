@@ -69,6 +69,10 @@ class TargetUtil {
         style: true,
         textAlign: true,
         border: true,
+        borderTop: true,
+        borderLeft: true,
+        borderRight: true,
+        borderBottom: true,
         boxSizing: true,
         transformStyle: true,
         transformOrigin: true,
@@ -103,22 +107,10 @@ class TargetUtil {
         scale3d: { x: 0, y: 0, z: 0 }
     };
 
-    static eventTargetMap = {
-        onResize: true,
-        onFocusEvent: true,
-        onClickEvent: true,
-        onTouchEnd: true,
-        onKeyEvent: true,
-        onSwipeEvent: true,
-        onTouchEvent: true,
-        onEnterEvent: true,
-        onLeaveEvent: true,
-        onScrollEvent: true
-    };
-    
-    static targetConditionList = {
+    static targetConditionMap = {
         onResize: () => getLocationManager().resizeFlag,
-        onFocusEvent: tmodel => getEvents().onFocusOut(tmodel) || getEvents().onFocus(tmodel),
+        onFocusEvent: tmodel => getEvents().onFocus(tmodel),
+        onBlurEvent: tmodel => getEvents().onBlur(tmodel),
         onClickEvent: tmodel => getEvents().getEventType() === 'click' && getEvents().isClickHandler(tmodel),
         onTouchEnd: () => getEvents().getEventType() === 'end',
         onKeyEvent: () => getEvents().getEventType() === 'key' && getEvents().currentKey,
@@ -129,7 +121,7 @@ class TargetUtil {
         onScrollEvent: tmodel => (getEvents().isScrollLeftHandler(tmodel) && getEvents().deltaX()) || 
                       (getEvents().isScrollTopHandler(tmodel) && getEvents().deltaY())
     };
-
+    
     static emptyValue() {
         return {
             value: undefined,

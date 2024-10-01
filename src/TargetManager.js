@@ -74,8 +74,8 @@ class TargetManager {
     }
     
     findOriginalTModel(tmodel, originalTargetName) {
-        let originalTModel = SearchUtil.findParentByTarget(tmodel, originalTargetName);
-        return originalTModel ? originalTModel : getVisibles().find(tmodel => tmodel.targets[originalTargetName]);
+        return SearchUtil.findParentByTarget(tmodel, originalTargetName) 
+            || getVisibles().find(tmodel => tmodel.targets[originalTargetName]);
     }
 
     setActualValue(tmodel, key) {
@@ -161,7 +161,7 @@ class TargetManager {
                 originalTarget = tmodel.targets[targetValue.originalTargetName];
                 originalTModel = tmodel;
                 if (!originalTarget) {
-                    originalTModel = SearchUtil.findParentByTarget(tmodel, originalTargetName);
+                    originalTModel = this.findOriginalTModel(tmodel, originalTargetName);
                     originalTarget = originalTModel ? originalTModel.targets[targetValue.originalTargetName] : null;
                 }
                 if (originalTarget && typeof originalTarget.onImperativeStep === 'function') {

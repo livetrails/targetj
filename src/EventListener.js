@@ -38,8 +38,8 @@ class EventListener {
             enterEvent: null,
             leaveEvent: null,
             focus: null,
-            focusIn: null,
-            focusOut: null
+            justFocused: null,
+            blur: null
         };
 
         this.eventQueue = [];
@@ -128,8 +128,8 @@ class EventListener {
     
     findEventHandlers(tmodel) {
         const touchHandler = SearchUtil.findFirstTouchHandler(tmodel);
-        const scrollLeftHandler = this.end0 ? this.currentHandlers.scrollLeft : SearchUtil.findFirstScrollLeftHandler(tmodel);
-        const scrollTopHandler = this.end0 ? this.currentHandlers.scrollTop : SearchUtil.findFirstScrollTopHandler(tmodel);
+        const scrollLeftHandler = SearchUtil.findFirstScrollLeftHandler(tmodel);
+        const scrollTopHandler = SearchUtil.findFirstScrollTopHandler(tmodel);
         const pinchHandler = SearchUtil.findFirstPinchHandler(tmodel);
         const focusHandler = $Dom.hasFocus(tmodel) ? tmodel : this.currentHandlers.focus;
 
@@ -139,8 +139,8 @@ class EventListener {
 
         this.currentHandlers.enterEvent = null;
         this.currentHandlers.leaveEvent = null;
-        this.currentHandlers.focusIn = null;
-        this.currentHandlers.focusOut = null;
+        this.currentHandlers.justFocused = null;
+        this.currentHandlers.blur = null;
         
         if (this.currentHandlers.touch !== touchHandler) {
             this.currentHandlers.enterEvent = touchHandler;
@@ -148,8 +148,8 @@ class EventListener {
         }
         
         if (this.currentHandlers.focus !== focusHandler) {
-            this.currentHandlers.focusIn = focusHandler;
-            this.currentHandlers.focusOut = this.currentHandlers.focus;
+            this.currentHandlers.justFocused = focusHandler;
+            this.currentHandlers.blur = this.currentHandlers.focus;
             this.eventQueue.push({ eventName: 'focus', eventType: 'focus', tmodel, timeStamp: TUtil.now() });
         }
        
@@ -441,11 +441,11 @@ class EventListener {
     }
     
     onFocus(handler) {
-        return this.currentHandlers.focusIn === handler;        
+        return this.currentHandlers.justFocused === handler;        
     }
     
-    onFocusOut(handler) {
-        return this.currentHandlers.focusOut === handler;        
+    onBlur(handler) {
+        return this.currentHandlers.blur === handler;        
     } 
     
     hasFocus(handler) {
