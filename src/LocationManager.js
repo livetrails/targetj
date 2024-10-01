@@ -56,6 +56,7 @@ class LocationManager {
     calculateContainer(container) {
         const allChildren = this.getChildren(container);
         const viewport = container.createViewport();
+        const inFlowVisibleCount = container.inFlowVisibles.length;
         container.inFlowVisibles.length = 0;
 
         let i = 0;
@@ -117,7 +118,7 @@ class LocationManager {
 
             child.calculateAbsolutePosition(child.getX(), child.getY());
             viewport.isVisible(child);
-            child.addToParentVisibleList();
+            container.addToVisibleList(child);
 
             if (child.shouldCalculateChildren()) {
                 this.calculateContainer(child);
@@ -156,6 +157,10 @@ class LocationManager {
             viewport.calcContentWidthHeight();
             this.locationListStats.push(`${child.oid}-${child.updatingTargetList.length}-${TUtil.now() - this.startTime}`);
         }
+        
+        console.log("inflow: " + container.oid + ", " + container.inFlowVisibles.length + ', ' + inFlowVisibleCount)
+        
+        
     }
 
     calculateTargets(tmodel) {

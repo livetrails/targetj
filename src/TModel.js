@@ -93,14 +93,13 @@ class TModel extends BaseModel {
         return this;        
     }    
     
-    addToParentVisibleList() {
-        if (this.isVisible() && this.isInFlow() && this.getParent()) {
-            this.getParent().inFlowVisibles.push(this);
+    addToVisibleList(child) {
+        if (child.isVisible() && child.isInFlow()) {
+            this.inFlowVisibles.push(child);
         }
     }
     
     shouldCalculateChildren() {
-
         if (TUtil.isDefined(this.actualValues.calculateChildren)) {
             return this.actualValues.calculateChildren;
         }
