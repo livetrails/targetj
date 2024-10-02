@@ -109,6 +109,8 @@ class TargetUtil {
 
     static targetConditionMap = {
         onResize: () => getLocationManager().resizeFlag,
+        onParentResize: tmodel => { return tmodel.getParent().getActualValueLastUpdate('width') > tmodel.getActualValueLastUpdate('width') ||
+                    tmodel.getParent().getActualValueLastUpdate('height') > tmodel.getActualValueLastUpdate('height'); },
         onFocusEvent: tmodel => getEvents().onFocus(tmodel),
         onBlurEvent: tmodel => getEvents().onBlur(tmodel),
         onClickEvent: tmodel => getEvents().getEventType() === 'click' && getEvents().isClickHandler(tmodel),

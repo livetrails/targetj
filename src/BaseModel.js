@@ -29,8 +29,6 @@ class BaseModel {
         this.updatingTargetList = [];
         this.updatingTargetMap = {};
 
-        this.updatingTargetList = [];
-        this.updatingTargetMap = {};
 
         this.updatingChildrenList = [];
         this.updatingChildrenMap = {};

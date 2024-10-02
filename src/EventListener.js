@@ -54,6 +54,7 @@ class EventListener {
             mousemove: { eventName: 'mousemove', inputType: 'mouse', eventType: 'move', order: 2, windowEvent: false },
             mouseup: { eventName: 'mouseup', inputType: 'mouse', eventType: 'end', order: 2, windowEvent: false },
             mousecancel: { eventName: 'mouseup', inputType: 'mouse', eventType: 'cancel', order: 2, windowEvent: false },
+            mouseleave: { eventName: 'mouseleave', inputType: 'mouse', eventType: 'cancel', order: 2, windowEvent: false },
 
             pointerdown: { eventName: 'mousedown', inputType: 'pointer', eventType: 'start', order: 3, windowEvent: false },
             pointermove: { eventName: 'mousemove', inputType: 'pointer', eventType: 'move', order: 3, windowEvent: false },
@@ -64,6 +65,7 @@ class EventListener {
             DOMMouseScroll: { eventName: 'wheel', inputType: '', eventType: 'wheel', order: 1, windowEvent: false },
             mousewheel: { eventName: 'wheel', inputType: '', eventType: 'wheel', order: 1, windowEvent: false },
 
+            blur: { eventName: 'blur', inputType: 'mouse', eventType: 'cancel', order: 2, windowEvent: true },
             keyup: { eventName: 'key', inputType: '', eventType: 'key', order: 1, windowEvent: true },
             keydown: { eventName: 'key', inputType: '', eventType: 'key', order: 1, windowEvent: true },
             resize: { eventName: 'resize', inputType: '', eventType: 'resize', order: 1, windowEvent: true },
@@ -126,31 +128,30 @@ class EventListener {
         }
     } 
     
-    findEventHandlers(tmodel) {
-        const touchHandler = SearchUtil.findFirstTouchHandler(tmodel);
-        const scrollLeftHandler = SearchUtil.findFirstScrollLeftHandler(tmodel);
-        const scrollTopHandler = SearchUtil.findFirstScrollTopHandler(tmodel);
-        const pinchHandler = SearchUtil.findFirstPinchHandler(tmodel);
-        const focusHandler = $Dom.hasFocus(tmodel) ? tmodel : this.currentHandlers.focus;
+    findEventHandlers({ tmodel }) {
+        
+        let touchHandler, scrollLeftHandler, scrollTopHandler, pinchHandler, focusHandler;
+        
+        if (tmodel) {
+            touchHandler = SearchUtil.findFirstTouchHandler(tmodel);
+            scrollLeftHandler = SearchUtil.findFirstScrollLeftHandler(tmodel);
+            scrollTopHandler = SearchUtil.findFirstScrollTopHandler(tmodel);
+            pinchHandler = SearchUtil.findFirstPinchHandler(tmodel);
+            focusHandler = $Dom.hasFocus(tmodel) ? tmodel : this.currentHandlers.focus;
+        }
 
         if (this.currentHandlers.scrollLeft !== scrollLeftHandler || this.currentHandlers.scrollTop !== scrollTopHandler) {
             this.clearTouch();
         }
 
-        this.currentHandlers.enterEvent = null;
-        this.currentHandlers.leaveEvent = null;
-        this.currentHandlers.justFocused = null;
-        this.currentHandlers.blur = null;
-        
         if (this.currentHandlers.touch !== touchHandler) {
             this.currentHandlers.enterEvent = touchHandler;
-            this.currentHandlers.leaveEvent = this.currentHandlers.touch; 
+            this.currentHandlers.leaveEvent = this.currentHandlers.touch;
         }
         
         if (this.currentHandlers.focus !== focusHandler) {
             this.currentHandlers.justFocused = focusHandler;
             this.currentHandlers.blur = this.currentHandlers.focus;
-            this.eventQueue.push({ eventName: 'focus', eventType: 'focus', tmodel, timeStamp: TUtil.now() });
         }
        
         this.currentHandlers.touch = touchHandler;
@@ -161,6 +162,11 @@ class EventListener {
     }    
 
     captureEvents() {
+        this.currentHandlers.enterEvent = null;
+        this.currentHandlers.leaveEvent = null;
+        this.currentHandlers.justFocused = null;
+        this.currentHandlers.blur = null;        
+        
         if (this.eventQueue.length === 0) {
             this.currentEventName = "";
             this.currentEventType = "";
@@ -172,9 +178,8 @@ class EventListener {
         if (lastEvent.eventName === 'resize') {
             getBrowser().measureScreen();
         } else {
-            if (lastEvent.tmodel) {
-                this.findEventHandlers(lastEvent.tmodel);
-            }
+            this.findEventHandlers(lastEvent);
+            
             this.currentEventName = lastEvent.eventName;
             this.currentEventType = lastEvent.eventType;
             this.currentKey = this.currentTouch.key;
@@ -205,15 +210,15 @@ class EventListener {
 
         const lastEvent = this.eventQueue.length > 0 ? this.eventQueue[this.eventQueue.length - 1] : null;
 
-        if (lastEvent) {
-            const lastEventItem = lastEvent.eventItem;
-            const rate = now - lastEvent.timeStamp;
+        if (lastEvent && lastEvent.eventItem) {
+            const { eventItem: lastEventItem, timeStamp: lastTimeStamp } = lastEvent;
+            const rate = now - lastTimeStamp;
 
             if (inputType && lastEventItem.inputType && lastEventItem.inputType !== inputType && eventOrder > lastEventItem.order) {
                 return;
             } else if (this.eventQueue.length > 10 && rate < 50) {
                 let capacity = 0;
-                for (let i = this.eventQueue.length - 1; i >= 0 && this.eventQueue[i].eventItem.eventType === eventType; i--) {
+                for (let i = this.eventQueue.length - 1; i >= 0 && this.eventQueue[i].eventItem?.eventType === eventType; i--) {
                     if (++capacity > 5) {
                         return;
                     }
