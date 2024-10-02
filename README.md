@@ -141,32 +141,35 @@ The following example demonstrates the use of both declarative and imperative ap
 ```bash
 import { App, TModel, getScreenWidth, getScreenHeight } from "targetj";
 
-App(new TModel('declarative', {     
-    add() { 
-        for (let i = 0; i < 10; i++) {
-            this.addChild(new TModel("square", {
-                width: 50,
-                height: 50,
-                background: 'brown',
-                animate: {
-                    value() {
-                        const width = this.getWidth();
-                        const parentWidth = this.getParentValue('width');
-                        this.setTarget('x', { list: [ -width, parentWidth + width ] }, Math.floor(30 + parentWidth * Math.random()));
-                        this.setTarget('y',  Math.floor(Math.random() * (this.getParentValue('height') - this.getHeight())), 30);
-                    },
-                    onImperativeEnd(key) {
-                        if (key === 'x') {
-                            this.activateTarget(this.key);
-                        }
-                    }
-                }
-            }));
-        }
+App(
+  new TModel("declarative", {
+    children: {
+      loop() { return this.getChildren().length < 10; },
+      interval: 500,
+      value: () =>
+        new TModel("square", {
+          width: 50,
+          height: 50,
+          background: "brown",
+          animate: {
+            value() {
+              const width = this.getWidth();
+              const parentWidth = this.getParentValue("width");
+              this.setTarget("x", { list: [-width, parentWidth + width] }, Math.floor(30 + parentWidth * Math.random()));
+              this.setTarget("y", Math.floor(Math.random() * (this.getParentValue("height") - this.getHeight())), 30);
+            },
+            onImperativeEnd(key) {
+              if (!this.hasTargetUpdates()) {
+                this.activateTarget(this.key);
+              }
+            },
+          },
+        }),
     },
     width: getScreenWidth,
-    height: getScreenHeight       
-}));
+    height: getScreenHeight,
+  })
+);
 ```
 
 ## Loading data example
@@ -182,14 +185,13 @@ The target will remain active using the loop function, with value() continuing t
 ```bash
 import { App, TModel, getLoader, getScreenHeight, getScreenWidth } from "targetj";
 
-App(
-  new TModel("apiCall", {
+App(new TModel("apiCall", {
     start() { this.users = 0; },
     width: getScreenWidth,
     height: getScreenHeight,
     load: {
-      loop() { return !this.val(this.key); },
       interval: 50,
+      loop() { return !this.val(this.key); },
       value() {
         const fetchId = `user${this.users}`;
         getLoader().initSingleLoad(fetchId, {
@@ -202,12 +204,25 @@ App(
         if (!newValue) return;
         const user = newValue.result;
         this.addChild(
-          new TModel("userApi", {
-            width: 100,
-            height: 30,
-            rightMargin: 5,
-            bottomMargin: 5,
-            lineHeight: 30,
+          new TModel("user", {
+            bounce: {
+              value() {
+                this.setTarget("move", Moves.bounceSimple(this, {
+                    xStart: this.getX() || Math.random() * 300,
+                    yStart: 0,
+                    to: Math.random() * 200,
+                    widthStart: 50,
+                    heightStart: 50,
+                  }), 50);
+              },
+              onImperativeEnd() {
+                if (!this.hasUpdatingTargets(this)) {
+                  this.activateTarget(this.key);
+                }
+              },
+            },
+            lineHeight: 50,
+            textAlign: "center",
             html: user.name,
             background: "yellow",
           })
@@ -223,7 +238,7 @@ App(
       },
     },
     fastLoad: {
-      loop() { return this.users <= 9; },
+      loop() { return this.users < 9; },
       value() {
         //Loading is fast: We can load additional details about the user or more users.
         this.users++;
@@ -237,7 +252,6 @@ App(
     },
   })
 );
-
 ```
 
 ## Event handling example
