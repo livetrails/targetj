@@ -64,7 +64,7 @@ class RunScheduler {
     run(delay, runId) {
         if (!tApp.isRunning()) {
             return;
-        } 
+        }
 
         if (this.runningFlag) {
             this.rerunId = runId;
@@ -75,10 +75,15 @@ class RunScheduler {
         this.runningFlag = true;
 
         window.requestAnimationFrame(() => {
-            const startStep = this.runningStep;
             const startTime = TUtil.now();
 
-            while ((TUtil.now() - startTime) < 25 && this.runningStep < 7 && tApp.isRunning()) {
+            while (this.runningStep < 7 && tApp.isRunning()) {
+                const currentTime = TUtil.now();
+
+                if (currentTime - startTime >= 25) {
+                    break;
+                }
+
                 switch (this.runningStep) {
                     case 0:
                         getEvents().captureEvents();
@@ -119,7 +124,7 @@ class RunScheduler {
             }
 
             const cycleDuration = TUtil.now() - startTime;
-            if (startStep === 0) {
+            if (this.runningStep === 0) {
                 this.cycleStats.duration = cycleDuration;
             } else {
                 this.cycleStats.duration += cycleDuration;
@@ -129,12 +134,12 @@ class RunScheduler {
                 TUtil.log(this.cycleStats.duration > 10)(`it took: ${this.cycleStats.duration}, RunId: ${runId}`);
                 TUtil.log(this.cycleStats.duration > 10)(`locations: ${tApp.locationManager.locationListStats}`);
                 TUtil.log(tApp.debugLevel > 1)(`request from: ${runId} delay:  ${delay}`);
-            }  
+            }
 
             this.runningFlag = false;
             this.runId = '';
 
-            if (this.runningStep !== 7) {
+            if (this.runningStep < 7) {
                 this.run(0, `rendering: ${runId} ${this.runningStep}`);
             } else {
                 this.cycleStats.count++;

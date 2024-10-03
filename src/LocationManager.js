@@ -212,31 +212,30 @@ class LocationManager {
     }
 
     activateTargets(tmodel, targetList) {
-        if (Array.isArray(targetList)) {
-            targetList.forEach(targetName => {
-                if (typeof targetName === 'function') {
-                    let targets = targetName.call(tmodel);
-                    if (targets) {
-                        targets = Array.isArray(targets) ? targets : [targets];
-                        targets.forEach(target => {
-                            if (typeof target === 'object') {
-                                const { key, handler } = target;
-                                this.activateSingleTarget(handler, key);
-                            } else {
-                                this.activateSingleTarget(tmodel, target);
-                            }                        
-                        });
-                    }
-                } else if (typeof targetName === 'object') {
-                    const { key, handler } = targetName;
-                    this.activateSingleTarget(handler, key);
-                } else {
-                    this.activateSingleTarget(tmodel, targetName);
-                }
-            });
-        } else {
-            this.activateSingleTarget(tmodel, targetList);            
+        if (!Array.isArray(targetList)) {
+            targetList = [targetList];
         }
+        targetList.forEach(targetName => {
+            if (typeof targetName === 'function') {
+                let targets = targetName.call(tmodel);
+                if (targets) {
+                    targets = Array.isArray(targets) ? targets : [targets];
+                    targets.forEach(target => {
+                        if (typeof target === 'object') {
+                            const { key, handler } = target;
+                            this.activateSingleTarget(handler, key);
+                        } else {
+                            this.activateSingleTarget(tmodel, target);
+                        }                        
+                    });
+                }
+            } else if (typeof targetName === 'object') {
+                const { key, handler } = targetName;
+                this.activateSingleTarget(handler, key);
+            } else {
+                this.activateSingleTarget(tmodel, targetName);
+            }
+        });
     }
 
     activateSingleTarget(tmodel, targetName) {
