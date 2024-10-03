@@ -12,6 +12,10 @@ To install TargetJ, run the following command in your terminal:
 npm install targetj
 ```
 
+## Why TargetJ?
+
+Imagine being able to build a front-end project using a single approach for API integration, animation, event handling, and more. Now imagine doing it without worrying about asynchronous calls, loops, callbacks, promises, timeouts, CSS, or even HTML. That's what TargetJ solves. It simplifies the entire development.
+
 ## What are targets?
 
 Targets provide a unified interface for variable assignments and methods, giving them life cycles and the autonomy to operate independently, with various callbacks to adapt to changes, mimicking the behavior of living cells.
@@ -167,7 +171,7 @@ App(
         }),
     },
     width: getScreenWidth,
-    height: getScreenHeight,
+    height: getScreenHeight
   })
 );
 ```
@@ -196,7 +200,7 @@ App(new TModel("apiCall", {
         const fetchId = `user${this.users}`;
         getLoader().initSingleLoad(fetchId, {
           url: "https://targetj.io/api/randomUser",
-          data: { id: fetchId },
+          data: { id: fetchId }
         });
         return getLoader().fetchResult(fetchId);
       },
@@ -248,8 +252,8 @@ App(new TModel("apiCall", {
         return (
           this.isTargetComplete("load") && this.val("load").loadingTime < 600
         );
-      },
-    },
+      }
+    }
   })
 );
 ```
@@ -280,7 +284,7 @@ App(
     html() {
       return this.getTargetExecutionCount("background");
     },
-    onClickEvent: ["background", "canHandleEvents", "html"],
+    onClickEvent: ["background", "canHandleEvents", "html"]
   })
 );
 ```
@@ -335,7 +339,7 @@ App(
       },
       enabledOn() {
         return this.hasDom();
-      },
+      }
     },
     trackProgress: {
       loop: true,
@@ -349,8 +353,8 @@ App(
       },
       enabledOn() {
         return this.isTargetComplete("animate");
-      },
-    },
+      }
+    }
   })
 );
 ```
@@ -431,7 +435,7 @@ App(
           return [Toolbar(), HomePage()];
       }
     },
-    onResize: ["width", "height"],
+    onResize: ["width", "height"]
   })
 );
 
@@ -447,24 +451,31 @@ const Toolbar = () =>
             height: 50,
             lineHeight: 50,
             outerXEast: 0,
-            opacity: {
-              loop() { return this.getOpacity() === 1; },
-              value() { return getEvents().isTouchHandler(this) ? [1, 20] : [0.5, 20]; },
+            opacity: 0.5,
+            highlight: {
+              active: false,
+              value() {
+                this.setTarget("opacity", getEvents().isEnterEventHandler(this) ? 1 : 0.5, 20);
+              }
             },
             activePage: {
               active: false,
-              value: () => getPager().openLink(menu),
+              value() {
+                this.setTarget;
+                getPager().openLink(menu);
+              }
             },
             html: menu,
-            onTouchEvent: ["opacity"],
-            onClickEvent: ["activePage"]
+            onEnterEvent: "highlight",
+            onLeaveEvent: "highlight",
+            onClickEvent: ["highlight", "activePage"],
           })
         );
       });
     },
     height: 50,
     width: getScreenWidth,
-    onResize: ["width"],
+    onResize: ["width"]
   });
 
 const HomePage = () =>
@@ -473,7 +484,7 @@ const HomePage = () =>
     width: getScreenWidth,
     height: getScreenHeight,
     html: "home page",
-    onResize: ["width", "height"],
+    onResize: ["width", "height"]
   });
 
 const Page1 = () =>
@@ -482,7 +493,7 @@ const Page1 = () =>
     width: getScreenWidth,
     height: getScreenHeight,
     html: "page 1",
-    onResize: ["width", "height"],
+    onResize: ["width", "height"]
   });
 
 const Page2 = () =>
@@ -491,7 +502,7 @@ const Page2 = () =>
     width: getScreenWidth,
     height: getScreenHeight,
     html: "page 2",
-    onResize: ["width", "height"],
+    onResize: ["width", "height"]
   });
 ```
 
@@ -541,7 +552,8 @@ As a result of using targets, we can develop web sites or apps with the followin
 2. TargetJ.tapp.start(): Restarts the application
 3. TargetJ.tapp.throttle: Slows down the application. This represents the pause in milliseconds before starting another TargetJ task cycle. It is zero by default.
 4. TargetJ.tapp.debugLevel: Logs information about the TargetJ task cycle and its efficiency. It is zero by default. Set it to 1 to log basic information and 2 to log more detailed information.
-5. Use `t()` to find an object from the browser console using its `oid`. Inspect all the vital properities using `t(oid).bug`.
+5. Use `t()` to find an object from the browser console using its `oid`.
+6. Inspect all the vital properities using `t(oid).bug`.
    
 ## Documentation
 Explore the full potential of TargetJ and dive into our interactive documentation at www.targetj.io.
