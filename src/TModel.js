@@ -202,11 +202,11 @@ class TModel extends BaseModel {
     }
 
     getDomParent() {
-        return this.actualValues.domParent ? this.actualValues.domParent : null;
+        return this.actualValues.domParent || SearchUtil.findParentByTarget(this, 'domHolder');
     }
 
     getDomHolder() {
-        return this.actualValues.domHolder ? this.actualValues.domHolder : this.getDomParent() ? this.getDomParent().$dom : SearchUtil.findParentByTarget(this, 'domHolder') ? SearchUtil.findParentByTarget(this, 'domHolder').$dom : null;
+        return this.actualValues.domHolder ? this.actualValues.domHolder : this.getDomParent() ? this.getDomParent().$dom : null;
     }
 
     bug() {

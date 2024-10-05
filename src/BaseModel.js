@@ -67,17 +67,20 @@ class BaseModel {
             return;
         }
         
+        if (TargetUtil.targetConditionMap[key]) {
+            if (this.eventTargets.indexOf((key) === -1)) {
+                this.eventTargets.push(key)
+            }
+            return;
+        }        
+        
         TargetUtil.bindTargetName(this.targets, key);
 
         if (TUtil.isDefined(this.targets[key].initialValue)) {
             this.actualValues[key] = this.targets[key].initialValue;
             this.addToStyleTargetList(key);
         } 
-        
-        if (TargetUtil.targetConditionMap[key] && this.eventTargets.indexOf((key) === -1)) {
-            this.eventTargets.push(key)
-        }
-        
+           
         if (this.targets[key].active !== false) {
             this.addToActiveTargets(key);
         }
