@@ -103,7 +103,7 @@ class TargetManager {
 
         if (step <= steps) {
             if (!TUtil.isDefined(initialValue)) {
-                initialValue = tmodel.actualValues[key];
+                initialValue = TUtil.isDefined(tmodel.actualValues[key]) ? tmodel.actualValues[key] : typeof theValue === 'number' ? 0 : undefined;
                 tmodel.setTargetInitialValue(key, initialValue);
             }
 

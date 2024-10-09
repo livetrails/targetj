@@ -144,7 +144,7 @@ class TModelUtil {
                     } else if (TUtil.isDefined(tmodel.getX()) || TUtil.isDefined(tmodel.getY())) {
                        transformMap['translate'] = `translate(${tmodel.transformMap.x}px, ${tmodel.transformMap.y}px)`;
                     }
-                    
+                                        
                     processed['x'] = true;
                     processed['y'] = true;
                     processed['z'] = true;                    

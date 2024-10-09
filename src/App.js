@@ -25,7 +25,6 @@ const AppFn = (firstChild) => {
     my.init = function() {
         my.browser = new Browser();
         my.browser.setup();
-        my.browser.measureScreen();
         
         my.$document = new $Dom(document);
         my.$window = new $Dom(window);
@@ -45,41 +44,40 @@ const AppFn = (firstChild) => {
 
 
         my.tRootFactory = () => {
-            const tRoot = new TModel('tRoot');
-
-            tRoot.addChild = child => {
-                if (!TUtil.isDefined(child.targets['domHolder'])) {
-                    child.addTarget('domHolder', {
-                        value: function() {
-                            let $dom;
-                            if (!$Dom.query('#tj-root')) {
-                                $dom = new $Dom();
-                                $dom.create('div');
-                                $dom.setSelector('#tj-root');
-                                $dom.setId('#tj-root');
-                                $dom.attr("tabindex", "0");
-                                new $Dom('body').insertFirst$Dom($dom);
-                            } else {
-                                $dom = new $Dom('#tj-root');
-                            }
-                            return $dom;
-                        }
-                    });
+            const tmodel = new TModel('tRoot', {
+                start() {
+                    if (!$Dom.query('#tj-root')) {
+                        this.$dom = new $Dom();
+                        this.$dom.create('div');
+                        this.$dom.setSelector('#tj-root');
+                        this.$dom.setId('#tj-root');
+                        this.$dom.attr("tabindex", "0");
+                        new $Dom('body').insertFirst$Dom(this.$dom);
+                    } else {
+                        this.$dom = new $Dom('#tj-root');
+                    }
+                },
+                domHolder() {
+                    return this.$dom;
+                },
+                width() {
+                    return document.documentElement.clientWidth || document.body.clientWidth;
+                },
+                height() {
+                    return document.documentElement.clientHeight || document.body.clientHeight;
                 }
-
-                TModel.prototype.addChild.call(tRoot, child);
-            };
-
+            });   
+            
             if (my.tRoot) {
                 my.tRoot.getChildren().forEach((t, num) => {
                     const child = new TModel(t.type, t.targets);
                     child.oidNum = num;
                     child.oid = num > 0 ? `${t.type}${num}` : t.type;
-                    tRoot.addChild(child);
+                    tmodel.addChild(child);
                 });
             }
 
-            return tRoot;
+            return tmodel;
         };
 
         my.tRoot = my.tRootFactory();
@@ -104,7 +102,6 @@ const AppFn = (firstChild) => {
         my.events.removeWindowHandlers();
         my.events.addWindowHandlers();
 
-        my.browser.measureScreen();
         my.runScheduler.resetRuns();
 
         my.runningFlag = true;
@@ -171,17 +168,17 @@ App.getOid = function(type) {
 };
 
 const isRunning = () => tApp ? tApp.runningFlag : false;
-const tRoot = () => tApp ? tApp.tRoot : undefined;
-const getEvents = () => tApp ? tApp.events : undefined;
-const getPager = () => tApp ? tApp.pager : undefined;
-const getLoader = () => tApp ? tApp.loader : undefined;
-const getManager = () => tApp ? tApp.manager : undefined;
-const getRunScheduler = () => tApp ? tApp.runScheduler : undefined;
-const getLocationManager = () => tApp ? tApp.locationManager : undefined;
-const getBrowser = () => tApp ? tApp.browser : undefined;
-const getScreenWidth = () => tApp ? tApp.browser.screen.width : 0;
-const getScreenHeight = () => tApp ? tApp.browser.screen.height : 0;
-const getVisibles = () => tApp ? tApp.manager.lists.visible : undefined;
+const tRoot = () => tApp?.tRoot;
+const getEvents = () => tApp?.events;
+const getPager = () => tApp?.pager;
+const getLoader = () => tApp?.loader;
+const getManager = () => tApp?.manager;
+const getRunScheduler = () => tApp?.runScheduler;
+const getLocationManager = () => tApp?.locationManager;
+const getBrowser = () => tApp?.browser;
+const getScreenWidth = () => tApp?.tRoot?.getWidth() ?? 0;
+const getScreenHeight = () => tApp?.tRoot?.getHeight() ?? 0;
+const getVisibles = () => tApp?.manager?.lists.visible;
 
 window.t = window.t || SearchUtil.find;
 

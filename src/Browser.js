@@ -5,13 +5,7 @@ import { $Dom } from "./$Dom.js";
  */
 class Browser {
     constructor() {
-        this.style = undefined;
-        this.screen = {
-            x: 0,
-            y: 0,
-            width: 0,
-            height: 0
-        };        
+        this.style = undefined;     
     }
 
     setup() {
@@ -64,13 +58,6 @@ class Browser {
 
         style = vendor === '' ? style : vendor + style.charAt(0).toUpperCase() + style.substr(1);
         return style;
-    }
-    
-    measureScreen() {
-        this.screen.width = document.documentElement.clientWidth || document.body.clientWidth;
-        this.screen.height = document.documentElement.clientHeight || document.body.clientHeight;
-
-        return this.screen;
     }
 }
 

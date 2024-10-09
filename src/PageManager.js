@@ -16,15 +16,13 @@ class PageManager {
         tApp.reset();
 
         if (!this.pageCache[link]) {
-            tApp.tRoot.getChildren().forEach(child => child.$dom.innerHTML(""));
+            tApp.tRoot.$dom.innerHTML("");
             tApp.tRoot = tApp.tRootFactory();
             this.lastLink = link;
             setTimeout(tApp.start);
         } else {
             tApp.tRoot = this.pageCache[link].tRoot;
-            tApp.tRoot.getChildren().forEach((child, index) => {
-                child.$dom.innerHTML(this.pageCache[link].htmls[index]);
-            });
+            tApp.tRoot.$dom.innerHTML(this.pageCache[link].html);
 
             TUtil.initDoms(this.pageCache[link].visibleList);
             tApp.manager.lists.visible = [...this.pageCache[link].visibleList];
@@ -50,7 +48,7 @@ class PageManager {
         if (this.lastLink) {
             this.pageCache[this.lastLink] = {
                 link: this.lastLink,
-                htmls: tApp.tRoot.getChildren().map(child => child.$dom.innerHTML()),
+                html: tApp.tRoot.$dom.innerHTML(),
                 visibleList: [...tApp.manager.lists.visible],
                 tRoot: tApp.tRoot
             };
@@ -69,7 +67,7 @@ class PageManager {
         if (!currentState.browserUrl) {
             this.pageCache[document.URL] = {
                 link: document.URL,
-                htmls: tApp.tRoot.getChildren().map(child => child.$dom.innerHTML()),
+                htms: tApp.tRoot.$dom.innerHTML(),
                 visibleList: [...tApp.manager.lists.visible],
                 tRoot: tApp.tRoot
             };

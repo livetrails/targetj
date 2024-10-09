@@ -9,9 +9,12 @@ class Bracket extends TModel {
     constructor(parent) {
         super("BI", {
             canHaveDom: false,
-            outerXEast: 0
+            outerOverflowWidth: 0
         });
 
+        this.innerContentWidth = 0;
+        this.innerContentHeight = 0;
+        
         this.parent = parent;
         this.newFlag = true;
     }
@@ -32,8 +35,8 @@ class Bracket extends TModel {
         return this.innerContentWidth;
     }
 
-    getInnerXEast() {
-        return TUtil.isDefined(this.getRealParent().val('innerXEast')) ? this.getRealParent().val('innerXEast') : this.getRealParent().absX + this.getRealParent().getWidth();
+    getInnerOverflowWidth() {
+        return this.getRealParent().getInnerOverflowWidth();
     }
 
     getInnerContentHeight() {
@@ -88,6 +91,13 @@ class Bracket extends TModel {
 
     getChildren() {
         return this.allChildren;
+    }
+    
+    calcContentWidthHeight() {
+        this.contentHeight = this.viewport.ySouth - this.viewport.yNorth;
+        this.innerContentHeight = this.viewport.yEast - this.viewport.yNorth;
+        this.innerContentWidth = this.viewport.xSouth - this.viewport.xWest;
+        this.contentWidth = this.viewport.xEast - this.viewport.xWest;
     }
 
     addToParentVisibleList() {}

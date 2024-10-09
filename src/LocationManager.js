@@ -68,22 +68,13 @@ class LocationManager {
                 continue;
             }
 
-            let outerXEast;
-            let innerXEast;
-
-            const preX = child.getX();
-            const preY = child.getY();
-
             this.calculateTargets(child);
 
             viewport.setCurrentChild(child);
             child.setLocation(viewport);
             child.calculateAbsolutePosition(child.x, child.y);
 
-            innerXEast = TUtil.isDefined(container.val('innerXEast')) ? container.val('innerXEast') : container.getInnerXEast();
-            outerXEast = TUtil.isDefined(child.val('outerXEast')) ? child.val('outerXEast') : child.getOuterXEast();
-
-            if (viewport.isOverflow(outerXEast, innerXEast)) {
+            if (viewport.isOverflow(child.getOuterOverflowWidth(), container.getInnerOverflowWidth())) {
                 viewport.overflow();
                 child.setLocation(viewport);
             } else {
@@ -108,13 +99,8 @@ class LocationManager {
                 child.val('y', child.y);
             }
 
-            if (preX !== child.getX()) {
-                child.addToStyleTargetList('x');
-            }
-            
-            if (preY !== child.getY()) {
-                child.addToStyleTargetList('y');                
-            }
+            child.addToStyleTargetList('x');
+            child.addToStyleTargetList('y');                
 
             child.calculateAbsolutePosition(child.getX(), child.getY());
             viewport.isVisible(child);
@@ -127,34 +113,30 @@ class LocationManager {
             if (child.isInFlow()) {
                 if (TUtil.isNumber(child.val('appendNewLine'))) {
                     viewport.appendNewLine();
-                    viewport.calcContentWidthHeight();
+                    container.calcContentWidthHeight();
                 } else {
-                    viewport.calcContentWidthHeight();
+                    container.calcContentWidthHeight();
                     viewport.nextLocation();
                 }
             }
 
-            if (Array.isArray(child.val('contentHeight'))) {
-                child.val('contentHeight').forEach(key => {
-                    const preVal = child.val(key);
-                    child.val(key, child.getContentHeight());
-                    if (preVal !== child.val(key)) {
-                        child.addToStyleTargetList(key);
-                    }
-                });
+            if (!TUtil.isDefined(child.targets.height) && !TUtil.isDefined(child.targets.heightFromDom) && child.getContentHeight() > 0) {
+                const preVal = child.getHeight();
+                child.val('height', child.getContentHeight());
+                if (preVal !== child.getHeight()) {
+                    child.addToStyleTargetList('height');
+                }
             }
 
-            if (Array.isArray(child.val('contentWidth'))) {
-                child.val('contentWidth').forEach(key => {
-                    const preVal = child.val(key);
-                    child.val(key, child.getContentWidth());
-                    if (preVal !== child.val(key)) {
-                        child.addToStyleTargetList(key);
-                    }
-                });
+            if (!TUtil.isDefined(child.targets.width) && !TUtil.isDefined(child.targets.widthFromDom) && child.getContentWidth() > 0) {
+                const preVal = child.getWidth();
+                child.val('width', child.getContentWidth());
+                if (preVal !== child.getWidth()) {
+                    child.addToStyleTargetList('width');
+                }
             }
 
-            viewport.calcContentWidthHeight();
+            container.calcContentWidthHeight();
             this.locationListStats.push(`${child.oid}-${child.updatingTargetList.length}-${TUtil.now() - this.startTime}`);
         }
         
@@ -178,12 +160,12 @@ class LocationManager {
             const preWidth = tmodel.getWidth();
             const preHeight = tmodel.getHeight();
 
-            if ((!TUtil.isDefined(tmodel.targetValues.width) && !TUtil.isDefined(tmodel.targets.width) && !TUtil.isDefined(tmodel.targetValues.contentWidth)) ||
+            if ((!TUtil.isDefined(tmodel.targetValues.width) && !TUtil.isDefined(tmodel.targets.width) && !tmodel.hasChildren()) ||
                 tmodel.getTargetValue('widthFromDom')
             ) {
                 TargetUtil.setWidthFromDom(tmodel);
             }
-            if ((!TUtil.isDefined(tmodel.targetValues.height) && !TUtil.isDefined(tmodel.targets.height) && !TUtil.isDefined(tmodel.targetValues.contentHeight)) ||
+            if ((!TUtil.isDefined(tmodel.targetValues.height) && !TUtil.isDefined(tmodel.targets.height) && !tmodel.hasChildren()) ||
                 tmodel.getTargetValue('heightFromDom')
             ) {
                 TargetUtil.setHeightFromDom(tmodel);

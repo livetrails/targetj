@@ -48,7 +48,8 @@ class TargetUtil {
         padding: true,
         left: true,
         top: true,
-        fontWeight: true
+        fontWeight: true,
+        letterSpacing: true
     }
 
     static colorMap = {
@@ -80,7 +81,9 @@ class TargetUtil {
         justifyContent: true,
         alignItems: true,
         display: true,
-        cursor: true
+        cursor: true,
+        fontFamily: true,
+        overflow: true    
     };
     
     static scaleMap = {
@@ -183,7 +186,7 @@ class TargetUtil {
     }
 
     static isListTarget(value) {
-        return typeof value === 'object' && Array.isArray(value.list);
+        return typeof value === 'object' && value !== null && Array.isArray(value.list);
     }
 
     static isObjectTarget(key , value) {

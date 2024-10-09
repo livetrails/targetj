@@ -1,5 +1,4 @@
 import { $Dom } from "./$Dom.js";
-import { getScreenWidth, getScreenHeight } from "./App.js";
 import { getLocationManager, tRoot } from "./App.js";
 
 /**
@@ -7,41 +6,18 @@ import { getLocationManager, tRoot } from "./App.js";
  * It provide a variety of helping functions that are used by the framework.
  */
 class TUtil {
-static getBoundingRect(tmodel) {
-    let left, top, right, bottom, oid;
+    static getBoundingRect(tmodel) {
 
-    if (tmodel.actualValues.domHolder && tmodel.actualValues.domHolder.exists()) {
-        if (tmodel.getParent() === tRoot()) {
-            left = tmodel.getX();
-            top = tmodel.getY();
-            right = left + tmodel.getWidth();
-            bottom = top + tmodel.getHeight();
-            oid = tmodel.oid;
-        } else {
-            const rect = tmodel.actualValues.domHolder.getBoundingClientRect();
-            ({ left, top, right, bottom } = rect);
-            oid = tmodel.actualValues.domHolder.attr('id');
-        }
-    } else {
-        const parent = tmodel.getDomParent();
+        const parent = tmodel.getParent();
 
-        if (parent) {
-            left = parent.absX;
-            top = parent.absY;
-            right = left + parent.getWidth();
-            bottom = top + parent.getHeight();
-            oid = parent.oid;
-        } else {
-            left = 0;
-            top = 0;
-            right = getScreenWidth();
-            bottom = getScreenHeight();
-            oid = 'screen';
-        }
+        const left = parent.absX;
+        const top = parent.absY;
+        const right = left + parent.getWidth();
+        const bottom = top + parent.getHeight();
+        const oid = parent.oid;
+            
+        return { left, top, right, bottom, oid };
     }
-
-    return { left, top, right, bottom, oid };
-}
 
     static initDoms(visibleList) {
         const elements = $Dom.findByClass('tgt');

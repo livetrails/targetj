@@ -28,8 +28,6 @@ class TModel extends BaseModel {
         this.domHeight = undefined;
         this.domWidth = undefined;
 
-        this.innerContentWidth = 0;
-        this.innerContentHeight = 0;
         this.contentWidth = 0;
         this.contentHeight = 0;
 
@@ -59,7 +57,7 @@ class TModel extends BaseModel {
         this.absX = rect.left + x;
         this.absY = rect.top + y;
     }
-
+    
     getBoundingRect() {
         return TUtil.getBoundingRect(this);
     }     
@@ -250,21 +248,26 @@ class TModel extends BaseModel {
     getInnerContentHeight() {
         return 0;
     }
-
+    
+    calcContentWidthHeight() {
+        this.contentHeight = this.viewport.ySouth - this.viewport.yNorth;
+        this.contentWidth = this.viewport.xEast - this.viewport.xWest;
+    }
+    
     getInnerHeight() {
-        return TUtil.isDefined(this.actualValues.innerHeight) ? this.actualValues.innerHeight : this.getHeight();
+        return this.actualValues.innerHeight ?? this.getHeight();
     }
 
     getInnerWidth() {
-        return TUtil.isDefined(this.actualValues.innerWidth) ? this.actualValues.innerWidth : this.getWidth();
+        return this.actualValues.innerWidth ?? this.getWidth();
     }
 
-    getInnerXEast() {
-        return this.absX + this.getInnerWidth();
+    getInnerOverflowWidth() {
+        return this.actualValues.innerOverflowWidth ?? this.absX + this.getInnerWidth();
     }
 
-    getOuterXEast() {
-        return this.absX + this.getInnerWidth();
+    getOuterOverflowWidth() {
+        return this.actualValues.outerOverflowWidth ?? this.absX + this.getInnerWidth();
     }
 
     getContentWidth() {

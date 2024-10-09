@@ -1,5 +1,4 @@
 import { TUtil } from "./TUtil.js";
-import { getScreenWidth, getScreenHeight } from "./App.js";
 
 /**
  * It calculates the locations and visibility of objects
@@ -15,28 +14,21 @@ class Viewport {
 
         this.xOverflow = 0;
 
-        this.xOffset = 0;
-
         this.yNext = 0;
         this.yNorth = 0;
         this.yWest = 0;
         this.yEast = 0;
         this.ySouth = 0;
 
-        this.yOffset = 0;
-
         this.reset();
     }
 
-    reset() {
-        let x, y;
+    reset() {       
+        
         if (this.tmodel.type === 'BI') {
-            x = this.tmodel.getX() + this.tmodel.getScrollLeft();
-            y = this.tmodel.getY() + this.tmodel.getScrollTop();
-
-            this.xOffset = 0;
-            this.yOffset = 0;
-
+            const x = this.tmodel.getX();
+            const y = this.tmodel.getY();
+            
             this.xNext = x;
             this.xNorth = x;
             this.xEast = x;
@@ -49,22 +41,19 @@ class Viewport {
             this.yNorth = y;
             this.yWest = y;
             this.yEast = y;
-            this.ySouth = this.tmodel.getRealParent().viewport ? this.tmodel.getRealParent().viewport.ySouth : y;
+            this.ySouth = this.tmodel.getRealParent().viewport?.ySouth ?? y;
 
         } else {
-            this.xOffset = 0;
-            this.yOffset = 0;
-
-            x = this.tmodel.getX();
-            y = this.tmodel.getY();
-
+            const x = -this.tmodel.getScrollLeft();
+            const y = -this.tmodel.getScrollTop(); 
+        
             this.xNext = x;
             this.xNorth = x;
             this.xEast = x;
             this.xSouth = x;
             this.xWest = x;
-
-            this.xOverflow = TUtil.isDefined(this.tmodel.val('xOverflow')) ? this.tmodel.val('xOverflow') : x;
+            
+            this.xOverflow = this.tmodel.val('xOverflow') || 0;
 
             this.yNext = y;
             this.yNorth = y;
@@ -78,17 +67,14 @@ class Viewport {
 
     setCurrentChild(child) {
         this.currentChild = child;
-
-        this.xOffset = child.getDomParent() ? -child.getDomParent().getX() : 0;
-        this.yOffset = child.getDomParent() ? -child.getDomParent().getY() : 0;
     }
 
     getXNext() {
-        return this.xNext + this.currentChild.getLeftMargin() + this.xOffset - this.tmodel.getScrollLeft();
+        return this.xNext + this.currentChild.getLeftMargin();
     }
 
     getYNext() {
-        return this.yNext + this.currentChild.getTopMargin() + this.yOffset - this.tmodel.getScrollTop();
+        return this.yNext + this.currentChild.getTopMargin();
     }
 
     isVisible(child) {
@@ -101,28 +87,22 @@ class Viewport {
         const maxHeight = TUtil.isDefined(child.getHeight()) ? scale * child.getHeight() : 0;
 
         const status = child.visibilityStatus;
+        
+        const parent = child.getDomParent();
+        
 
-        const rect = child.getBoundingRect();
-
-        if (!child.hasChildren()) {
-            status.right = x <= getScreenWidth() && x <= rect.right;
-            status.left = x + maxWidth >= 0 && x + maxWidth >= rect.left;
-            status.bottom = y <= getScreenHeight() && y <= rect.bottom;
-            status.top = y + maxHeight >= 0 && y + maxHeight >= rect.top;
-        } else {
-            status.right = x <= rect.right;
-            status.left = x + maxWidth >= rect.left;
-            status.bottom = y <= rect.bottom;
-            status.top = y + maxHeight >= rect.top;
-        }
+        status.right = x <= parent.absX + parent.getWidth();
+        status.left = x + maxWidth >= parent.absX;
+        status.bottom = y <= parent.absY + parent.getHeight();
+        status.top = y + maxHeight >= parent.absY;
 
         child.visible = status.left && status.right && status.top && status.bottom;
 
         return child.isVisible();
     }
-
-    isOverflow(outerXEast, innerXEast) {
-        return TUtil.isNumber(outerXEast) && TUtil.isNumber(innerXEast) && outerXEast > innerXEast;
+    
+    isOverflow(outerOverflowWidth, innerOverflowWidth) {
+        return TUtil.isNumber(outerOverflowWidth) && TUtil.isNumber(innerOverflowWidth) && outerOverflowWidth > innerOverflowWidth;
     }
 
     overflow() {
@@ -162,13 +142,6 @@ class Viewport {
 
         this.currentChild.getRealParent().viewport.xEast = Math.max(this.currentChild.getRealParent().viewport.xEast, this.xEast);
         this.currentChild.getRealParent().viewport.ySouth = Math.max(this.currentChild.getRealParent().viewport.ySouth, this.ySouth);
-    }
-
-    calcContentWidthHeight() {
-        this.tmodel.contentHeight = this.ySouth - this.yNorth;
-        this.tmodel.innerContentHeight = this.yEast - this.yNorth;
-        this.tmodel.innerContentWidth = this.xSouth - this.xWest;
-        this.tmodel.contentWidth = this.xEast - this.xWest;
     }
 }
 

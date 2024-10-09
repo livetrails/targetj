@@ -185,11 +185,17 @@ class TModelManager {
         let transformUpdate = false;
         tmodel.styleTargetList.forEach(key => {
             if (key === 'x') {
-                tmodel.transformMap[key] = tmodel.getDomParent() !== tmodel.getParent() ? tmodel.floorVal(key) + tmodel.getParent().absX : tmodel.floorVal(key);
-                transformUpdate = true;
+                const x = tmodel.absX - tmodel.getDomParent().absX
+                if (tmodel.transformMap['x'] !== x) {
+                    tmodel.transformMap[key] = x;
+                    transformUpdate = true;
+                }
             } else if (key === 'y') {
-                tmodel.transformMap[key] =  tmodel.getDomParent() !== tmodel.getParent() ? tmodel.floorVal(key) + tmodel.getParent().absY : tmodel.floorVal(key);  
-                transformUpdate = true;
+                const y = tmodel.absY - tmodel.getDomParent().absY;
+                if (tmodel.transformMap['y'] !== y) {
+                    tmodel.transformMap[key] = y;
+                    transformUpdate = true;
+                }
             } else if (TargetUtil.transformMap[key]) {
                 const value = TargetUtil.rotate3D[key] ? tmodel.val(key) : TargetUtil.scaleMap[key] ? TUtil.formatNum(tmodel.val(key), 2) : tmodel.floorVal(key);
                 if (tmodel.transformMap[key] !== value) {

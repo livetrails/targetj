@@ -1,7 +1,7 @@
 import { $Dom } from "./$Dom.js";
 import { SearchUtil } from "./SearchUtil.js";
 import { TUtil } from "./TUtil.js";
-import { tApp, getRunScheduler, getBrowser } from "./App.js";
+import { tApp, getRunScheduler, tRoot } from "./App.js";
 
 /**
  * It provides a central place to manage all events. 
@@ -45,31 +45,31 @@ class EventListener {
         this.eventQueue = [];
 
         this.eventMap = {
-            touchstart: { eventName: 'touchstart', inputType: 'touch', eventType: 'start', order: 1, windowEvent: false },
-            touchmove: { eventName: 'touchmove', inputType: 'touch', eventType: 'move', order: 1, windowEvent: false },
-            touchend: { eventName: 'touchend', inputType: 'touch', eventType: 'end', order: 1, windowEvent: false },
-            touchcancel: { eventName: 'touchend', inputType: 'touch', eventType: 'cancel', order: 1, windowEvent: false },
+            touchstart: { eventName: 'touchstart', inputType: 'touch', eventType: 'start', order: 1, windowEvent: false, queue: true },
+            touchmove: { eventName: 'touchmove', inputType: 'touch', eventType: 'move', order: 1, windowEvent: false, queue: true },
+            touchend: { eventName: 'touchend', inputType: 'touch', eventType: 'end', order: 1, windowEvent: false, queue: true },
+            touchcancel: { eventName: 'touchend', inputType: 'touch', eventType: 'cancel', order: 1, windowEvent: false, queue: true },
 
-            mousedown: { eventName: 'mousedown', inputType: 'mouse', eventType: 'start', order: 2, windowEvent: false },
-            mousemove: { eventName: 'mousemove', inputType: 'mouse', eventType: 'move', order: 2, windowEvent: false },
-            mouseup: { eventName: 'mouseup', inputType: 'mouse', eventType: 'end', order: 2, windowEvent: false },
-            mousecancel: { eventName: 'mouseup', inputType: 'mouse', eventType: 'cancel', order: 2, windowEvent: false },
-            mouseleave: { eventName: 'mouseleave', inputType: 'mouse', eventType: 'cancel', order: 2, windowEvent: false },
+            mousedown: { eventName: 'mousedown', inputType: 'mouse', eventType: 'start', order: 2, windowEvent: false, queue: true },
+            mousemove: { eventName: 'mousemove', inputType: 'mouse', eventType: 'move', order: 2, windowEvent: false, queue: true  },
+            mouseup: { eventName: 'mouseup', inputType: 'mouse', eventType: 'end', order: 2, windowEvent: false, queue: true },
+            mousecancel: { eventName: 'mouseup', inputType: 'mouse', eventType: 'cancel', order: 2, windowEvent: false, queue: true },
+            mouseleave: { eventName: 'mouseleave', inputType: 'mouse', eventType: 'cancel', order: 2, windowEvent: false, queue: true },
 
-            pointerdown: { eventName: 'mousedown', inputType: 'pointer', eventType: 'start', order: 3, windowEvent: false },
-            pointermove: { eventName: 'mousemove', inputType: 'pointer', eventType: 'move', order: 3, windowEvent: false },
-            pointerup: { eventName: 'mouseup', inputType: 'pointer', eventType: 'end', order: 3, windowEvent: false },
-            pointercancel: { eventName: 'mousecancel', inputType: 'pointer', eventType: 'cancel', order: 3, windowEvent: false },
+            pointerdown: { eventName: 'mousedown', inputType: 'pointer', eventType: 'start', order: 3, windowEvent: false, queue: true },
+            pointermove: { eventName: 'mousemove', inputType: 'pointer', eventType: 'move', order: 3, windowEvent: false, queue: true },
+            pointerup: { eventName: 'mouseup', inputType: 'pointer', eventType: 'end', order: 3, windowEvent: false, queue: true },
+            pointercancel: { eventName: 'mousecancel', inputType: 'pointer', eventType: 'cancel', order: 3, windowEvent: false, queue: true },
 
-            wheel: { eventName: 'wheel', inputType: '', eventType: 'wheel', order: 1, windowEvent: false },
-            DOMMouseScroll: { eventName: 'wheel', inputType: '', eventType: 'wheel', order: 1, windowEvent: false },
-            mousewheel: { eventName: 'wheel', inputType: '', eventType: 'wheel', order: 1, windowEvent: false },
+            wheel: { eventName: 'wheel', inputType: '', eventType: 'wheel', order: 1, windowEvent: false, queue: true },
+            DOMMouseScroll: { eventName: 'wheel', inputType: '', eventType: 'wheel', order: 1, windowEvent: false, queue: true },
+            mousewheel: { eventName: 'wheel', inputType: '', eventType: 'wheel', order: 1, windowEvent: false, queue: true },
 
-            blur: { eventName: 'blur', inputType: 'mouse', eventType: 'cancel', order: 2, windowEvent: true },
-            keyup: { eventName: 'key', inputType: '', eventType: 'key', order: 1, windowEvent: true },
-            keydown: { eventName: 'key', inputType: '', eventType: 'key', order: 1, windowEvent: true },
-            resize: { eventName: 'resize', inputType: '', eventType: 'resize', order: 1, windowEvent: true },
-            orientationchange: { eventName: 'resize', inputType: '', eventType: 'resize', order: 1, windowEvent: true }          
+            blur: { eventName: 'blur', inputType: 'mouse', eventType: 'cancel', order: 2, windowEvent: true, queue: true },
+            keyup: { eventName: 'key', inputType: '', eventType: 'key', order: 1, windowEvent: true, queue: true },
+            keydown: { eventName: 'key', inputType: '', eventType: 'key', order: 1, windowEvent: true, queue: true },
+            resize: { eventName: 'resize', inputType: '', eventType: 'resize', order: 1, windowEvent: true, queue: false },
+            orientationchange: { eventName: 'resize', inputType: '', eventType: 'resize', order: 1, windowEvent: true, queue: false }          
         };
 
         this.domEvents = Object.keys(this.eventMap).filter(key => !this.eventMap[key].windowEvent);
@@ -175,17 +175,13 @@ class EventListener {
         }
         const lastEvent = this.eventQueue.shift();
 
-        if (lastEvent.eventName === 'resize') {
-            getBrowser().measureScreen();
-        } else {
-            this.findEventHandlers(lastEvent);
-            
-            this.currentEventName = lastEvent.eventName;
-            this.currentEventType = lastEvent.eventType;
-            this.currentKey = this.currentTouch.key;
-            this.currentTouch.key = "";
-        }
+        this.findEventHandlers(lastEvent);
 
+        this.currentEventName = lastEvent.eventName;
+        this.currentEventType = lastEvent.eventType;
+        this.currentKey = this.currentTouch.key;
+        this.currentTouch.key = "";
+        
         getRunScheduler().schedule(10, `captureEvents-${lastEvent}`);
     }    
 
@@ -201,7 +197,7 @@ class EventListener {
             return;
         }
 
-        const { eventName, inputType, eventType, order: eventOrder } = eventItem;
+        const { eventName, inputType, eventType, order: eventOrder, queue } = eventItem;
 
         const now = TUtil.now();
         this.touchTimeStamp = Math.max(now, this.touchTimeStamp);
@@ -226,7 +222,9 @@ class EventListener {
             }
         }
 
-        this.eventQueue.push({ eventName, eventItem, eventType, originalName, tmodel, timeStamp: now });
+        if (queue) {
+            this.eventQueue.push({ eventName, eventItem, eventType, originalName, tmodel, timeStamp: now });
+        }
 
         switch (eventName) {
             case 'mousedown':
@@ -299,6 +297,11 @@ class EventListener {
             case 'key':
                 this.currentTouch.key = event.which || event.keyCode;
                 break;
+                
+            case 'resize':
+                tRoot().val('width', tRoot().targets.width());
+                tRoot().val('height', tRoot().targets.height());
+                break;              
         }
 
         getRunScheduler().schedule(0, `${originalName}-${eventName}-${(event.target.tagName || "").toUpperCase()}`);
@@ -400,7 +403,7 @@ class EventListener {
     isClickEvent() {
         return this.getEventType() === 'click';
     }
-
+    
     isResizeEvent() {
         return this.getEventType() === 'resize';
     }
