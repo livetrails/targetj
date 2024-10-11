@@ -43,7 +43,25 @@ class TModel extends BaseModel {
     }
 
     createViewport() {
-        this.viewport = this.viewport ? this.viewport.reset() : new Viewport(this);
+        this.viewport = this.viewport || new Viewport();
+
+        const scrollLeft = -this.getScrollLeft();
+        const scrollTop = -this.getScrollTop();
+
+        this.viewport.xNext = scrollLeft;
+        this.viewport.xNorth = scrollLeft;
+        this.viewport.xEast = scrollLeft;
+        this.viewport.xSouth = scrollLeft;
+        this.viewport.xWest = scrollLeft;
+        
+        this.viewport.xOverflow = this.getXOverflow();       
+
+        this.viewport.yNext = scrollTop;
+        this.viewport.yNorth = scrollTop;
+        this.viewport.yWest = scrollTop;
+        this.viewport.yEast = scrollTop;
+        this.viewport.ySouth = scrollTop;
+
         return this.viewport;
     }
 
@@ -272,6 +290,10 @@ class TModel extends BaseModel {
 
     getContentWidth() {
         return this.contentWidth;
+    }
+    
+    getXOverflow() {
+        return this.actualValues.xOverflow ?? 0;
     }
 
     getUIDepth() {

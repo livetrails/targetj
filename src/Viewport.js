@@ -4,8 +4,7 @@ import { TUtil } from "./TUtil.js";
  * It calculates the locations and visibility of objects
  */
 class Viewport {
-    constructor(tmodel) {
-        this.tmodel = tmodel;
+    constructor() {
         this.xNext = 0;
         this.xNorth = 0;
         this.xWest = 0;
@@ -19,50 +18,6 @@ class Viewport {
         this.yWest = 0;
         this.yEast = 0;
         this.ySouth = 0;
-
-        this.reset();
-    }
-
-    reset() {       
-        
-        if (this.tmodel.type === 'BI') {
-            const x = this.tmodel.getX();
-            const y = this.tmodel.getY();
-            
-            this.xNext = x;
-            this.xNorth = x;
-            this.xEast = x;
-            this.xSouth = x;
-            this.xWest = x;
-
-            this.xOverflow = this.tmodel.getRealParent().getX();
-
-            this.yNext = y;
-            this.yNorth = y;
-            this.yWest = y;
-            this.yEast = y;
-            this.ySouth = this.tmodel.getRealParent().viewport?.ySouth ?? y;
-
-        } else {
-            const x = -this.tmodel.getScrollLeft();
-            const y = -this.tmodel.getScrollTop(); 
-        
-            this.xNext = x;
-            this.xNorth = x;
-            this.xEast = x;
-            this.xSouth = x;
-            this.xWest = x;
-            
-            this.xOverflow = this.tmodel.val('xOverflow') || 0;
-
-            this.yNext = y;
-            this.yNorth = y;
-            this.yWest = y;
-            this.yEast = y;
-            this.ySouth = y;
-        }
-
-        return this;
     }
 
     setCurrentChild(child) {
@@ -81,21 +36,19 @@ class Viewport {
         const x = child.absX;
         const y = child.absY;
 
-        const parentScale = child.getDomParent() ? child.getDomParent().getMeasuringScale() : 1;
-        const scale = parentScale * child.getMeasuringScale();
+        const parent = child.getDomParent();
+
+        const scale = (parent.getMeasuringScale() || 1) * child.getMeasuringScale();
         const maxWidth = TUtil.isDefined(child.getWidth()) ? scale * child.getWidth() : 0;
         const maxHeight = TUtil.isDefined(child.getHeight()) ? scale * child.getHeight() : 0;
 
         const status = child.visibilityStatus;
-        
-        const parent = child.getDomParent();
-        
-
-        status.right = x <= parent.absX + parent.getWidth();
-        status.left = x + maxWidth >= parent.absX;
-        status.bottom = y <= parent.absY + parent.getHeight();
-        status.top = y + maxHeight >= parent.absY;
-
+   
+        status.right = Math.floor(x) <= parent.absX + parent.getWidth();
+        status.left = Math.ceil(x + maxWidth) >= parent.absX;
+        status.bottom = Math.floor(y) <= parent.absY + parent.getHeight();
+        status.top = Math.ceil(y + maxHeight) >= parent.absY;
+       
         child.visible = status.left && status.right && status.top && status.bottom;
 
         return child.isVisible();

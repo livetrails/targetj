@@ -10,6 +10,7 @@ import { TUtil } from "./TUtil.js";
 class BracketGenerator {
 
     static bracketMap = {};
+    static all = {}
 
     static generate(page) {
         let brackets = BracketGenerator.bracketMap[page.oid];
@@ -157,6 +158,8 @@ class BracketGenerator {
         });
 
         bracket.realParent = page;
+        
+        BracketGenerator.all[bracket.oid] = bracket;
 
         return bracket;
     }

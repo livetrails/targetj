@@ -119,8 +119,8 @@ class LocationManager {
                     viewport.nextLocation();
                 }
             }
-
-            if (!TUtil.isDefined(child.targets.height) && !TUtil.isDefined(child.targets.heightFromDom) && child.getContentHeight() > 0) {
+            
+            if (!TUtil.isDefined(child.targetValues.height) && !TUtil.isDefined(child.targets.heightFromDom) && child.getContentHeight() > 0) {
                 const preVal = child.getHeight();
                 child.val('height', child.getContentHeight());
                 if (preVal !== child.getHeight()) {
@@ -128,14 +128,14 @@ class LocationManager {
                 }
             }
 
-            if (!TUtil.isDefined(child.targets.width) && !TUtil.isDefined(child.targets.widthFromDom) && child.getContentWidth() > 0) {
+            if (!TUtil.isDefined(child.targetValues.width) && !TUtil.isDefined(child.targets.widthFromDom) && child.getContentWidth() > 0) {
                 const preVal = child.getWidth();
                 child.val('width', child.getContentWidth());
                 if (preVal !== child.getWidth()) {
                     child.addToStyleTargetList('width');
                 }
             }
-
+            
             container.calcContentWidthHeight();
             this.locationListStats.push(`${child.oid}-${child.updatingTargetList.length}-${TUtil.now() - this.startTime}`);
         }
