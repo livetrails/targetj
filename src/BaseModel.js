@@ -67,6 +67,8 @@ class BaseModel {
             return;
         }
         
+        TargetUtil.bindTargetName(this.targets, key);
+        
         if (TargetUtil.targetConditionMap[key]) {
             if (this.eventTargets.indexOf((key) === -1)) {
                 this.eventTargets.push(key)
@@ -74,8 +76,6 @@ class BaseModel {
             return;
         }        
         
-        TargetUtil.bindTargetName(this.targets, key);
-
         if (TUtil.isDefined(this.targets[key].initialValue)) {
             this.actualValues[key] = this.targets[key].initialValue;
             this.addToStyleTargetList(key);

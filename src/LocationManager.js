@@ -108,7 +108,6 @@ class LocationManager {
            
             if (child.shouldCalculateChildren()) {
                 this.calculateContainer(child);
-                container.calcContentWidthHeight();
             }
 
             if (child.isInFlow()) {

@@ -24,11 +24,11 @@ class Bracket extends TModel {
     }
 
     getWidth() {
-        return Math.max(10, this.getContentWidth());
+        return this.getContentWidth();
     }
 
     getHeight() {
-        return Math.max(10, this.getContentHeight());
+        return this.getContentHeight();
     }
 
     getInnerWidth() {
@@ -58,7 +58,7 @@ class Bracket extends TModel {
         this.viewport.xSouth = this.x;
         this.viewport.xWest = this.x;
         
-        this.viewport.xOverflow = this.getRealParent().getX();       
+        this.viewport.xOverflow = this.getRealParent().getXOverflow();       
 
         this.viewport.yNext = this.y;
         this.viewport.yNorth = this.y;
