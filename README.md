@@ -187,7 +187,7 @@ The target will remain active using the loop function, with value() continuing t
 ![api loading example](https://targetj.io/img/apiLoading2.gif)
 
 ```bash
-import { App, TModel, getLoader, getScreenHeight, getScreenWidth } from "targetj";
+import { App, TModel, getLoader, getScreenHeight, getScreenWidth, Moves } from "targetj";
 
 App(new TModel("apiCall", {
     start() { this.users = 0; },
