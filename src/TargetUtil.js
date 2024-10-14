@@ -83,7 +83,8 @@ class TargetUtil {
         display: true,
         cursor: true,
         fontFamily: true,
-        overflow: true    
+        overflow: true,
+        textDecoration: true
     };
     
     static scaleMap = {
