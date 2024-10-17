@@ -157,7 +157,7 @@ const App = (tmodel) => {
 
 App.oids = {};
 App.getOid = function(type) {
-    const oids = tApp?.tRoot?.oids || App.oids;
+    const oids = type === 'Bracket' ? App.oids : App?.tRoot?.oids || App.oids;
     if (!TUtil.isDefined(oids[type])) {
         oids[type] = 0;
     }
