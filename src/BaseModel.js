@@ -35,8 +35,11 @@ class BaseModel {
         
         this.eventTargets = [];
         
+        this.allStyleTargetList = [];
+        this.allStyleTargetMap = {};
+        
         this.styleTargetList = [];
-        this.styleTargetMap = {};        
+        this.styleTargetMap = {};       
         
         this.parent = null;
 
@@ -52,10 +55,17 @@ class BaseModel {
     }
     
     initTargets() {
-        this.actualValues = TModelUtil.initializeActualValues();
+        this.actualValues = TModelUtil.defaultActualValues();
         this.targetValues = {};
         this.activeTargetMap = {};
         this.activeTargetList = [];
+
+        Object.entries(TModelUtil.defaultTargets()).forEach(([key, value]) => {
+            if (!(key in this.targets)) {
+                this.targets[key] = value;
+            }
+        });
+        
         Object.keys(this.targets).forEach(key => {
             this.processNewTarget(key);
         });
@@ -74,7 +84,9 @@ class BaseModel {
                 this.eventTargets.push(key)
             }
             return;
-        }        
+        } else if (TargetUtil.otherTargetEventsMap[key]) {
+            return;
+        }     
         
         if (TUtil.isDefined(this.targets[key].initialValue)) {
             this.actualValues[key] = this.targets[key].initialValue;
@@ -87,13 +99,18 @@ class BaseModel {
     }    
     
     addToStyleTargetList(key) {
-        if (!TargetUtil.styleTargetMap[key]) {
+        if (!TargetUtil.styleTargetMap[key] && !TargetUtil.attributeTargetMap[key]) {
             return;
         }
 
         if (!this.styleTargetMap[key]) {
             this.styleTargetList.push(key);
             this.styleTargetMap[key] = true;
+        }
+        
+        if (!this.allStyleTargetMap[key]) {
+            this.allStyleTargetList.push(key);
+            this.allStyleTargetMap[key] = true;
         }
     }    
     

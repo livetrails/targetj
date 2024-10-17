@@ -103,6 +103,24 @@ class TargetUtil {
         rotate3DZ: true       
     };
     
+    static attributeTargetMap = {
+        lang: true, 
+        autofocus: true,
+        placeholder: true,
+        autocomplete: true,
+        name: true,
+        type: true,
+        src: true,
+        href: true,
+        method: true,
+        size: true,
+        value: true,
+        maxlength: true,
+        max: true,
+        min: true,
+        readonly: true,
+        required: true
+    };
     
     static cssFunctionMap = {
         skew: { x: 0, y: 0 },
@@ -126,6 +144,13 @@ class TargetUtil {
         onLeaveEvent: tmodel => getEvents().isLeaveEventHandler(tmodel),
         onScrollEvent: tmodel => (getEvents().isScrollLeftHandler(tmodel) && getEvents().deltaX()) || 
                       (getEvents().isScrollTopHandler(tmodel) && getEvents().deltaY())
+    };
+    
+    static otherTargetEventsMap = {
+        onInvisibleEvent: true,
+        onChildrenChange: true,
+        onVisibleChildrenChange: true,
+        onPageClose: true
     };
     
     static emptyValue() {
@@ -153,7 +178,7 @@ class TargetUtil {
         const target = targetInstance[key];
 
         if (typeof target === 'object') {
-            ['value', 'enabledOn', 'onStepsEnd', 'onValueChange', 'loop', 'onImperativeEnd', 'onImperativeStep'].forEach(method => {
+            ['value', 'enabledOn', 'onStepsEnd', 'onValueChange', 'loop', 'onImperativeEnd', 'onImperativeStep', 'onSuccess', 'onError'].forEach(method => {
                 if (typeof target[method] === 'function') {
                     const originalMethod = target[method];
                     target[method] = function() {

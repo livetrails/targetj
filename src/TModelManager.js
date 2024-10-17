@@ -156,14 +156,14 @@ class TModelManager {
         for (const tmodel of this.lists.invisibleDom) {
             tmodel.styleMap = {};
             tmodel.transformMap = {};
-
-            const activateTargets = [].concat(tmodel.targets['onInvisibleEvent'], tmodel.targets['onResize']);
-
-            activateTargets.forEach(key => {
-                if (tmodel.targets[key] && tmodel.isTargetComplete(key)) {
-                    tmodel.activateTarget(key);
+            
+            let activateTargets = [];
+            ['onInvisibleEvent', 'onResize' ].forEach(target => {
+                if (tmodel.targets[target]) {
+                    activateTargets = activateTargets.concat(tmodel.targets[target]);
                 }
             });
+            getLocationManager().activateTargets(tmodel, activateTargets);
 
             tmodel.$dom.detach();
             tmodel.$dom = null;
@@ -206,12 +206,14 @@ class TModelManager {
                 const width = Math.floor(tmodel.getWidth());
 
                 if (tmodel.$dom.width() !== width) {
+                    tmodel.styleMap['width'] = width;
                     tmodel.$dom.width(width);
                 }
             } else if (key === 'height') {
                 const height = Math.floor(tmodel.getHeight());
 
                 if (tmodel.$dom.height() !== height) {
+                    tmodel.styleMap['height'] = height;                    
                     tmodel.$dom.height(height);
                 }                    
             } else if (key === 'style') {
@@ -237,7 +239,9 @@ class TModelManager {
                 if (TUtil.isDefined(tmodel.val(key)) && tmodel.styleMap[key] !== tmodel.val(key)) {
                     tmodel.$dom.style(key, TUtil.isNumber(tmodel.val(key)) ? `${tmodel.val(key)}px` : tmodel.val(key));
                     tmodel.styleMap[key] = tmodel.val(key);
-                }                    
+                } 
+            } else if (TargetUtil.attributeTargetMap[key]) {
+                tmodel.$dom.attr(key, tmodel.val(key));
             } else {
                 if (TUtil.isDefined(tmodel.val(key)) && tmodel.styleMap[key] !== tmodel.val(key)) {
                     tmodel.$dom.style(key, tmodel.val(key));
@@ -298,12 +302,12 @@ class TModelManager {
 
             tmodel.transformMap = {};
             tmodel.styleMap = {};
-            Object.keys(TargetUtil.styleTargetMap).forEach(function(key) {
+            tmodel.allStyleTargetList.forEach(function(key) {
                 if (TUtil.isDefined(tmodel.val(key))) {
                     tmodel.addToStyleTargetList(key);
                 }
-            });
-                
+            });           
+            
             this.fixStyle(tmodel);
 
             const contentItem = contentList.find(item => item.domHolder === tmodel.getDomHolder());

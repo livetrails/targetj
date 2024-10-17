@@ -10,8 +10,6 @@ import { RunScheduler } from "./RunScheduler.js";
 import { TargetManager } from "./TargetManager.js";
 import { TUtil } from "./TUtil.js";
 import { SearchUtil } from "./SearchUtil.js";
-import { TargetUtil } from "./TargetUtil.js";
-
 
 let tApp;
 
@@ -91,7 +89,7 @@ const AppFn = (firstChild) => {
         return my;
     };
 
-    my.start = function() {
+    my.start = async function() {
         my.runningFlag = false;
 
         my.events.clearAll();
@@ -102,7 +100,7 @@ const AppFn = (firstChild) => {
         my.events.removeWindowHandlers();
         my.events.addWindowHandlers();
 
-        my.runScheduler.resetRuns();
+        await my.runScheduler.resetRuns();
 
         my.runningFlag = true;
         my.runScheduler.schedule(0, "appStart");
@@ -110,14 +108,14 @@ const AppFn = (firstChild) => {
         return my;
     };
 
-    my.stop = function() {
+    my.stop = async function() {
         my.runningFlag = false;
 
         my.events.removeWindowHandlers();
         my.events.removeHandlers(my.$document);
         
         my.events.clearAll();
-        my.runScheduler.resetRuns();
+        await my.runScheduler.resetRuns();
 
         return my;
     };
@@ -126,7 +124,7 @@ const AppFn = (firstChild) => {
         my.manager.lists.visible.forEach(tmodel => { 
             tmodel.transformMap = {};
             tmodel.styleMap = {};
-            Object.keys(TargetUtil.styleTargetMap).forEach(function(key) {
+            tmodel.allStyleTargetList.forEach(function(key) {
                 if (TUtil.isDefined(tmodel.val(key))) {
                     tmodel.addToStyleTargetList(key);
                 }

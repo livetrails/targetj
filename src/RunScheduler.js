@@ -14,7 +14,8 @@ class RunScheduler {
         this.runId = '';
         this.rerunId = '';
         this.delayProcess = {};
-
+        this.resetting = false;
+        
         this.cycleStats = {
             duration: 0,
             count: 0,
@@ -22,8 +23,16 @@ class RunScheduler {
             average: 0
         };
     }
+    
+    waitForFrame() {
+        return new Promise(resolve => requestAnimationFrame(resolve));
+    }    
 
-    resetRuns() {
+    async resetRuns() { 
+        this.resetting = true;
+        
+        await this.waitForFrame();
+        
         if (this.delayProcess.timeoutId) {
             clearTimeout(this.delayProcess.timeoutId);
         }
@@ -33,6 +42,8 @@ class RunScheduler {
         this.runId = '';
         this.rerunId = '';
         this.delayProcess = {};
+        
+        this.resetting = false;
     }
 
     resetCycleStats() {
@@ -43,10 +54,14 @@ class RunScheduler {
     }
 
     schedule(delay, runId) {
+        if (!tApp.isRunning() || this.resetting) {
+            return;
+        }
+        
         if (delay === 0 && tApp.throttle === 0) {
             this.run(delay, runId);
         } else {
-            const nextRun = this.delay(() => {              
+            const nextRun = this.delayRun(() => {              
                 this.run(delay, runId);
             }, tApp.throttle === 0 ? delay || 0 : tApp.throttle, runId);
 
@@ -62,7 +77,7 @@ class RunScheduler {
     }
 
     run(delay, runId) {
-        if (!tApp.isRunning()) {
+        if (!tApp.isRunning() || this.resetting) {
             return;
         }
 
@@ -103,20 +118,17 @@ class RunScheduler {
                         break;
                     case 3:
                         tApp.manager.renderTModels();
-                        tApp.manager.reattachTModels();
                         break;
                     case 4:
-                        tApp.manager.fixStyles();
+                        tApp.manager.reattachTModels();
                         break;
                     case 5:
+                        tApp.manager.fixStyles();
+                        break;
+                    case 6:
                         if (tApp.manager.lists.invisibleDom.length > 0) {
                             tApp.manager.deleteDoms();
                         }
-                        break;
-                    case 6:
-                        tApp.loader.singleLoad();
-                        tApp.loader.groupLoad();
-                        tApp.loader.imgLoad();
                         break;
                 }
 
@@ -135,9 +147,13 @@ class RunScheduler {
                 TUtil.log(this.cycleStats.duration > 10)(`locations: ${tApp.locationManager.locationListStats}`);
                 TUtil.log(tApp.debugLevel > 1)(`request from: ${runId} delay:  ${delay}`);
             }
-
+            
             this.runningFlag = false;
             this.runId = '';
+            
+            if (this.resetting) {
+                return;
+            }
 
             if (this.runningStep < 7) {
                 this.run(0, `rendering: ${runId} ${this.runningStep}`);
@@ -171,7 +187,7 @@ class RunScheduler {
         };
     }
 
-    delay(fn, delay, runId) {
+    delayRun(fn, delay, runId) {
         const timeStamp = TUtil.now() + delay;
 
         let nextRun;

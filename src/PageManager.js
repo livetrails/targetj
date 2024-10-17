@@ -1,5 +1,5 @@
 import { TUtil } from "./TUtil.js";
-import { tApp, getRunScheduler } from "./App.js";
+import { tApp, getRunScheduler, getLocationManager } from "./App.js";
 
 /**
  * It enables opening new pages and managing history. It alo provide page caching.
@@ -11,23 +11,24 @@ class PageManager {
         this.pageCache = {};
     }
 
-    openPage(link) {
-        tApp.stop();
+    async openPage(link) {
+        await tApp.stop();
         tApp.reset();
 
         if (!this.pageCache[link]) {
             tApp.tRoot.$dom.innerHTML("");
             tApp.tRoot = tApp.tRootFactory();
             this.lastLink = link;
-            setTimeout(tApp.start);
+            tApp.start();
         } else {
             tApp.tRoot = this.pageCache[link].tRoot;
             tApp.tRoot.$dom.innerHTML(this.pageCache[link].html);
 
             TUtil.initDoms(this.pageCache[link].visibleList);
+            this.onPageClose(this.pageCache[link].visibleList);
             tApp.manager.lists.visible = [...this.pageCache[link].visibleList];
             this.lastLink = link;
-            setTimeout(tApp.start);
+            tApp.start();
         }
     }
 
@@ -41,11 +42,21 @@ class PageManager {
 
         getRunScheduler().schedule(0, "pagemanager-openLinkFromHistory");
     }
+    
+    onPageClose(visibles) {
+        visibles.forEach(tmodel => {
+            if (tmodel.targets['onPageClose']) {
+                getLocationManager().activateTargets(tmodel, tmodel.targets['onPageClose']);  
+            }
+        });          
+    }
 
     openLink(link) {
         link = TUtil.getFullLink(link);
 
         if (this.lastLink) {
+            this.onPageClose(tApp.manager.lists.visible);
+            
             this.pageCache[this.lastLink] = {
                 link: this.lastLink,
                 html: tApp.tRoot.$dom.innerHTML(),

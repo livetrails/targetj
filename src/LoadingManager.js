@@ -1,320 +1,168 @@
 import { $Dom } from "./$Dom.js";
 import { TUtil } from "./TUtil.js";
-import { tApp, getRunScheduler } from "./App.js";
+import { getRunScheduler } from "./App.js";
 
 /**
- * It provides a central place for managing all loading of external APIs and images. 
+ * It provides a central place for managing fetching of external APIs and images. 
  */
 class LoadingManager {
     constructor() {
         this.resultMap = {};
-        this.loadingMap = {};
+        
+        this.fetchingAPIMap = {};
+        this.fetchingImageMap = {};
+        this.currentOidFetchIds = {};
+        this.allOidFetchIds = {};        
+    }
+   
+    initializeFetchEntry(fetchId, tmodel, targetMap) {
+        targetMap[fetchId] = {
+            fetchId,
+            fetchingFlag: true,
+            startTime: TUtil.now(),
+            fetchTime: undefined,
+            success: undefined,
+            attempts: targetMap[fetchId]?.attempts ?? 0,
+            tmodel: targetMap[fetchId]?.tmodel || tmodel,
+            targetName: targetMap[fetchId]?.targetName || tmodel.key,
+        };
 
-        this.singleLoadList = undefined;
-        this.groupLoadList = undefined;
-        this.imgLoadList = undefined;
-
-        this.stopLoadingAfterAttempts = TUtil.isDefined(tApp.stopLoadingAfterAttempts) ? tApp.stopLoadingAfterAttempts : 10;
-        this.attemptFailedInterval = TUtil.isDefined(tApp.attemptFailedInterval) ? tApp.attemptFailedInterval : 2000;
-
-        this.statistics = {};
+        this.currentOidFetchIds[tmodel.oid] ||= {};
+        this.currentOidFetchIds[tmodel.oid][fetchId] ||= true;
+        
+        this.allOidFetchIds[tmodel.oid] ||= {};
+        this.allOidFetchIds[tmodel.oid][fetchId] ||= true;        
     }
 
-    initSingleLoad(fetchId, query, forceLoad) {
-        if (this.isLoading(fetchId) || (this.isLoaded(fetchId) && !forceLoad) || this.getLoadingAttempts(fetchId) > this.stopLoadingAfterAttempts) {
-            return;
+    fetchCommon(fetchId, tmodel, fetchMap, fetchFn) {
+        if (this.isFetched(fetchId)) {
+            this.handleSuccess(fetchMap[fetchId], this.resultMap[fetchId].result);
+        } else if (!this.isFetching(fetchId)) {
+            this.initializeFetchEntry(fetchId, tmodel, fetchMap);
+            fetchFn();
         }
 
-        this.initLoadingMap(fetchId);
-
-        this.singleLoadList = this.singleLoadList || {};
-        this.singleLoadList[fetchId] = { fetchId, query };
+        return this.getFetchingPeriod(fetchId);
     }
 
-    initGroupLoad(fetchId, dataId, query, idKey, separator) {
-        const groupId = JSON.stringify({ query, idKey, separator });
+    fetch(tmodel, url, query) {
+        const fetchId = `${url}_${JSON.stringify(query)}`;
+        return this.fetchCommon(fetchId, tmodel, this.fetchingAPIMap, () => {
+            this.ajaxAPI(url, query, this.fetchingAPIMap[fetchId]);
+        });
+    }
 
-        if (this.isLoading(fetchId) || this.isLoaded(fetchId) || this.getLoadingAttempts(fetchId) > this.stopLoadingAfterAttempts) {
-            return;
+    fetchImage(tmodel, src) {
+        const fetchId = src;
+        return this.fetchCommon(fetchId, tmodel, this.fetchingImageMap, () => {
+            this.loadImage(src, this.fetchingImageMap[fetchId]);
+        });
+    }
+
+    isFetching(fetchId) {
+        return this.fetchingAPIMap[fetchId]?.fetchingFlag ?? false;
+    }
+
+    isFetched(fetchId) {
+        return this.resultMap[fetchId]?.success ?? false;
+    }
+
+    getFetchingPeriod(fetchId) {
+        if (this.fetchingAPIMap[fetchId]) {
+            const { startTime, fetchTime } = this.fetchingAPIMap[fetchId];
+            return fetchTime === undefined ? TUtil.now() - startTime : fetchTime - startTime;
         }
-
-        this.initLoadingMap(fetchId);
-
-        this.groupLoadList = this.groupLoadList || {};
-        if (!this.groupLoadList[groupId]) {
-            this.groupLoadList[groupId] = [];
-        }
-
-        this.groupLoadList[groupId].push({ fetchId, dataId });
     }
-
-    initImgLoad(fetchId, src) {
-        if (this.isLoading(fetchId) || this.isLoaded(fetchId) || this.getLoadingAttempts(fetchId) > this.stopLoadingAfterAttempts) {
-            return;
-        }
-
-        this.initLoadingMap(fetchId, 'image');
-
-        this.imgLoadList = this.imgLoadList || {};
-        this.imgLoadList[fetchId] = { fetchId, src };
+    
+    getCurrentFetchIds(oid) {
+        return this.currentOidFetchIds[oid] ? Object.keys(this.currentOidFetchIds[oid]) : []; 
     }
-
-    isLoading(fetchId) {
-        return TUtil.isDefined(this.loadingMap[fetchId]) ? this.loadingMap[fetchId].loadingFlag : false;
-    }
-
-    isLoaded(fetchId) {
-        return TUtil.isDefined(this.resultMap[fetchId]) && this.resultMap[fetchId].success === true;
-    }
-
-    getLoadingAttempts(fetchId) {
-        return TUtil.isDefined(this.loadingMap[fetchId]) ? this.loadingMap[fetchId].attempts : 0;
-    }
-
-    getSuccessLoadingTime(fetchId) {
-        return TUtil.isDefined(this.loadingMap[fetchId]) && this.loadingMap[fetchId].success === true ? this.loadingMap[fetchId].loadingTime : undefined;
-    }
-
-    getFailedInterval(fetchId) {
-        return TUtil.isDefined(this.loadingMap[fetchId]) ? this.loadingMap[fetchId].attempts * this.attemptFailedInterval : 0;
-    }
+    
+    getAllFetchIds(oid) {
+        return this.allOidFetchIds[oid] ? Object.keys(this.allOidFetchIds[oid]) : []; 
+    }    
 
     fetchResult(fetchId) {
         return this.resultMap[fetchId];
     }
 
-    hasLoadedSuccessfully(fetchId) {
-        return this.resultMap[fetchId] && this.resultMap[fetchId].success === true;
+    isFetchSuccessful(fetchId) {
+        return this.resultMap[fetchId]?.success || false;
     }
 
-    hasLoadedUnsuccessfully(fetchId) {
-        return this.resultMap[fetchId] && this.resultMap[fetchId].success === false;
-    }
-
-    fetchErrors(fetchId) {
+    getFetchErrors(fetchId) {
         return this.resultMap[fetchId]?.result?.errors;
     }
 
-    initLoadingMap(fetchId, category) {
-        category = category || this.getCategoryFromFetchId(fetchId);
+    handleSuccess(fetchStatus, result) {
+        fetchStatus.fetchingFlag = false;
+        fetchStatus.success = true;
+        fetchStatus.fetchTime = fetchStatus.fetchTime || TUtil.now();
+        const { fetchId, fetchTime, startTime, tmodel, targetName } = fetchStatus;
+        fetchStatus.attempts++;
+        delete this.currentOidFetchIds[tmodel.oid][fetchId];
 
-        if (TUtil.isDefined(this.loadingMap[fetchId])) {
-            Object.assign(this.loadingMap[fetchId], {
-                loadingFlag: true,
-                startTime: TUtil.now(),
-                loadingTime: undefined
-            });
-        } else {
-            this.loadingMap[fetchId] = {
-                fetchId,
-                category,
-                loadingFlag: true,
-                attempts: 0,
-                startTime: TUtil.now(),
-                loadingTime: undefined,
-                success: false
-            };
-        }
-    }
+        this.resultMap[fetchId] = {
+            fetchingPeriod: fetchTime - startTime,
+            success: true,
+            result
+        };
 
-    groupLoad() {
-        if (!this.groupLoadList) {
-            return;
+        if (typeof tmodel.targets[targetName]?.onSuccess === 'function' && tmodel.isTargetEnabled(targetName)) {
+            tmodel.targets[targetName].onSuccess.call(tmodel, this.resultMap[fetchId]);
         }
 
-        const groupIds = Object.keys(this.groupLoadList);
-
-        groupIds.forEach(groupId => {
-            const fetchList = this.groupLoadList[groupId];
-
-            const dataIds = [];
-            const dataIdFetchIdMap = {};
-
-            fetchList.forEach(({ dataId, fetchId }) => {
-                dataIds.push(dataId);
-                dataIdFetchIdMap[dataId] = fetchId;
-            });
-
-            if (dataIds.length > 0) {
-                const groupObj = JSON.parse(groupId);
-                const groupQuery = this.updateQueryValue(groupObj.query, dataIds.join(groupObj.separator));
-                this.groupAjax(groupQuery, dataIdFetchIdMap, groupObj.idKey);
-            }
-
-            delete this.groupLoadList[groupId];
-        });
-
-        this.groupLoadList = undefined;
+        getRunScheduler().schedule(0, `api_success_${fetchId}`);
     }
 
-    singleLoad() {
-        if (!this.singleLoadList) {
-            return;
+    handleError(fetchStatus, error) {
+        fetchStatus.fetchingFlag = false;
+        fetchStatus.success = false;
+        fetchStatus.fetchTime = fetchStatus.fetchTime || TUtil.now();
+        const { fetchId, fetchTime, startTime, tmodel, targetName } = fetchStatus;
+        fetchStatus.attempts++;
+        delete this.currentOidFetchIds[tmodel.oid][fetchId];
+
+        this.resultMap[fetchId] = {
+            fetchingPeriod: fetchTime - startTime,
+            success: false,
+            error
+        };
+
+        if (typeof tmodel.targets[targetName]?.onError === 'function') {
+            tmodel.targets[targetName].onError.call(tmodel, this.resultMap[fetchId]);
         }
 
-        Object.values(this.singleLoadList).forEach(({ query, fetchId }) => {
-            this.singleAjax(query, fetchId);
-        });
-
-        this.singleLoadList = undefined;
+        getRunScheduler().schedule(0, `api_error_${fetchId}`);
     }
 
-    imgLoad() {
-        if (!this.imgLoadList) {
-            return;
-        }
-
-        Object.values(this.imgLoadList).forEach(({ src, fetchId }) => {
-            this.imgAjax(src, fetchId);
-        });
-
-        this.imgLoadList = undefined;
-    }
-
-    updateQueryValue(query, value) {
-        Object.keys(query).forEach(prop => {
-            if (query[prop] === '%s') {
-                query[prop] = value;
-            } else if (query[prop] === '%d') {
-                query[prop] = typeof value === 'number' ? value : parseFloat(value);
-            } else if (typeof query[prop] === 'object') {
-                this.updateQueryValue(query[prop], value);
-            }
-        });
-        return query;
-    }
-
-    singleAjax(query, fetchId) {
+    ajaxAPI(url, query, fetchStatus) {
         const defaultQuery = {
             dataType: "json",
             type: "GET",
-            success: dataList => {
-                this.updateLoadStatus(fetchId, true);
-                this.resultMap[fetchId] = { ...this.loadingMap[fetchId], result: dataList };
-                this.updateStatistics(fetchId);
-                getRunScheduler().schedule(0, `singleAjax_success_${fetchId}`);
-            },
-            error: textStatus => {
-                this.resultMap[fetchId] = { error: textStatus, success: false };
-                this.updateLoadStatus(fetchId, false);
-                getRunScheduler().schedule(0, `singleAjax_error_${fetchId}`);
-            }
+            success: dataList => this.handleSuccess(fetchStatus, dataList),
+            error: textStatus => this.handleError(fetchStatus, textStatus)
         };
 
-        $Dom.ajax({ ...defaultQuery, ...query });
+        $Dom.ajax({ ...defaultQuery, url, ...{ data: query } });
     }
 
-    groupAjax(query, dataIdFetchIdMap, idKey) {
-        const defaultQuery = {
-            dataType: "json",
-            type: "GET",
-            success: dataList => {
-                dataList.forEach(data => {
-                    const dataId = data[idKey];
-                    if (dataIdFetchIdMap[dataId]) {
-                        const fetchId = dataIdFetchIdMap[dataId];
-                        this.updateLoadStatus(fetchId, true);
-                        this.resultMap[fetchId] = { ...this.loadingMap[fetchId], result: data };
-                        this.updateStatistics(fetchId);
-                        delete dataIdFetchIdMap[dataId];
-                    }
-                });
-
-                Object.keys(dataIdFetchIdMap).forEach(dataId => {
-                    const fetchId = dataIdFetchIdMap[dataId];
-                    if (!this.loadingMap[fetchId].success) {
-                        this.updateLoadStatus(fetchId, false);
-                    }
-                });
-
-                getRunScheduler().schedule(0, `groupAjax_success_${query}`);
-            },
-            error: textStatus => {
-                Object.keys(dataIdFetchIdMap).forEach(dataId => {
-                    const fetchId = dataIdFetchIdMap[dataId];
-                    this.resultMap[fetchId] = { error: textStatus, success: false };
-                    this.updateLoadStatus(fetchId, false);
-                });
-
-                getRunScheduler().schedule(0, `groupAjax_error_${query}`);
-            }
-        };
-
-        $Dom.ajax({ ...defaultQuery, ...query });
-    }
-
-    imgAjax(src, fetchId) {
+    loadImage(src, fetchStatus) {
         const image = new Image();
         image.src = src;
 
         image.onload = () => {
-            this.updateLoadStatus(fetchId, true);
-            this.resultMap[fetchId] = { ...this.loadingMap[fetchId], width: image.width, height: image.height, $image: new $Dom(image) };
-            this.updateStatistics(fetchId, 'image');
-            getRunScheduler().schedule(0, `imgAjax_success_${fetchId}`);
-        };
-
-        image.onerror = image.onabort = () => {
-            this.resultMap[fetchId] = { result: "no image", success: false };
-            this.updateLoadStatus(fetchId, false);
-            getRunScheduler().schedule(0, `imgAjax_error_${fetchId}`);
-        };
-    }
-
-    getCategoryFromFetchId(fetchId) {
-        return fetchId.replace(/[^a-zA-Z]/g, '');
-    }
-
-    updateStatistics(fetchId, category) {
-        category = category || this.getCategoryFromFetchId(fetchId);
-
-        if (this.statistics[category]) {
-            this.statistics[category].count++;
-            this.statistics[category].totalTime += this.resultMap[fetchId].loadingTime;
-            this.statistics[category].lastUpdate = TUtil.now();
-            delete this.statistics[category].averageTime;
-        } else {
-            this.statistics[category] = {
-                count: 1,
-                totalTime: this.resultMap[fetchId].loadingTime,
-                lastUpdate: TUtil.now()
+            const result = {
+                width: image.width,
+                height: image.height,
+                src: image.src
             };
-        }
-    }
+            this.handleSuccess(fetchStatus, result);
+        };
 
-    getAverageLoadingTime(category) {
-        const now = TUtil.now();
-
-        if (this.statistics[category]?.averageTime && (now - this.statistics[category].lastUpdate) < 500) {
-            return this.statistics[category].averageTime;
-        }
-
-        let totalTime = this.statistics[category]?.totalTime || 0;
-        let count = this.statistics[category]?.count || 0;
-
-        Object.values(this.loadingMap)
-            .filter(loadItem => loadItem.category === category)
-            .forEach(loadItem => {
-                totalTime += now - loadItem.startTime;
-                count++;
-            });
-
-        if (this.statistics[category]) {
-            this.statistics[category].averageTime = count > 0 ? totalTime / count : 0;
-            this.statistics[category].lastUpdate = TUtil.now();
-            return this.statistics[category].averageTime;
-        }
-
-        return 0;
-    }
-
-    updateLoadStatus(fetchId, success) {
-        Object.assign(this.loadingMap[fetchId], {
-            loadingFlag: false,
-            loadingTime: TUtil.now() - this.loadingMap[fetchId].startTime,
-            success,
-            attempts: this.loadingMap[fetchId].attempts + 1
-        });
+        image.onerror = image.onerror = () => {
+            this.handleError(fetchStatus, "not found");
+        };
     }
 }
 

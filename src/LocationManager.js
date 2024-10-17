@@ -171,11 +171,11 @@ class LocationManager {
                 TargetUtil.setHeightFromDom(tmodel);
             }
 
-            if (preWidth !== tmodel.getWidth()) {
+            if (preWidth !== tmodel.getWidth() || !TUtil.isDefined(tmodel.styleMap['width'])) {
                 tmodel.addToStyleTargetList('width');
             }
             
-            if (preHeight !== tmodel.getHeight()) {
+            if (preHeight !== tmodel.getHeight() || !TUtil.isDefined(tmodel.styleMap['height'])) {
                 tmodel.addToStyleTargetList('height');                
             }
         }

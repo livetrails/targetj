@@ -67,33 +67,21 @@ class TModelUtil {
         }
     }
     
-    static initializeActualValues() {
+    static defaultActualValues() {
         return {
-            position: 'absolute',
             x: 0,
             y: 0,
-            left: 0,
-            top: 0,
             width: 0,
             height: 0,
             leftMargin: 0,
             rightMargin: 0,
             topMargin: 0,
             bottomMargin: 0,
-            innerWidth: undefined,
-            innerHeight: undefined,
             opacity: 1,
-            perspective: undefined,  
-            rotate: undefined,            
             scale: 1,  
-            zIndex: 1,            
             scrollLeft: 0,
             scrollTop: 0,
             textOnly: true,
-            html: undefined,
-            css: '',
-            style: null,
-            attributes: null,
             borderRadius: 0,
             children: [],
             isInFlow: true,
@@ -108,6 +96,15 @@ class TModelUtil {
             isDomDeletable: true,
             calculateChildren: undefined,
             isVisible: undefined
+        };
+    }
+    
+    static defaultTargets() {
+        return { 
+            position: 'absolute', 
+            left: 0, 
+            top: 0,
+            zIndex: 1        
         };
     }
     
