@@ -187,7 +187,7 @@ The target will remain active using the loop function, with value() continuing t
 ![api loading example](https://targetj.io/img/apiLoading2.gif)
 
 ```bash
-import { App, TModel, getLoader, getScreenHeight, getScreenWidth } from "targetj";
+import { App, TModel, getLoader, getScreenHeight, getScreenWidth, Moves } from "targetj";
 
 App(new TModel("apiCall", {
     start() { this.users = 0; },
@@ -369,43 +369,39 @@ This example demonstrates how to handle scroll events and develop a simple infin
 import { App, TModel, getEvents, getScreenHeight, getScreenWidth, } from "targetj";
 
 App(new TModel("scroller", {
-    canHandleEvents: 'scrollTop',
-    innerXEast: 0,
+    canHandleEvents: "scrollTop",
+    innerOverflowWidth: 0,
     children: {
-        value() { 
-            const childrenCount = this.getChildren().length;
-            return Array.from({ length: 5 }, (_, i) => 
-                new TModel('scrollItem', { 
-                    width: 300,
-                    background: 'brown',                
-                    height: 30,
-                    color: '#fff',
-                    style: {
-                        textAlign: 'center',
-                        lineHeight: '30px'
-                    },                
-                    bottomMargin: 2,
-                    x() { return (this.getParentValue('width') - this.getWidth()) / 2; },                
-                    html: childrenCount + i,
-                    domParent() {
-                        return this.getParent();
-                    }
-                })
-            );
-        },
-        enabledOn() {
-            return this.visibleChildren.length * 32 < this.getHeight(); 
-        }    
+      value() {
+        const childrenCount = this.getChildren().length;
+        return Array.from({ length: 5 }, (_, i) =>
+            new TModel("scrollItem", {
+              width: 300,
+              background: "brown",
+              height: 30,
+              color: "#fff",
+              textAlign: "center",
+              lineHeight: 30,
+              bottomMargin: 2,
+              x() { return this.getCenterX(); },
+              html: childrenCount + i,
+            })
+        );
+      },
+      enabledOn() {
+        return this.visibleChildren.length * 32 < this.getHeight();
+      },
     },
-    scrollTop(cycle, lastValue) {          
-        return Math.max(0, lastValue + getEvents().deltaY());
-    },           
-    width() { return getScreenWidth(); },
-    height() { return getScreenHeight(); },  
-    onResize: [ 'width', 'height' ],
-    onScrollEvent: [ 'scrollTop', 'children' ],
-    onVisibleChildrenChange: [ 'children' ]
-}));
+    scrollTop(cycle, lastValue) {
+      return Math.max(0, lastValue + getEvents().deltaY());
+    },
+    width: getScreenWidth,
+    height: getScreenHeight,
+    onResize: ["width", "height"],
+    onScrollEvent: ["scrollTop", "children"],
+    onVisibleChildrenChange: ["children"],
+  })
+);
 ```
 
 ## Simple Single Page App Example
@@ -417,16 +413,12 @@ Below is a simple single-page app that demonstrates how to develop a fully-fledg
 ```bash
 import { App, TModel, getScreenHeight, getScreenWidth, getEvents, getPager } from "targetj";
 
-App(
-  new TModel("app", {
-    start() {
-      const urlParts = window.location.href.split("/");
-      this.pageName = urlParts[urlParts.length - 1];
-    },
+App(new TModel("app", {
     width: getScreenWidth,
     height: getScreenHeight,
     children() {
-      switch (this.pageName) {
+      const pageName = window.location.pathname.split("/").pop();
+      switch (pageName) {
         case "page1":
           return [Toolbar(), Page1()];
         case "page2":
@@ -435,7 +427,7 @@ App(
           return [Toolbar(), HomePage()];
       }
     },
-    onResize: ["width", "height"]
+    onResize: ["width", "height"],
   })
 );
 
@@ -443,66 +435,53 @@ const Toolbar = () =>
   new TModel("toolbar", {
     start() {
       ["home", "page1", "page2"].forEach((menu) => {
-        this.addChild(
-          new TModel("toolItem", {
+        this.addChild(new TModel("toolItem", {
             canHandleEvents: "touch",
             background: "bisque",
             width: 100,
             height: 50,
             lineHeight: 50,
-            outerXEast: 0,
+            outerOverflowWidth: 0,
             opacity: 0.5,
-            highlight: {
-              active: false,
-              value() {
-                this.setTarget("opacity", getEvents().isEnterEventHandler(this) ? 1 : 0.5, 20);
-              }
-            },
-            activePage: {
-              active: false,
-              value() {
-                this.setTarget;
-                getPager().openLink(menu);
-              }
-            },
+            cursor: "pointer",
             html: menu,
-            onEnterEvent: "highlight",
-            onLeaveEvent: "highlight",
-            onClickEvent: ["highlight", "activePage"],
+            onEnterEvent() { this.setTarget("opacity", 1, 20); },
+            onLeaveEvent() { this.setTarget("opacity", 0.5, 20); },
+            onClickEvent() {
+              this.setTarget("opacity", 0.5);
+              getPager().openLink(menu);
+            },
           })
         );
       });
     },
     height: 50,
     width: getScreenWidth,
-    onResize: ["width"]
+    onResize: ["width"],
   });
 
-const HomePage = () =>
-  new TModel("homePage", {
+const HomePage = () => new TModel("homePage", {
     background: "yellow",
     width: getScreenWidth,
     height: getScreenHeight,
     html: "home page",
-    onResize: ["width", "height"]
+    onResize: ["width", "height"],
   });
 
-const Page1 = () =>
-  new TModel("page1", {
+const Page1 = () => new TModel("page1", {
     background: "blue",
     width: getScreenWidth,
     height: getScreenHeight,
     html: "page 1",
-    onResize: ["width", "height"]
+    onResize: ["width", "height"],
   });
 
-const Page2 = () =>
-  new TModel("page2", {
+const Page2 = () => new TModel("page2", {
     background: "green",
     width: getScreenWidth,
     height: getScreenHeight,
     html: "page 2",
-    onResize: ["width", "height"]
+    onResize: ["width", "height"],
   });
 ```
 
