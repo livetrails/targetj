@@ -100,9 +100,7 @@ class TModelManager {
         const lastVisible = Object.values(lastVisibleMap)
             .filter(tmodel => tmodel !== null && tmodel.hasDom() && tmodel.isDomDeletable());
 
-        lastVisible.forEach(tmodel => {
-            this.lists.invisibleDom.push(tmodel);
-        });
+        this.lists.invisibleDom.push(...lastVisible);
     }
 
     needsRerender(tmodel) {

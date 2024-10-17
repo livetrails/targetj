@@ -32,7 +32,7 @@ class TUtil {
             const id = element.getAttribute("id");
             const tmodel = visibleMap[id];
 
-            if (tmodel && !tmodel.hasDom()) {
+            if (tmodel) {                
                 tmodel.$dom = new $Dom(`#${id}`);
             } else {
                 $Dom.detach(element);

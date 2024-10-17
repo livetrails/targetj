@@ -104,7 +104,8 @@ class TModelUtil {
             position: 'absolute', 
             left: 0, 
             top: 0,
-            zIndex: 1        
+            zIndex: 1,
+            css: ''
         };
     }
     

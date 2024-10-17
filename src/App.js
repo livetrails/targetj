@@ -64,13 +64,13 @@ const AppFn = (firstChild) => {
                 height() {
                     return document.documentElement.clientHeight || document.body.clientHeight;
                 }
-            });   
+            });
             
+            tmodel.oids = {};
+           
             if (my.tRoot) {
-                my.tRoot.getChildren().forEach((t, num) => {
+                my.tRoot.getChildren().forEach(t => {
                     const child = new TModel(t.type, t.targets);
-                    child.oidNum = num;
-                    child.oid = num > 0 ? `${t.type}${num}` : t.type;
                     tmodel.addChild(child);
                 });
             }
@@ -157,11 +157,12 @@ const App = (tmodel) => {
 
 App.oids = {};
 App.getOid = function(type) {
-    if (!TUtil.isDefined(App.oids[type])) {
-        App.oids[type] = 0;
+    const oids = tApp?.tRoot?.oids || App.oids;
+    if (!TUtil.isDefined(oids[type])) {
+        oids[type] = 0;
     }
 
-    const num = App.oids[type]++;
+    const num = oids[type]++;
     return { oid: num > 0 ? `${type}${num}` : type, num };
 };
 

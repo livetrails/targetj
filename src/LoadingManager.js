@@ -11,49 +11,40 @@ class LoadingManager {
         
         this.fetchingAPIMap = {};
         this.fetchingImageMap = {};
-        this.currentOidFetchIds = {};
-        this.allOidFetchIds = {};        
-    }
-   
-    initializeFetchEntry(fetchId, tmodel, targetMap) {
-        targetMap[fetchId] = {
-            fetchId,
-            fetchingFlag: true,
-            startTime: TUtil.now(),
-            fetchTime: undefined,
-            success: undefined,
-            attempts: targetMap[fetchId]?.attempts ?? 0,
-            tmodel: targetMap[fetchId]?.tmodel || tmodel,
-            targetName: targetMap[fetchId]?.targetName || tmodel.key,
-        };
-
-        this.currentOidFetchIds[tmodel.oid] ||= {};
-        this.currentOidFetchIds[tmodel.oid][fetchId] ||= true;
-        
-        this.allOidFetchIds[tmodel.oid] ||= {};
-        this.allOidFetchIds[tmodel.oid][fetchId] ||= true;        
     }
 
     fetchCommon(fetchId, tmodel, fetchMap, fetchFn) {
         if (this.isFetched(fetchId)) {
-            this.handleSuccess(fetchMap[fetchId], this.resultMap[fetchId].result);
-        } else if (!this.isFetching(fetchId)) {
-            this.initializeFetchEntry(fetchId, tmodel, fetchMap);
+            if (typeof tmodel.targets[tmodel.key]?.onSuccess === 'function' && tmodel.isTargetEnabled(tmodel.key)) {
+                tmodel.targets[tmodel.key].onSuccess.call(tmodel, this.resultMap[fetchId]);
+            }            
+        } else if (fetchMap[fetchId]) {
+            fetchMap[fetchId].targets.push({ tmodel, targetName: tmodel.key });
+        } else {
+            fetchMap[fetchId] = {
+                fetchId,
+                fetchingFlag: true,
+                startTime: TUtil.now(),
+                fetchTime: undefined,
+                success: undefined,
+                targets: [ { tmodel, targetName: tmodel.key } ],
+                fetchMap
+            };            
             fetchFn();
         }
 
         return this.getFetchingPeriod(fetchId);
     }
 
-    fetch(tmodel, url, query) {
-        const fetchId = `${url}_${JSON.stringify(query)}`;
+    fetch(tmodel, url, query, fetchId) {
+        fetchId = fetchId || `${tmodel.oid}_${url}_${JSON.stringify(query)}`;
         return this.fetchCommon(fetchId, tmodel, this.fetchingAPIMap, () => {
             this.ajaxAPI(url, query, this.fetchingAPIMap[fetchId]);
         });
     }
 
-    fetchImage(tmodel, src) {
-        const fetchId = src;
+    fetchImage(tmodel, src, fetchId) {
+        fetchId = fetchId || `${tmodel.oid}_${src}`;
         return this.fetchCommon(fetchId, tmodel, this.fetchingImageMap, () => {
             this.loadImage(src, this.fetchingImageMap[fetchId]);
         });
@@ -72,15 +63,7 @@ class LoadingManager {
             const { startTime, fetchTime } = this.fetchingAPIMap[fetchId];
             return fetchTime === undefined ? TUtil.now() - startTime : fetchTime - startTime;
         }
-    }
-    
-    getCurrentFetchIds(oid) {
-        return this.currentOidFetchIds[oid] ? Object.keys(this.currentOidFetchIds[oid]) : []; 
-    }
-    
-    getAllFetchIds(oid) {
-        return this.allOidFetchIds[oid] ? Object.keys(this.allOidFetchIds[oid]) : []; 
-    }    
+    } 
 
     fetchResult(fetchId) {
         return this.resultMap[fetchId];
@@ -98,9 +81,7 @@ class LoadingManager {
         fetchStatus.fetchingFlag = false;
         fetchStatus.success = true;
         fetchStatus.fetchTime = fetchStatus.fetchTime || TUtil.now();
-        const { fetchId, fetchTime, startTime, tmodel, targetName } = fetchStatus;
-        fetchStatus.attempts++;
-        delete this.currentOidFetchIds[tmodel.oid][fetchId];
+        const { fetchId, fetchTime, startTime, targets, fetchMap } = fetchStatus;
 
         this.resultMap[fetchId] = {
             fetchingPeriod: fetchTime - startTime,
@@ -108,9 +89,13 @@ class LoadingManager {
             result
         };
 
-        if (typeof tmodel.targets[targetName]?.onSuccess === 'function' && tmodel.isTargetEnabled(targetName)) {
-            tmodel.targets[targetName].onSuccess.call(tmodel, this.resultMap[fetchId]);
-        }
+        targets.forEach(({ tmodel, targetName }) => {
+            if (typeof tmodel.targets[targetName]?.onSuccess === 'function' && tmodel.isTargetEnabled(targetName)) {
+                tmodel.targets[targetName].onSuccess.call(tmodel, this.resultMap[fetchId]);
+            }
+        });
+        
+        delete fetchMap.fetchId;
 
         getRunScheduler().schedule(0, `api_success_${fetchId}`);
     }
@@ -119,9 +104,7 @@ class LoadingManager {
         fetchStatus.fetchingFlag = false;
         fetchStatus.success = false;
         fetchStatus.fetchTime = fetchStatus.fetchTime || TUtil.now();
-        const { fetchId, fetchTime, startTime, tmodel, targetName } = fetchStatus;
-        fetchStatus.attempts++;
-        delete this.currentOidFetchIds[tmodel.oid][fetchId];
+        const { fetchId, fetchTime, startTime, targets, fetchMap } = fetchStatus;
 
         this.resultMap[fetchId] = {
             fetchingPeriod: fetchTime - startTime,
@@ -129,9 +112,13 @@ class LoadingManager {
             error
         };
 
-        if (typeof tmodel.targets[targetName]?.onError === 'function') {
-            tmodel.targets[targetName].onError.call(tmodel, this.resultMap[fetchId]);
-        }
+        targets.forEach(({ tmodel, targetName }) => {
+            if (typeof tmodel.targets[targetName]?.onError === 'function') {
+                tmodel.targets[targetName].onError.call(tmodel, this.resultMap[fetchId]);
+            }
+        });
+        
+        delete fetchMap.fetchId;
 
         getRunScheduler().schedule(0, `api_error_${fetchId}`);
     }

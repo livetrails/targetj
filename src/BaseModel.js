@@ -20,8 +20,8 @@ class BaseModel {
         this.oid = uniqueId.oid;
         this.oidNum = uniqueId.num;
 
-        this.targetValues = {};
-        this.actualValues = {};
+        this.targetValues = undefined;
+        this.actualValues = undefined;
 
         this.activeTargetList = [];
         this.activeTargetMap = {};
@@ -92,7 +92,7 @@ class BaseModel {
             this.actualValues[key] = this.targets[key].initialValue;
             this.addToStyleTargetList(key);
         } 
-           
+          
         if (this.targets[key].active !== false) {
             this.addToActiveTargets(key);
         }
