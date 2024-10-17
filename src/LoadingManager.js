@@ -26,7 +26,6 @@ class LoadingManager {
                 fetchingFlag: true,
                 startTime: TUtil.now(),
                 fetchTime: undefined,
-                success: undefined,
                 targets: [ { tmodel, targetName: tmodel.key } ],
                 fetchMap
             };            
@@ -69,17 +68,12 @@ class LoadingManager {
         return this.resultMap[fetchId];
     }
 
-    isFetchSuccessful(fetchId) {
-        return this.resultMap[fetchId]?.success || false;
-    }
-
     getFetchErrors(fetchId) {
         return this.resultMap[fetchId]?.result?.errors;
     }
 
     handleSuccess(fetchStatus, result) {
         fetchStatus.fetchingFlag = false;
-        fetchStatus.success = true;
         fetchStatus.fetchTime = fetchStatus.fetchTime || TUtil.now();
         const { fetchId, fetchTime, startTime, targets, fetchMap } = fetchStatus;
 
@@ -102,7 +96,6 @@ class LoadingManager {
 
     handleError(fetchStatus, error) {
         fetchStatus.fetchingFlag = false;
-        fetchStatus.success = false;
         fetchStatus.fetchTime = fetchStatus.fetchTime || TUtil.now();
         const { fetchId, fetchTime, startTime, targets, fetchMap } = fetchStatus;
 
