@@ -189,35 +189,29 @@ The target will remain active using the loop function, with value() continuing t
 ```bash
 import { App, TModel, getLoader, getScreenHeight, getScreenWidth, Moves } from "targetj";
 
-App(new TModel("apiCall", {
-    start() { this.users = 0; },
+App(
+  new TModel("apiCall", {
     width: getScreenWidth,
     height: getScreenHeight,
     load: {
-      interval: 50,
-      loop() { return !this.val(this.key); },
-      value() {
-        const fetchId = `user${this.users}`;
-        getLoader().initSingleLoad(fetchId, {
-          url: "https://targetj.io/api/randomUser",
-          data: { id: fetchId }
-        });
-        return getLoader().fetchResult(fetchId);
+      interval: 1000,
+      cycles: 9,
+      value: function (cycle) {
+        return getLoader().fetch(this, "https://targetj.io/api/randomUser", { id: `user${cycle}` });
       },
-      onValueChange(newValue) {
-        if (!newValue) return;
-        const user = newValue.result;
-        this.addChild(
-          new TModel("user", {
+      onSuccess(res) {
+        this.addChild(new TModel("user", {
             bounce: {
               value() {
-                this.setTarget("move", Moves.bounceSimple(this, {
+                this.setTarget("move",
+                  Moves.bounceSimple(this, {
                     xStart: this.getX() || Math.random() * 300,
-                    yStart: 0,
-                    to: Math.random() * 200,
+                    yStart: 200,
+                    from: 0,
+                    to: 200,
                     widthStart: 50,
                     heightStart: 50,
-                  }), 50);
+                  }), 20);
               },
               onImperativeEnd() {
                 if (!this.hasUpdatingTargets(this)) {
@@ -227,33 +221,12 @@ App(new TModel("apiCall", {
             },
             lineHeight: 50,
             textAlign: "center",
-            html: user.name,
+            html: res.result.name,
             background: "yellow",
           })
         );
       },
     },
-    slowLoad: {
-      value() {
-        console.log("Connection issue: please try again later.");
-      },
-      enabledOn() {
-        return this.getTargetExecutionCount("load") > 30;
-      },
-    },
-    fastLoad: {
-      loop() { return this.users < 9; },
-      value() {
-        //Loading is fast: We can load additional details about the user or more users.
-        this.users++;
-        this.activateTarget("load");
-      },
-      enabledOn() {
-        return (
-          this.isTargetComplete("load") && this.val("load").loadingTime < 600
-        );
-      }
-    }
   })
 );
 ```
