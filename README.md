@@ -184,7 +184,7 @@ In the example below, we define a target named 'load' that attempts to fetch a s
 
 The target will remain active using the loop function, with value() continuing to return undefined while polling the system every 50ms (as specified in the interval property) until the loader retrieves the API result. When the API result arrives, it triggers onValueChange, which creates a user object based on the retrieved data. Additionally, we define two targets to handle scenarios for both fast and slow connections. The slow target is enabled if polling exceeds 100 times, while the fast target is enabled if the API result is retrieved in less than 600ms. The fast target will reactivate the load target till it fetches 10 users.
 
-![api loading example](https://targetj.io/img/apiLoading2.gif)
+![api loading example](https://targetj.io/img/apiLoading3.gif)
 
 ```bash
 import { App, TModel, getLoader, getScreenHeight, getScreenWidth, Moves } from "targetj";
