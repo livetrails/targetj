@@ -104,11 +104,8 @@ class TModelManager {
     }
 
     needsRerender(tmodel) {
-        if (
-            tmodel.hasDom() &&
-            TUtil.isDefined(tmodel.getHtml()) &&
-            (tmodel.$dom.html() !== tmodel.getHtml() || tmodel.$dom.textOnly !== tmodel.isTextOnly())
-        ) {
+        if (tmodel.hasDom() && TUtil.isDefined(tmodel.getHtml()) &&
+                (tmodel.$dom.html() !== tmodel.getHtml() || tmodel.$dom.textOnly !== tmodel.isTextOnly())) {
             this.lists.rerender.push(tmodel);
             return true;
         }
@@ -119,6 +116,8 @@ class TModelManager {
     needsRestyle(tmodel) {
         if (tmodel.hasDom() && tmodel.styleTargetList.length > 0) {
             this.lists.restyle.push(tmodel);
+            tmodel.domHeight = undefined;
+            tmodel.domWidth = undefined;            
             return true;
         }
 
@@ -126,7 +125,7 @@ class TModelManager {
     }
 
     needsReattach(tmodel) {
-        if (tmodel.hasDom() && tmodel.hasDomHolderChanged()) {
+        if (tmodel.hasDom() && (tmodel.hasDomHolderChanged() || tmodel.hasDomChanged())) {
             this.lists.reattach.push(tmodel);
             return true;
         }
@@ -146,10 +145,16 @@ class TModelManager {
     reattachTModels() {
         for (const tmodel of this.lists.reattach) {
             tmodel.$dom.detach();
+            
+            if (tmodel.hasDomChanged()) {
+                TModelUtil.createDom(tmodel);
+                this.fixStyle(tmodel);
+            }
+                           
             tmodel.getDomHolder().appendTModel$Dom(tmodel);
         }
     }
-
+    
     deleteDoms() {
         for (const tmodel of this.lists.invisibleDom) {
             tmodel.styleMap = {};
@@ -294,19 +299,8 @@ class TModelManager {
         for (const tmodel of needsDom) {
             
             tmodel.$dom = new $Dom();
-            tmodel.$dom.create(tmodel.getBaseElement());
-            tmodel.$dom.setSelector(`#${tmodel.oid}`);
-            tmodel.$dom.setId(tmodel.oid);
-
-            tmodel.transformMap = {};
-            tmodel.styleMap = {};
-            tmodel.allStyleTargetList.forEach(function(key) {
-                if (TUtil.isDefined(tmodel.val(key))) {
-                    tmodel.addToStyleTargetList(key);
-                }
-            });           
-            
-            this.fixStyle(tmodel);
+            TModelUtil.createDom(tmodel);
+            this.fixStyle(tmodel);  
 
             const contentItem = contentList.find(item => item.domHolder === tmodel.getDomHolder());
 

@@ -117,10 +117,10 @@ class RunScheduler {
                         tApp.manager.createDoms();
                         break;
                     case 3:
-                        tApp.manager.renderTModels();
+                        tApp.manager.reattachTModels();
                         break;
                     case 4:
-                        tApp.manager.reattachTModels();
+                        tApp.manager.renderTModels();                        
                         break;
                     case 5:
                         tApp.manager.fixStyles();

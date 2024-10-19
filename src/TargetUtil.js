@@ -352,8 +352,9 @@ class TargetUtil {
     }
 
     static setWidthFromDom(child) {
-        let height = TUtil.isDefined(child.domWidth) ? child.domWidth.height : undefined;
-        let width = TUtil.isDefined(child.domWidth) ? child.domWidth.width : undefined;
+        let height = child.domWidth?.height;
+        let width = child.domWidth?.width;
+        
         const domParent = child.getDomParent();
         let rerender = false;
 
@@ -362,10 +363,8 @@ class TargetUtil {
             rerender = true;
         }
 
-        if (!TUtil.isDefined(child.domWidth) ||
-            rerender ||
-            height !== child.getHeight() ||
-            (domParent && child.getActualValueLastUpdate('width') <= domParent.getActualValueLastUpdate('width'))) {
+        if (!TUtil.isDefined(child.domWidth) || rerender || height !== child.getHeight() ||
+                (domParent && child.getActualValueLastUpdate('width') <= domParent.getActualValueLastUpdate('width'))) {
             child.$dom.width('auto');
             width = child.$dom.width();
             height = child.$dom.height();
@@ -378,20 +377,19 @@ class TargetUtil {
     }
 
     static setHeightFromDom(child) {
-        let height = TUtil.isDefined(child.domHeight) ? child.domHeight.height : undefined;
-        let width = TUtil.isDefined(child.domHeight) ? child.domHeight.width : undefined;
+        let height = child.domHeight?.height;
+        let width = child.domHeight?.width;
+        
         const domParent = child.getDomParent();
         let rerender = false;
 
         if (getManager().needsRerender(child)) {
             child.isTextOnly() ? child.$dom.text(child.getHtml()) : child.$dom.html(child.getHtml());
             rerender = true;
-        }
+        }     
 
-        if (!TUtil.isDefined(child.domHeight) ||
-            rerender ||
-            width !== child.getWidth() ||
-            (domParent && child.getActualValueLastUpdate('height') <= domParent.getActualValueLastUpdate('height'))) {
+        if (!TUtil.isDefined(child.domHeight) || rerender || width !== child.getWidth() ||
+                (domParent && child.getActualValueLastUpdate('height') <= domParent.getActualValueLastUpdate('height'))) {
             child.$dom.height('auto');
             width = child.$dom.width();
             height = child.$dom.height();

@@ -254,6 +254,10 @@ class TModel extends BaseModel {
     hasDomHolderChanged() {
         return this.getDomHolder() && this.getDomHolder().exists() && this.$dom.parent().getAttribute("id") !== this.getDomHolder().attr("id");
     }
+    
+    hasDomChanged() {
+        return this.getBaseElement() !== this.$dom.getTagName();
+    }
 
     hasDom() {
         return !!this.$dom && this.$dom.exists();

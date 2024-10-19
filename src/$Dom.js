@@ -26,8 +26,12 @@ class $Dom {
         return !!this.element;
     }
 
-    create(tag) {
-        this.element = document.createElement(tag);
+    create(tagName) {
+        this.element = document.createElement(tagName);
+    }
+    
+    getTagName() {
+        return this.element.tagName.toLowerCase();
     }
 
     setSelector(selector) {

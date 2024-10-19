@@ -7,44 +7,44 @@ import { getRunScheduler } from "./App.js";
  */
 class LoadingManager {
     constructor() {
-        this.resultMap = {};
+        this.cacheMap = {};
         
         this.fetchingAPIMap = {};
         this.fetchingImageMap = {};
     }
 
-    fetchCommon(fetchId, tmodel, fetchMap, fetchFn) {
-        if (this.isFetched(fetchId)) {
+    fetchCommon(fetchId, cacheId, tmodel, fetchMap, fetchFn) {
+        if (cacheId && this.isFetched(cacheId)) {
             if (typeof tmodel.targets[tmodel.key]?.onSuccess === 'function' && tmodel.isTargetEnabled(tmodel.key)) {
-                tmodel.targets[tmodel.key].onSuccess.call(tmodel, this.resultMap[fetchId]);
+                tmodel.targets[tmodel.key].onSuccess.call(tmodel, { ...this.cacheMap[cacheId], fetchingPeriod: 0 });
             }            
         } else if (fetchMap[fetchId]) {
             fetchMap[fetchId].targets.push({ tmodel, targetName: tmodel.key });
         } else {
             fetchMap[fetchId] = {
                 fetchId,
+                cacheId,
                 fetchingFlag: true,
                 startTime: TUtil.now(),
-                fetchTime: undefined,
                 targets: [ { tmodel, targetName: tmodel.key } ],
                 fetchMap
             };            
             fetchFn();
         }
-
-        return this.getFetchingPeriod(fetchId);
+        
+        return fetchId;
     }
 
-    fetch(tmodel, url, query, fetchId) {
-        fetchId = fetchId || `${tmodel.oid}_${url}_${JSON.stringify(query)}`;
-        return this.fetchCommon(fetchId, tmodel, this.fetchingAPIMap, () => {
+    fetch(tmodel, url, query, cacheId) {
+        const fetchId = `${tmodel.oid}_${url}_${JSON.stringify(query)}`;
+        return this.fetchCommon(fetchId, cacheId, tmodel, this.fetchingAPIMap, () => {
             this.ajaxAPI(url, query, this.fetchingAPIMap[fetchId]);
         });
     }
 
-    fetchImage(tmodel, src, fetchId) {
-        fetchId = fetchId || `${tmodel.oid}_${src}`;
-        return this.fetchCommon(fetchId, tmodel, this.fetchingImageMap, () => {
+    fetchImage(tmodel, src, cacheId) {
+        const fetchId = `${tmodel.oid}_${src}`;
+        return this.fetchCommon(fetchId, cacheId, tmodel, this.fetchingImageMap, () => {
             this.loadImage(src, this.fetchingImageMap[fetchId]);
         });
     }
@@ -53,31 +53,23 @@ class LoadingManager {
         return this.fetchingAPIMap[fetchId]?.fetchingFlag ?? false;
     }
 
-    isFetched(fetchId) {
-        return this.resultMap[fetchId]?.success ?? false;
+    isFetched(cacheId) {
+        return this.cacheMap[cacheId]?.success ?? false;
     }
 
     getFetchingPeriod(fetchId) {
-        if (this.fetchingAPIMap[fetchId]) {
-            const { startTime, fetchTime } = this.fetchingAPIMap[fetchId];
-            return fetchTime === undefined ? TUtil.now() - startTime : fetchTime - startTime;
-        }
+        return this.fetchingAPIMap[fetchId] ? TUtil.now() - this.fetchingAPIMap[fetchId].startTime : undefined;
     } 
 
-    fetchResult(fetchId) {
-        return this.resultMap[fetchId];
-    }
-
-    getFetchErrors(fetchId) {
-        return this.resultMap[fetchId]?.result?.errors;
+    fetchCache(cacheId) {
+        return this.cacheMap[cacheId];
     }
 
     handleSuccess(fetchStatus, result) {
-        fetchStatus.fetchingFlag = false;
-        fetchStatus.fetchTime = fetchStatus.fetchTime || TUtil.now();
-        const { fetchId, fetchTime, startTime, targets, fetchMap } = fetchStatus;
+        const fetchTime = TUtil.now();
+        const { fetchId, cacheId, startTime, targets, fetchMap } = fetchStatus;
 
-        this.resultMap[fetchId] = {
+        const res = {
             fetchingPeriod: fetchTime - startTime,
             success: true,
             result
@@ -85,21 +77,23 @@ class LoadingManager {
 
         targets.forEach(({ tmodel, targetName }) => {
             if (typeof tmodel.targets[targetName]?.onSuccess === 'function' && tmodel.isTargetEnabled(targetName)) {
-                tmodel.targets[targetName].onSuccess.call(tmodel, this.resultMap[fetchId]);
+                tmodel.targets[targetName].onSuccess.call(tmodel, res);
             }
         });
         
-        delete fetchMap.fetchId;
-
+        delete fetchMap[fetchId];
+        
+        if (cacheId) {
+            this.cacheMap[cacheId] = res;
+        }
         getRunScheduler().schedule(0, `api_success_${fetchId}`);
     }
 
     handleError(fetchStatus, error) {
-        fetchStatus.fetchingFlag = false;
-        fetchStatus.fetchTime = fetchStatus.fetchTime || TUtil.now();
-        const { fetchId, fetchTime, startTime, targets, fetchMap } = fetchStatus;
+        const fetchTime = TUtil.now();
+        const { fetchId, cacheId, startTime, targets, fetchMap } = fetchStatus;
 
-        this.resultMap[fetchId] = {
+        const res = {
             fetchingPeriod: fetchTime - startTime,
             success: false,
             error
@@ -107,11 +101,15 @@ class LoadingManager {
 
         targets.forEach(({ tmodel, targetName }) => {
             if (typeof tmodel.targets[targetName]?.onError === 'function') {
-                tmodel.targets[targetName].onError.call(tmodel, this.resultMap[fetchId]);
+                tmodel.targets[targetName].onError.call(tmodel, res);
             }
         });
         
-        delete fetchMap.fetchId;
+        delete fetchMap[fetchId];
+        
+        if (cacheId) {
+            this.cacheMap[cacheId] = res;
+        }
 
         getRunScheduler().schedule(0, `api_error_${fetchId}`);
     }

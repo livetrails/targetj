@@ -1,4 +1,5 @@
 import { TUtil } from "./TUtil.js";
+import { $Dom } from "./$Dom.js";
 
 /**
  * It provides helper functions for TModel.
@@ -107,6 +108,20 @@ class TModelUtil {
             zIndex: 1,
             css: ''
         };
+    }
+    
+    static createDom(tmodel) {
+        tmodel.$dom = new $Dom();
+        tmodel.$dom.create(tmodel.getBaseElement());
+        tmodel.$dom.setSelector(`#${tmodel.oid}`);
+        tmodel.$dom.setId(tmodel.oid);
+        tmodel.transformMap = {};
+        tmodel.styleMap = {};
+        tmodel.allStyleTargetList.forEach(function(key) {
+            if (TUtil.isDefined(tmodel.val(key))) {
+                tmodel.addToStyleTargetList(key);
+            }
+        });                 
     }
     
     static getTransformString(tmodel) {

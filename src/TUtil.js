@@ -110,7 +110,7 @@ class TUtil {
     }
     
     static now() {
-        return Date.now();
+            return Date.now();
     }
     
     static log(condition) {
