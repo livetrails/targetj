@@ -45,9 +45,8 @@ class PageManager {
     
     onPageClose(visibles) {
         visibles.forEach(tmodel => {
-            if (tmodel.targets['onPageClose']) {
-                getLocationManager().activateTargets(tmodel, tmodel.targets['onPageClose']);  
-            }
+            const activateTargets = [].concat(tmodel.targets['onPageClose'], tmodel.targets['onResize']);
+            getLocationManager().activateTargets(tmodel, activateTargets);             
         });          
     }
 

@@ -297,7 +297,7 @@ class TModel extends BaseModel {
     }
     
     getXOverflow() {
-        return this.actualValues.xOverflow ?? 0;
+        return this.actualValues.xOverflow ?? -this.getScrollLeft();
     }
 
     getUIDepth() {

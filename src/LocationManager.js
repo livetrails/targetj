@@ -62,7 +62,7 @@ class LocationManager {
         let i = 0;
         const childrenLength = allChildren.length;
 
-        while (i < childrenLength && tApp.isRunning()) {
+        while (i < childrenLength) {
             const child = allChildren[i++];
             if (!child) {
                 continue;

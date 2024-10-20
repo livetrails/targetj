@@ -63,7 +63,8 @@ const AppFn = (firstChild) => {
                 },
                 height() {
                     return document.documentElement.clientHeight || document.body.clientHeight;
-                }
+                },
+                onResize: ['width', 'height']
             });
             
             tmodel.oids = {};
