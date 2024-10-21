@@ -53,12 +53,12 @@ class LocationManager {
         return container.getChildren();
     }
 
-    calculateContainer(container) {
+    calculateContainer(container, shouldCalculateChildTargets) {
         const allChildren = this.getChildren(container);
         const viewport = container.createViewport();
         const visibleChildrenCount = container.visibleChildren.length;
         container.visibleChildren.length = 0;
-        
+                
         let i = 0;
         const childrenLength = allChildren.length;
 
@@ -67,8 +67,10 @@ class LocationManager {
             if (!child) {
                 continue;
             }
-
-            this.calculateTargets(child);
+            
+            if (container.manageChildTargetExecution(child, shouldCalculateChildTargets)) {
+                this.calculateTargets(child);
+            }
 
             viewport.setCurrentChild(child);
             child.setLocation(viewport);
@@ -107,7 +109,7 @@ class LocationManager {
             child.addToParentVisibleChildren();
            
             if (child.shouldCalculateChildren()) {
-                this.calculateContainer(child);
+                this.calculateContainer(child, shouldCalculateChildTargets || container.shouldCalculateChildTargets());
             }
 
             if (child.isInFlow()) {
@@ -179,6 +181,8 @@ class LocationManager {
                 tmodel.addToStyleTargetList('height');                
             }
         }
+        
+        tmodel.targetExecutionCount++;
     }
 
     activateTargetsOnEvents(tmodel) {

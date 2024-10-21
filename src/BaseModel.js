@@ -1,4 +1,4 @@
-import { tApp, App, getRunScheduler } from "./App.js";
+import { tApp, App, getRunScheduler, getEvents } from "./App.js";
 import { TargetExecutor } from "./TargetExecutor.js";
 import { TUtil } from "./TUtil.js";
 import { TModelUtil } from "./TModelUtil.js";
@@ -29,7 +29,6 @@ class BaseModel {
         this.updatingTargetList = [];
         this.updatingTargetMap = {};
 
-
         this.updatingChildrenList = [];
         this.updatingChildrenMap = {};
         
@@ -39,7 +38,9 @@ class BaseModel {
         this.allStyleTargetMap = {};
         
         this.styleTargetList = [];
-        this.styleTargetMap = {};       
+        this.styleTargetMap = {};
+        
+        this.targetExecutionCount = 0;
         
         this.parent = null;
 
@@ -515,7 +516,20 @@ class BaseModel {
 
         return this;
     }
-   
+    
+    manageChildTargetExecution(child, shouldCalculateChildTargets) {
+        return shouldCalculateChildTargets
+                || this.shouldCalculateChildTargets()
+                || (getEvents().deltaX() === 0 && getEvents().deltaY() === 0) 
+                || child.hasChildren() 
+                || child.addedChildren.count > 0 
+                || child.targetExecutionCount === 0;
+    }
+    
+    shouldCalculateChildTargets() {
+        return !!this.actualValues.shouldCalculateChildTargets;
+    }    
+        
     setTargetMethodName(targetName, methodName) {
         if (!this.targetMethodMap[targetName]) {
             this.targetMethodMap[targetName] = [];
