@@ -116,10 +116,19 @@ class TargetUtil {
         size: true,
         value: true,
         maxlength: true,
+        minlength: true,
         max: true,
         min: true,
         readonly: true,
-        required: true
+        required: true,
+        alt: true,
+        disabled: true,
+        action: true,
+        accept: true,
+        selected: true,
+        rows: true,
+        cols: true,
+        tabindex: true
     };
     
     static cssFunctionMap = {
