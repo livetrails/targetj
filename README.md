@@ -14,7 +14,7 @@ npm install targetj
 
 ## Why TargetJ?
 
-Imagine building a front-end project using a single approach for API integration, animations, event handling, and more—without having to manage asynchronous calls, loops, callbacks, promises, timeouts, CSS, HTML attributes, tags, or HTML nesting. That’s exactly what TargetJ offers: it simplifies the entire development process with a new paradigm.
+Imagine building a single-page web app using a unified approach for API integration, animations, event handling, and more—without having to manage asynchronous calls, loops, callbacks, promises, timeouts, state management, CSS, HTML attributes, tags, or HTML nesting. That’s exactly what TargetJ offers: it simplifies the entire development process with a new, simplified paradigm.
 
 ## What are targets?
 
