@@ -1,4 +1,4 @@
-# TargetJ: JavaScript UI framework
+# TargetJ: JavaScript UI framework Redefining Front-End Development
 
 Welcome to TargetJ, a powerful JavaScript UI framework designed to simplify development and animation. (https://targetj.io)
 
