@@ -22,6 +22,10 @@ Targets provide a unified interface for variable assignments and methods, giving
 
 For variable assignments, targets enhance functionality by giving them the ability to iterate in steps until they reach the specified value, rather than being immediately assigned their values. They can introduce pauses between iterations and offer callbacks to monitor progress, track the progress of other variables, and manage their life cycles accordingly. Similarly, targets enhance methods by allowing them to manage their own life cycles. They can execute themselves under specific conditions, control the number of executions, and offer the same capabilities as those provided to variables.
 
+## Do I still need HTML and CSS files?
+
+No, static HTML or CSS files are not necessary. We believe they introduce complexity, brittleness, and act as an intermediary that diverts focus from the end application. It's better to reduce the gap between the application and the user experience. In TargetJ, HTML elements, styles, and attributes are written as targets, enabling them to function independently while at the same time being well integrated with the other logic targets of the application. This provides a flexible and fluid medium for creating new user experiences that would otherwise be difficult to achieve.
+
 ## What does a target consist of?
 
 Each target consists of the following:
@@ -87,7 +91,7 @@ This is only property. It defines the initial value of the actual value.
 
 ### Simple example
 
-In the example below, we incrementally increase the value of width, height, and opacity in 30 steps, with a 50-milliseconds pause between each step.
+In the example below, we incrementally increase the value of width, height, and opacity in 30 steps, with a 50-milliseconds pause between each step. You can view a live example here: https://targetj.io/docs/overview.html.
 
 ![first example](https://targetj.io/img/firstExample.gif)
 
