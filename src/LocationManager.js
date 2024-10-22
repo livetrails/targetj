@@ -38,7 +38,7 @@ class LocationManager {
 
     calculate() {
         this.addToLocationList(tApp.tRoot);
-        this.calculateContainer(tApp.tRoot);
+        this.calculateContainer(tApp.tRoot, true);
     }
 
     getChildren(container) {
@@ -109,7 +109,7 @@ class LocationManager {
             child.addToParentVisibleChildren();
            
             if (child.shouldCalculateChildren()) {
-                this.calculateContainer(child, shouldCalculateChildTargets || container.shouldCalculateChildTargets());
+                this.calculateContainer(child, shouldCalculateChildTargets && container.shouldCalculateChildTargets() !== false);
             }
 
             if (child.isInFlow()) {

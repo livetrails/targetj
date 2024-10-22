@@ -94,9 +94,7 @@ class TModelUtil {
             keepEventDefault: false,
             isIncluded: true,
             bracketThreshold: 5,
-            isDomDeletable: true,
-            calculateChildren: undefined,
-            isVisible: undefined
+            isDomDeletable: true
         };
     }
     

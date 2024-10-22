@@ -527,7 +527,7 @@ class BaseModel {
     }
     
     shouldCalculateChildTargets() {
-        return !!this.actualValues.shouldCalculateChildTargets;
+        return this.actualValues.shouldCalculateChildTargets;
     }    
         
     setTargetMethodName(targetName, methodName) {
