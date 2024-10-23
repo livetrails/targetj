@@ -366,7 +366,7 @@ App(new TModel("scroller", {
         );
       },
       enabledOn() {
-        return this.visibleChildren.length * 32 < this.getHeight();
+        return (this.visibleChildren.length - 1) * 32 < this.getHeight();
       },
     },
     scrollTop(cycle, lastValue) {
