@@ -84,7 +84,8 @@ class TargetUtil {
         cursor: true,
         fontFamily: true,
         overflow: true,
-        textDecoration: true
+        textDecoration: true,
+        boxShadow: true
     };
     
     static scaleMap = {

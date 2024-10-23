@@ -34,6 +34,10 @@ class TargetManager {
         if (!tmodel.isTargetEnabled(key)) {
             return;
         }
+        
+        if (tmodel.isExecuted(key) && tmodel.hasUpdatingTargets(key)) {
+            return;
+        }
 
         if (tmodel.isExecuted(key) && tmodel.getTargetStep(key) === tmodel.getTargetSteps(key)) {
             const schedulePeriod = TargetUtil.scheduleExecution(tmodel, key);
@@ -44,14 +48,18 @@ class TargetManager {
         }
 
         tmodel.resetScheduleTimeStamp(key);
-
-        if (tmodel.isExecuted(key) && tmodel.getTargetCycle(key) < tmodel.getTargetCycles(key)) {
-            tmodel.incrementTargetCycle(key, tmodel.getTargetCycle(key));
+                
+        if (tmodel.isExecuted(key) && tmodel.getTargetCycles(key) > 0) {
+            if (tmodel.getTargetCycle(key) < tmodel.getTargetCycles(key)) {
+                tmodel.incrementTargetCycle(key, tmodel.getTargetCycle(key));
+            } else {
+                tmodel.resetTargetCycle(key);
+            }
             tmodel.resetTargetStep(key);
             tmodel.resetTargetInitialValue(key);
         }
-
-        TargetExecutor.executeDeclarativeTarget(tmodel, key);
+       
+        TargetExecutor.executeDeclarativeTarget(tmodel, key);        
        
         tmodel.setScheduleTimeStamp(key, TUtil.now());
         getRunScheduler().schedule(tmodel.getTargetInterval(key), `actualInterval__${tmodel.oid}__${key}`);
