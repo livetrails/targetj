@@ -1,4 +1,4 @@
-# TargetJ: JavaScript UI framework
+# TargetJ: JavaScript UI framework Redefining Front-End Development
 
 Welcome to TargetJ, a powerful JavaScript UI framework designed to simplify development and animation. (https://targetj.io)
 
@@ -14,7 +14,7 @@ npm install targetj
 
 ## Why TargetJ?
 
-Imagine building a front-end project using a single approach for API integration, animations, event handling, and more—without having to manage asynchronous calls, loops, callbacks, promises, timeouts, CSS, HTML attributes, tags, or HTML nesting. That’s exactly what TargetJ offers: it simplifies the entire development process with a new paradigm.
+Imagine building a single-page web app using a unified approach for API integration, animations, event handling, and more—without having to manage asynchronous calls, loops, callbacks, promises, timeouts, state management, CSS, HTML attributes, tags, or HTML nesting. That’s exactly what TargetJ offers: it simplifies the entire development process with a new, simplified paradigm.
 
 ## What are targets?
 
@@ -22,10 +22,14 @@ Targets provide a unified interface for variable assignments and methods, giving
 
 For variable assignments, targets enhance functionality by giving them the ability to iterate in steps until they reach the specified value, rather than being immediately assigned their values. They can introduce pauses between iterations and offer callbacks to monitor progress, track the progress of other variables, and manage their life cycles accordingly. Similarly, targets enhance methods by allowing them to manage their own life cycles. They can execute themselves under specific conditions, control the number of executions, and offer the same capabilities as those provided to variables.
 
+## Do I still need HTML and CSS files?
+
+No, static HTML or CSS files are not necessary. We believe they introduce complexity, brittleness, and act as an intermediary that diverts focus from the end application. It's better to reduce the gap between the application and the user experience. In TargetJ, HTML elements, styles, and attributes are written as targets, enabling them to function independently while at the same time being well integrated with the other logic targets of the application. This provides a flexible and fluid medium for creating new user experiences that would otherwise be difficult to achieve.
+
 ## What does a target consist of?
 
 Each target consists of the following:
-1. Target Value and Actual Value. The target value is the value assigned to a variable or the result produced by a method.. The actual value is typically the value used by the rest of the application. When the target value differs from the actual value, TargetJ iteratively updates the actual value until it matches the target value. This process is managed by two additional variables: Step, which dictates the number of iterations, and Interval, which specifies the duration (in milliseconds) the system waits before executing the next iteration.
+1. Target Value and Actual Value. The target value is the value assigned to a variable or the result produced by a method. The actual value is typically the value used by the rest of the application. When the target value differs from the actual value, TargetJ iteratively updates the actual value until it matches the target value. This process is managed by two additional variables: Step, which dictates the number of iterations, and Interval, which specifies the duration (in milliseconds) the system waits before executing the next iteration.
 
 2. State: Targets have four states that control their lifecycle: Active, Inactive, Updating, and Complete. Active: This is the default state for all targets. It indicates that the target is ready to be executed, and the target value needs to be initialized from the variable it represents or its value() method needs to be executed to calculate its output. Inactive: Indicates that the target is not ready to be executed. Updating: Indicates that the actual value is being adjusted to reach the target value. Complete: Indicates that the target execution is finished, and the actual value has matched the target value.
 
@@ -87,7 +91,7 @@ This is only property. It defines the initial value of the actual value.
 
 ### Simple example
 
-In the example below, we incrementally increase the value of width, height, and opacity in 30 steps, with a 50-milliseconds pause between each step.
+In the example below, we incrementally increase the values of width, height, and opacity in 30 steps, with a 50-millisecond pause between each step. You can view a live example here: https://targetj.io/examples/overview.html, and click on the execution button to see how it works.
 
 ![first example](https://targetj.io/img/firstExample.gif)
 
@@ -115,7 +119,7 @@ App(new TModel({
  }));
 ```
 
-It can also be written in a more compact form using arrays:
+It can also be written in a more compact form using arrays (view a live example at https://targetj.io/examples/overview2.html):
 
 ```bash
 import { App, TModel } from 'targetj';
