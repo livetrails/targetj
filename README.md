@@ -374,9 +374,9 @@ App(new TModel("scroller", {
     },
     width: getScreenWidth,
     height: getScreenHeight,
-    onResize: ["width", "height"],
-    onScrollEvent: ["scrollTop", "children"],
-    onVisibleChildrenChange: ["children"],
+    onResize: [ "width", "height" ],
+    onScrollEvent: "scrollTop",
+    onVisibleChildrenChange: "children"
   })
 );
 ```
