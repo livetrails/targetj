@@ -91,7 +91,7 @@ This is only property. It defines the initial value of the actual value.
 
 ### Simple example
 
-In the example below, we incrementally increase the values of width, height, and opacity in 30 steps, with a 50-millisecond pause between each step. You can view a live example here: https://targetj.io/examples/overview.html, and click on the execution button to see how it works.
+In the example below, we incrementally increase the values of width, height, and opacity in 30 steps, with a 50-millisecond pause between each step. You can view a live example here: https://targetj.io/examples/overview.html.
 
 ![first example](https://targetj.io/img/firstExample.gif)
 
