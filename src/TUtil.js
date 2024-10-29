@@ -18,6 +18,28 @@ class TUtil {
             
         return { left, top, right, bottom, oid };
     }
+    
+    static calcVisibility(child) {
+        const x = child.absX;
+        const y = child.absY;
+
+        const parent = child.getDomParent();
+
+        const scale = (parent.getMeasuringScale() || 1) * child.getMeasuringScale();
+        const maxWidth = TUtil.isDefined(child.getWidth()) ? scale * child.getWidth() : 0;
+        const maxHeight = TUtil.isDefined(child.getHeight()) ? scale * child.getHeight() : 0;
+
+        const status = child.visibilityStatus;
+   
+        status.right = Math.floor(x) <= parent.absX + parent.getWidth();
+        status.left = Math.ceil(x + maxWidth) >= parent.absX;
+        status.bottom = Math.floor(y) <= parent.absY + parent.getHeight();
+        status.top = Math.ceil(y + maxHeight) >= parent.absY;
+        
+        child.actualValues.isVisible = status.left && status.right && status.top && status.bottom;
+
+        return child.actualValues.isVisible;
+    }
 
     static initDoms(visibleList) {
         const elements = $Dom.findByClass('tgt');
@@ -99,6 +121,10 @@ class TUtil {
         num = num < low ? low : num;
 
         return num;
+    }
+    
+    static capitalizeFirstLetter(val) {
+        return val.charAt(0).toUpperCase() + val.slice(1);
     }
 
     static formatNum(num, precision) {

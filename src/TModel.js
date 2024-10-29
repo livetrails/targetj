@@ -35,7 +35,6 @@ class TModel extends BaseModel {
         this.transformMap = {};
         
         this.visibilityStatus = { top: false, right: false, bottom: false, left: false };
-        this.visible = false;
         
         this.visibleChildren = [];         
 
@@ -246,9 +245,13 @@ class TModel extends BaseModel {
     logTree() {
         TUtil.logTree(this);
     }
-
+    
     isVisible() {
-        return TUtil.isDefined(this.actualValues.isVisible) ? this.actualValues.isVisible : this.visible;
+        return this.actualValues.isVisible;
+    }
+    
+    calcVisibility() {
+        return TUtil.calcVisibility(this);
     }
 
     hasDomHolderChanged() {

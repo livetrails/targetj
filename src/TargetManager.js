@@ -108,6 +108,7 @@ class TargetManager {
         const oldCycle = cycle;
         let initialValue = tmodel.getTargetInitialValue(key);
         let originalTargetName, originalTarget, originalTModel;
+        const capKey = TUtil.capitalizeFirstLetter(key);
 
         if (step <= steps) {
             if (!TUtil.isDefined(initialValue)) {
@@ -131,6 +132,10 @@ class TargetManager {
                     originalTarget.onImperativeStep.call(originalTModel, key, originalTModel.actualValues[key], theValue, step, steps);
                     originalTModel.setTargetMethodName(originalTargetName, 'onImperativeStep');
                 }
+                if (originalTarget && typeof originalTarget[`on${capKey}Step`] === 'function') {
+                    originalTarget[`on${capKey}Step`].call(originalTModel, originalTModel.actualValues[key], theValue, step, steps);
+                    originalTModel.setTargetMethodName(originalTargetName, [`on${capKey}Step`]);
+                }                
             } else {
                 TargetUtil.handleValueChange(tmodel, key, tmodel.actualValues[key], oldValue, oldStep, oldCycle);
             }
@@ -180,6 +185,14 @@ class TargetManager {
                     originalTarget.onImperativeEnd.call(originalTModel, key, originalTModel.actualValues[key]);
                     originalTModel.setTargetMethodName(originalTargetName, 'onImperativeEnd');
                 }
+                if (originalTarget && typeof originalTarget[`on${capKey}Step`] === 'function') {
+                    originalTarget[`on${capKey}Step`].call(originalTModel, originalTModel.actualValues[key], theValue, step, steps);
+                    originalTModel.setTargetMethodName(originalTargetName, [`on${capKey}Step`]);
+                } 
+                if (originalTarget && typeof originalTarget[`on${capKey}End`] === 'function') {
+                    originalTarget[`on${capKey}End`].call(originalTModel, originalTModel.actualValues[key], theValue, step, steps);
+                    originalTModel.setTargetMethodName(originalTargetName, [`on${capKey}End`]);
+                }                  
             } else {
                 if (tmodel.getTargetCycle(key) < tmodel.getTargetCycles(key)) {
                     tmodel.incrementTargetCycle(key, tmodel.getTargetCycle(key));

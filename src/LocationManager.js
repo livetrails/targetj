@@ -105,7 +105,11 @@ class LocationManager {
             child.addToStyleTargetList('y');                
 
             child.calculateAbsolutePosition(child.getX(), child.getY());
-            viewport.isVisible(child);
+                    
+            TUtil.isDefined(child.targets.isVisible) 
+                ? tApp.targetManager.applyTargetValue(child, 'isVisible') 
+                : child.calcVisibility();
+            
             child.addToParentVisibleChildren();
            
             if (child.shouldCalculateChildren()) {

@@ -31,28 +31,6 @@ class Viewport {
     getYNext() {
         return this.yNext + this.currentChild.getTopMargin();
     }
-
-    isVisible(child) {
-        const x = child.absX;
-        const y = child.absY;
-
-        const parent = child.getDomParent();
-
-        const scale = (parent.getMeasuringScale() || 1) * child.getMeasuringScale();
-        const maxWidth = TUtil.isDefined(child.getWidth()) ? scale * child.getWidth() : 0;
-        const maxHeight = TUtil.isDefined(child.getHeight()) ? scale * child.getHeight() : 0;
-
-        const status = child.visibilityStatus;
-   
-        status.right = Math.floor(x) <= parent.absX + parent.getWidth();
-        status.left = Math.ceil(x + maxWidth) >= parent.absX;
-        status.bottom = Math.floor(y) <= parent.absY + parent.getHeight();
-        status.top = Math.ceil(y + maxHeight) >= parent.absY;
-       
-        child.visible = status.left && status.right && status.top && status.bottom;
-
-        return child.isVisible();
-    }
     
     isOverflow(outerOverflowWidth, innerOverflowWidth) {
         return TUtil.isNumber(outerOverflowWidth) && TUtil.isNumber(innerOverflowWidth) && outerOverflowWidth > innerOverflowWidth;

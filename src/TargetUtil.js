@@ -160,7 +160,8 @@ class TargetUtil {
         onInvisibleEvent: true,
         onChildrenChange: true,
         onVisibleChildrenChange: true,
-        onPageClose: true
+        onPageClose: true,
+        isVisible: true
     };
     
     static emptyValue() {
@@ -188,8 +189,11 @@ class TargetUtil {
         const target = targetInstance[key];
 
         if (typeof target === 'object') {
-            ['value', 'enabledOn', 'onStepsEnd', 'onValueChange', 'loop', 'onImperativeEnd', 'onImperativeStep', 'onSuccess', 'onError'].forEach(method => {
-                if (typeof target[method] === 'function') {
+            const stepPattern = /^on[A-Za-z]*Step$/;
+            const endPattern = /^on[A-Za-z]*End$/;  
+            const methods = ['value', 'enabledOn', 'onStepsEnd', 'onValueChange', 'loop', 'onImperativeEnd', 'onImperativeStep', 'onSuccess', 'onError'];
+            Object.keys(target).forEach(method => {
+                if (typeof target[method] === 'function' && (methods.includes(method) || stepPattern.test(method) || endPattern.test(method))) {
                     const originalMethod = target[method];
                     target[method] = function() {
                         this.key = key;
