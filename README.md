@@ -91,7 +91,7 @@ This is only property. It defines the initial value of the actual value.
 
 ### Simple example
 
-In the example below, we incrementally increase the values of width, height, and opacity in 30 steps, with a 50-millisecond pause between each step. You can view a live example here: https://targetj.io/examples/overview.html, and click on the execution button to see how it works.
+In the example below, we incrementally increase the values of width, height, and opacity in 30 steps, with a 50-millisecond pause between each step. You can view a live example here: https://targetj.io/examples/overview.html.
 
 ![first example](https://targetj.io/img/firstExample.gif)
 
@@ -366,7 +366,7 @@ App(new TModel("scroller", {
         );
       },
       enabledOn() {
-        return this.visibleChildren.length * 32 < this.getHeight();
+        return (this.visibleChildren.length - 1) * 32 < this.getHeight();
       },
     },
     scrollTop(cycle, lastValue) {
@@ -374,9 +374,9 @@ App(new TModel("scroller", {
     },
     width: getScreenWidth,
     height: getScreenHeight,
-    onResize: ["width", "height"],
-    onScrollEvent: ["scrollTop", "children"],
-    onVisibleChildrenChange: ["children"],
+    onResize: [ "width", "height" ],
+    onScrollEvent: "scrollTop",
+    onVisibleChildrenChange: "children"
   })
 );
 ```
