@@ -520,7 +520,8 @@ class BaseModel {
     manageChildTargetExecution(child, shouldCalculateChildTargets) {
         return shouldCalculateChildTargets
                 || this.shouldCalculateChildTargets()
-                || (getEvents().deltaX() === 0 && getEvents().deltaY() === 0) 
+                || (!getEvents().isCurrentSource('touch') && getEvents().deltaX() === 0 && getEvents().deltaY() === 0) 
+                || (getEvents().isCurrentSource('touch') && getEvents().touchCount === 0)
                 || child.hasChildren() 
                 || child.addedChildren.count > 0 
                 || child.targetExecutionCount === 0;

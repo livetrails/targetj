@@ -128,14 +128,15 @@ class TargetManager {
                     originalTModel = this.findOriginalTModel(tmodel, originalTargetName);
                     originalTarget = originalTModel ? originalTModel.targets[targetValue.originalTargetName] : null;
                 }
-                if (originalTarget && typeof originalTarget.onImperativeStep === 'function') {
-                    originalTarget.onImperativeStep.call(originalTModel, key, originalTModel.actualValues[key], theValue, step, steps);
-                    originalTModel.setTargetMethodName(originalTargetName, 'onImperativeStep');
-                }
+                
                 if (originalTarget && typeof originalTarget[`on${capKey}Step`] === 'function') {
                     originalTarget[`on${capKey}Step`].call(originalTModel, originalTModel.actualValues[key], theValue, step, steps);
                     originalTModel.setTargetMethodName(originalTargetName, [`on${capKey}Step`]);
-                }                
+                } else if (originalTarget && typeof originalTarget.onImperativeStep === 'function') {
+                    originalTarget.onImperativeStep.call(originalTModel, key, originalTModel.actualValues[key], theValue, step, steps);
+                    originalTModel.setTargetMethodName(originalTargetName, 'onImperativeStep');
+                }
+                
             } else {
                 TargetUtil.handleValueChange(tmodel, key, tmodel.actualValues[key], oldValue, oldStep, oldCycle);
             }
@@ -177,22 +178,22 @@ class TargetManager {
                     originalTModel = this.findOriginalTModel(tmodel, originalTargetName);
                     originalTarget = originalTModel ? originalTModel.targets[targetValue.originalTargetName] : null;
                 }
-                if (originalTarget && typeof originalTarget.onImperativeStep === 'function') {
-                    originalTarget.onImperativeStep.call(originalTModel, key, originalTModel.actualValues[key], theValue, step, steps);
-                    originalTModel.setTargetMethodName(originalTargetName, 'onImperativeStep');
-                }
-                if (originalTarget && typeof originalTarget.onImperativeEnd === 'function') {
-                    originalTarget.onImperativeEnd.call(originalTModel, key, originalTModel.actualValues[key]);
-                    originalTModel.setTargetMethodName(originalTargetName, 'onImperativeEnd');
-                }
+                
                 if (originalTarget && typeof originalTarget[`on${capKey}Step`] === 'function') {
                     originalTarget[`on${capKey}Step`].call(originalTModel, originalTModel.actualValues[key], theValue, step, steps);
                     originalTModel.setTargetMethodName(originalTargetName, [`on${capKey}Step`]);
-                } 
+                } else if (originalTarget && typeof originalTarget.onImperativeStep === 'function') {
+                    originalTarget.onImperativeStep.call(originalTModel, key, originalTModel.actualValues[key], theValue, step, steps);
+                    originalTModel.setTargetMethodName(originalTargetName, 'onImperativeStep');
+                }
+                
                 if (originalTarget && typeof originalTarget[`on${capKey}End`] === 'function') {
                     originalTarget[`on${capKey}End`].call(originalTModel, originalTModel.actualValues[key], theValue, step, steps);
                     originalTModel.setTargetMethodName(originalTargetName, [`on${capKey}End`]);
-                }                  
+                } else if (originalTarget && typeof originalTarget.onImperativeEnd === 'function') {
+                    originalTarget.onImperativeEnd.call(originalTModel, key, originalTModel.actualValues[key]);
+                    originalTModel.setTargetMethodName(originalTargetName, 'onImperativeEnd');
+                }
             } else {
                 if (tmodel.getTargetCycle(key) < tmodel.getTargetCycles(key)) {
                     tmodel.incrementTargetCycle(key, tmodel.getTargetCycle(key));

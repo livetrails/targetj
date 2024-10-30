@@ -146,7 +146,7 @@ class TargetUtil {
         onFocusEvent: tmodel => getEvents().onFocus(tmodel),
         onBlurEvent: tmodel => getEvents().onBlur(tmodel),
         onClickEvent: tmodel => getEvents().getEventType() === 'click' && getEvents().isClickHandler(tmodel),
-        onTouchEnd: () => getEvents().getEventType() === 'end',
+        onTouchEnd: () => getEvents().isEndEvent(),
         onKeyEvent: () => getEvents().getEventType() === 'key' && getEvents().currentKey,
         onSwipeEvent: () => getEvents().isSwipeEvent(),
         onTouchEvent: tmodel => getEvents().isTouchHandler(tmodel),
@@ -189,8 +189,8 @@ class TargetUtil {
         const target = targetInstance[key];
 
         if (typeof target === 'object') {
-            const stepPattern = /^on[A-Za-z]*Step$/;
-            const endPattern = /^on[A-Za-z]*End$/;  
+            const stepPattern = /^on[A-Za-z]+Step$/;
+            const endPattern = /^on[A-Za-z]+End$/;  
             const methods = ['value', 'enabledOn', 'onStepsEnd', 'onValueChange', 'loop', 'onImperativeEnd', 'onImperativeStep', 'onSuccess', 'onError'];
             Object.keys(target).forEach(method => {
                 if (typeof target[method] === 'function' && (methods.includes(method) || stepPattern.test(method) || endPattern.test(method))) {

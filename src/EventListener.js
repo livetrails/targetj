@@ -257,6 +257,8 @@ class EventListener {
                 if (this.touchCount > 0) {
                     this.move(event);
                     event.stopPropagation();
+                } else if (this.isCurrentSource('wheel')) {
+                    this.clearTouch();                    
                 }
                 break;
             }
@@ -280,9 +282,6 @@ class EventListener {
 
                 this.clearStart();
                 this.touchCount = 0;             
-                if (!this.currentHandlers.scrollTop && !this.currentHandlers.scrollLeft) {
-                    this.clearTouch();
-                }                
 
                 event.stopPropagation();
                 break;
@@ -409,7 +408,7 @@ class EventListener {
     }
     
     isSwipeEvent() {
-        return (this.deltaX() !== 0 || this.deltaY() !== 0) && this.isCurrentSource('touch');
+        return (this.deltaX() !== 0 || this.deltaY() !== 0) && this.touchCount === 1;
     }
     
     isEndEvent() {
