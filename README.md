@@ -332,7 +332,7 @@ App(
 
 This example demonstrates how to handle scroll events and develop a simple infinite scrolling application.
 
-![Single page app](https://targetj.io/img/infiniteScrolling3.gif)
+![Single page app](https://targetj.io/img/infiniteScrolling4.gif)
 
 ```bash
 import { App, TModel, getEvents, getScreenHeight, getScreenWidth, } from "targetj";
