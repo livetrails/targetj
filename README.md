@@ -379,7 +379,7 @@ Below is a simple single-page application that demonstrates how to build a fully
 
 You can now assemble your app by incorporating code segments from the examples on animation, event handling, API integration, and infinite scrolling provided above.
 
-![Single page app](https://targetj.io/img/singlePage.gif)
+![Single page app](https://targetj.io/img/singlePage2.gif)
 
 ```bash
 import { App, TModel, getScreenHeight, getScreenWidth, getEvents, getPager } from "targetj";
