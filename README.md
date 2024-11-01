@@ -469,30 +469,63 @@ App(new TModel("simpleApp", {
 
 ## Special target names
 
-The following are special target names to impact the UI or control properties of TargetJ objects (called TModel):
+All HTML style names and attributes are treated as special target names. The most commonly used style names and attributes have already been added to the framework, with the possibility of adding more in the future.
 
-1. x, y, width, height: Set the location and dimensions of the object.
-2. opacity, scale, rotate: Set the opacity, scale, and rotation of the object.
-3. zIndex: Sets the z-order of the object.
-4. html: Sets the content of the object. By default, it will be interpreted as text.
-5. style: An object that sets the style of the object.
-6. css: A string that sets the CSS of the object.
-7. scrollLeft and scrollTop: Used for scrolling the object.
-8. leftMargin, rightMargin, topMargin, bottomMargin: Set the margins between objects.
-9. children: Sets the TModel children of the object.
-10. domHolder and domParent: Set to control the HTML element containment and how HTML is nested.
-11. isVisible: An optional boolean flag to explicitly control the visibility of the object instead of leaving it to TargetJ to calculate.
-12. canHaveDom: A boolean flag that sets if the object can have a DOM element in the page.
-13. canHandleEvents: Sets what events the object can handle
-14. widthFromDom and heightFromDom: Boolean flags that control if the width and height should be calculated from the DOM element.
-15. textOnly: A boolean flag that sets the type of content to be text or HTML.
-16. isInFlow: A boolean flag that determines if the object will be used to calculate the content height and width of its parent.
-17. onResize: An array of targets that will be activated and executed after a resize event.
-18. onClickEvent: An array of targets that will be activated and executed after a click event.
-19. onTouchEvent: An array of targets that will be activated and executed after a touch event.
-20. onScrollEvent: An array of targets that will be activated and executed after a scroll event.
-21. onKeyEvent: An array of targets that will be activated and executed after a key event.
-22. onInvisibleEvent: An array of targets that will be activated and executed after the component becomes invisisble.
+### Examples:
+- `x`, `y`, `width`, `height`: Set the location and dimensions of the object.
+- `opacity`, `scale`, `rotate`: Adjust the opacity, scale, and rotation of the object.
+- `zIndex`: Sets the z-order of the object.
+
+In addition to styles and attribute names, we have the following special names:
+
+1. **html**: Sets the content of the object, interpreted as text by default.
+2. **style**: An object to set the HTML style of the object, especially for style names that aren’t built-in.
+3. **css**: A string that sets the CSS of the object.
+4. **baseElement**: Sets the HTML tag of the object, defaulting to `div`.
+5. **scrollLeft** and **scrollTop**: Control the scrolling position of the object.
+6. **leftMargin**, **rightMargin**, **topMargin**, **bottomMargin**: Set margins between objects.
+7. **children**: Sets the `TModel` children of the object.
+8. **domHolder**: Assigned by the container to hold children or descendants without a `domParent`.
+9. **domParent**: Set by the container or children to control which DOM container they are embedded in.
+10. **isVisible**: An optional boolean to explicitly control the visibility of the object, bypassing TargetJ’s automatic calculation.
+11. **canHaveDom**: A boolean flag that determines if the object can have a DOM element on the page.
+12. **canHandleEvents**: Specifies which events the object can handle.
+13. **widthFromDom** and **heightFromDom**: Boolean flags to control if the width and height should be derived from the DOM element.
+14. **textOnly**: A boolean flag to set content type as text or HTML.
+15. **isInFlow**: A boolean flag that determines if the object will contribute to the content height and width of its parent.
+
+### Event Targets
+Event targets can be an array of targets to activate on specific events or may implement the event handler directly.
+
+**Example with Target Array:**
+```javascript
+onResize: [ 'width', 'height' ]  // Activates 'width' and 'height' targets on screen resize.
+```
+
+**Example with Event handler:**
+```javascript
+onResize() { 
+    this.setTarget('width', getScreenWidth());
+    this.setTarget('height', getScreenHeight());
+}
+```
+
+Here are all the event targets
+1. **onResize**: Triggered on screen resize events.
+2. **onParentResize**: Activated when the parent’s width or height is updated.
+3. **onFocusEvent**: Triggered on focus events.
+4. **onBlurEvent**: Triggered on blur events.
+5. **onClickEvent**: Activated on click events.
+6. **onTouchEvent**: Generic handler for all touch events.
+7. **onTouchEnd**: Called when `touchend` or `mouseup` events occur.
+8. **onSwipeEvent**: Activated on swipe events.
+9. **onEnterEvent**: Triggered when the mouse cursor enters the object’s DOM.
+10. **onLeaveEvent**: Triggered when the mouse cursor leaves the object’s DOM.
+11. **onScrollEvent**: Called on scroll events.
+12. **onKeyEvent**: Triggered by key events.
+13. **onInvisibleEvent**: Activated when the object becomes invisible.
+14. **onChildrenChange**: Triggered when the children count changes.
+15. **onVisibleChildrenChange**: Triggered when the count of visible children changes.
 
 ## Features
 
