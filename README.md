@@ -262,70 +262,89 @@ App(
 
 TargetJ offers efficient and easy-to-control UI animation and manipulation through special targets such as x, y, width, height, scale, rotate, and opacity, which directly impact the UI. A complete list of these targets can be found in the "Special target names" section below. For very intensive UI animations, you can leverage the Animation API. An example is provided below.
 
-![animation api example](https://targetj.io/img/animationApi.gif)
+![animation api example](https://targetj.io/img/animationComparison.gif)
 
 ```bash
-import { App, TModel } from "targetj";
+import { App, TModel, getScreenHeight, getScreenWidth } from "targetj";
 
-App(
-  new TModel("Animation Api", {
-    width: 150,
-    height: 150,
-    animate: {
-      value() {
-        const keyframes = [
-          {
-            transform: "translate(0, 0) rotate(0deg) scale(1)",
-            width: "80px",
-            height: "80px",
-            background: "orange",
-          },
-          {
-            transform: "translate(50px, 100px) rotate(180deg) scale(1.5)",
-            width: "120px",
-            height: "120px",
-            background: "brown",
-          },
-          {
-            transform: "translate(200px, 0) rotate(360deg) scale(1)",
-            width: "100px",
-            height: "100px",
-            background: "crimson",
-          },
-          {
-            transform: "translate(0, 0) rotate(360deg) scale(1)",
-            width: "150px",
-            height: "150px",
-            background: "purple",
-          },
-        ];
+App(new TModel('TargetJ vs Animation Api', { 
+    addAnimateChild() {
+        this.addChild(new TModel('animation', {
+            width: 150,
+            height: 150,
+            animate: {
+                value() {
+                    var keyframes = [{
+                        transform: 'translate(0, 0) rotate(0deg) scale(1)',
+                        width: '80px',
+                        height: '80px',
+                        background: 'orange'
+                    }, {
+                        transform: 'translate(50px, 100px) rotate(180deg) scale(1.5)',
+                        width: '120px',
+                        height: '120px',
+                        background: 'brown'
+                    }, {
+                        transform: 'translate(200px, 0) rotate(360deg) scale(1)',
+                        width: '100px',
+                        height: '100px',
+                        background: 'crimson'
+                    }, {
+                        transform: 'translate(0, 0) rotate(360deg) scale(1)',
+                        width: '150px',
+                        height: '150px',
+                        background: 'purple'
+                    }];
 
-        return this.$dom.animate(keyframes, {
-          duration: 5000,
-          iterations: 1,
-          easing: "ease-in-out",
-        });
-      },
-      enabledOn() {
-        return this.hasDom();
-      }
+                    return this.$dom.animate(keyframes, {
+                        duration: 5000, 
+                        iterations: 1
+                    });
+                }, enabledOn: function() {
+                    return this.hasDom();
+                }
+            }
+        }));
     },
-    trackProgress: {
-      loop: true,
-      interval: 100,
-      value() {
-        const currentTime = this.val("animate").currentTime;
-        this.setTarget("html", (currentTime / 5000).toFixed(1));
-        if (currentTime === 5000) {
-          this.activateTarget("animate");
+    addDomChild() {
+        this.addChild(new TModel('dom', {
+            color: 'white',
+            html: 'TargetJ',
+            animate: {
+                cycles: 3,
+                value(cycle) {
+                    return [
+                        { x: 200, y: 0, rotate: 0, scale: 1, width: 80, height: 80, background: 'orange' },
+                        { x: 250, y: 100, rotate: 180, scale: 1.5, width: 120, height: 120, background: 'brown' },
+                        { x: 350, y: 0, rotate: 360, scale: 1, width: 100, height: 100, background: 'crimson' },
+                        { x: 200, y: 0, rotate: 360, scale: 1, width: 150, height: 150, background: 'purple' }
+                    ][cycle];
+                },
+                onValueChange(newValue) {
+                    const steps = this.getTargetCycle(this.key) === 0 ? 0 : 180;
+                    this.setTarget("move", newValue, steps);
+                }
+            }
+        }));
+    },
+    restartOnBothComplete: {
+        loop: true,
+        interval: 50,
+        value() {
+            const animation = this.getChild(0).val('animate');            
+            if (animation.currentTime === animation.effect.getComputedTiming().duration 
+                    && this.getChild(1).isTargetComplete('animate')) {
+                this.getChild(0).activateTarget('animate');
+                this.getChild(1).activateTarget('animate');
+            }
+        },
+        enabledOn: function() {
+            return this.getChildren().length === 2 && this.getChild(0).val('animate');
         }
-      },
-      enabledOn() {
-        return this.isTargetComplete("animate");
-      }
-    }
-  })
-);
+    },
+    width() { return getScreenWidth(); },
+    height() { return getScreenHeight(); }    
+}));
 ```
 
 ## Infinite scrolling
