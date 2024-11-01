@@ -160,17 +160,13 @@ App(
           height: 50,
           background: "brown",
           animate: {
+            loop: true,
             value() {
               const width = this.getWidth();
               const parentWidth = this.getParentValue("width");
               this.setTarget("x", { list: [-width, parentWidth + width] }, Math.floor(30 + parentWidth * Math.random()));
               this.setTarget("y", Math.floor(Math.random() * (this.getParentValue("height") - this.getHeight())), 30);
-            },
-            onImperativeEnd(key) {
-              if (!this.hasTargetUpdates()) {
-                this.activateTarget(this.key);
-              }
-            },
+            }
           },
         }),
     },
@@ -206,6 +202,7 @@ App(
       onSuccess(res) {
         this.addChild(new TModel("user", {
             bounce: {
+              loop: true,
               value() {
                 this.setTarget("move",
                   Moves.bounceSimple(this, {
@@ -216,12 +213,7 @@ App(
                     widthStart: 50,
                     heightStart: 50,
                   }), 20);
-              },
-              onImperativeEnd() {
-                if (!this.hasUpdatingTargets(this)) {
-                  this.activateTarget(this.key);
-                }
-              },
+              }
             },
             lineHeight: 50,
             textAlign: "center",
