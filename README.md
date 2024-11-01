@@ -260,7 +260,7 @@ App(
 
 ## Animation API example
 
-TargetJ offers efficient and easy-to-control UI animation and manipulation through special targets such as x, y, width, height, scale, rotate, and opacity, which directly impact the UI. A complete list of these targets can be found in the "Special target names" section below. For very intensive UI animations, you can leverage the Animation API. An example is provided below.
+TargetJ provides efficient, easy-to-control UI animation and manipulation through special targets that reflect HTML style names, such as `x`, `y`, `width`, `height`, `scale`, `rotate`, and `opacity`. Below is a comparison between implementing animations in TargetJ versus using the Animation API. While the Animation API may still offer a slight performance edge, TargetJ comes very close.
 
 ![animation api example](https://targetj.io/img/animationComparison.gif)
 
