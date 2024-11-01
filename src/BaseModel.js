@@ -298,6 +298,10 @@ class BaseModel {
     getScheduleTimeStamp(key) {
         return this.targetValues[key] ? this.targetValues[key].scheduleTimeStamp : undefined;
     }
+    
+    shouldScheduleRun(key) {
+        return this.targets[key]?.triggerRerun ?? true;
+    }
 
     getTargetInitialValue(key) {
         return this.targetValues[key] ? this.targetValues[key].initialValue : undefined;

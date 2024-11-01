@@ -142,10 +142,13 @@ class RunScheduler {
                 this.cycleStats.duration += cycleDuration;
             }
 
-            if (tApp.debugLevel > 0) {
+            if (tApp.debugLevel === 1) {
                 TUtil.log(this.cycleStats.duration > 10)(`it took: ${this.cycleStats.duration}, RunId: ${runId}`);
                 TUtil.log(this.cycleStats.duration > 10)(`locations: ${tApp.locationManager.locationListStats}`);
-                TUtil.log(tApp.debugLevel > 1)(`request from: ${runId} delay:  ${delay}`);
+            }
+            
+            if (tApp.debugLevel === 2) {            
+                TUtil.log(true)(`request from: ${runId} delay:  ${delay}`);
             }
             
             this.runningFlag = false;

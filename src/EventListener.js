@@ -122,6 +122,7 @@ class EventListener {
             } else if (diff > 600) {
                 this.clearTouch();
                 this.touchTimeStamp = 0;
+                this.touchCount = 0;
             }
 
             getRunScheduler().schedule(runDelay, "scroll decay");

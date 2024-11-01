@@ -483,6 +483,14 @@ class TModel extends BaseModel {
         return this.actualValues.style;
     }
     
+    getBackground() {
+        return this.actualValues.background;
+    }
+    
+    getBackgroundColor() {
+        return this.actualValues.backgroundColor;
+    }
+    
     getAttributes() {
         return this.actualValues.attributes;
     }

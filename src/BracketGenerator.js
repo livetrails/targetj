@@ -12,15 +12,15 @@ class BracketGenerator {
     static bracketMap = {};
     static all = {}
 
-    static generate(page) {
+    static generate(page, regenerate = false) {
         let brackets = BracketGenerator.bracketMap[page.oid];
 
-        if (!brackets || page.lastChildrenUpdate.deletions.length > 0) {
+        if (!brackets || page.lastChildrenUpdate.deletions.length > 0 || regenerate) {
             BracketGenerator.bracketMap[page.oid] = {brackets: BracketGenerator.buildTreeBottomUp(page, page.getChildren()), updateCount: 0};
         } else if (page.lastChildrenUpdate.additions.length > 0) {
             BracketGenerator.updateTree(page, page.lastChildrenUpdate.additions);
         }
-
+       
         page.lastChildrenUpdate.additions.length = 0;
         page.lastChildrenUpdate.deletions.length = 0;
 
@@ -139,7 +139,7 @@ class BracketGenerator {
             }
         }
 
-        return brackets > bracketSize ? BracketGenerator.buildTreeBottomUp(page, brackets) : brackets;
+        return brackets.length > bracketSize ? BracketGenerator.buildTreeBottomUp(page, brackets) : brackets;
     }
 
     static createBracket(page, list, startIndex, endIndex) {

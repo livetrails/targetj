@@ -62,7 +62,10 @@ class TargetManager {
         TargetExecutor.executeDeclarativeTarget(tmodel, key);        
        
         tmodel.setScheduleTimeStamp(key, TUtil.now());
-        getRunScheduler().schedule(tmodel.getTargetInterval(key), `actualInterval__${tmodel.oid}__${key}`);
+        
+        if (tmodel.shouldScheduleRun(key)) {
+            getRunScheduler().schedule(tmodel.getTargetInterval(key), `actualInterval__${tmodel.oid}__${key}`);
+        }
     }
 
     setActualValues(tmodel) {

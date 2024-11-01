@@ -107,7 +107,7 @@ class LocationManager {
             child.calculateAbsolutePosition(child.getX(), child.getY());
                     
             TUtil.isDefined(child.targets.isVisible) 
-                ? tApp.targetManager.applyTargetValue(child, 'isVisible') 
+                ? TargetExecutor.executeDeclarativeTarget(child, 'isVisible') 
                 : child.calcVisibility();
             
             child.addToParentVisibleChildren();
@@ -146,7 +146,7 @@ class LocationManager {
             this.locationListStats.push(`${child.oid}-${child.updatingTargetList.length}-${TUtil.now() - this.startTime}`);
         }
         
-        if (visibleChildrenCount !== container.visibleChildren.length && container.targets['onVisibleChildrenChange']) {
+        if ((visibleChildrenCount !== container.visibleChildren.length || container.visibleChildren.length  === 0) && container.targets['onVisibleChildrenChange']) {
             this.activateTargets(container, container.targets['onVisibleChildrenChange']);
         }        
         
