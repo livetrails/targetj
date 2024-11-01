@@ -77,10 +77,10 @@ This callbak is triggered whenever there is a change returned by the target meth
 This method is invoked only after the final step of updating the actual value is completed, assuming the target has a defined steps value.
 
 10. **onImperativeStep**
-onImperativeStep() This callback tracks the progress of imperative targets defined inside the declarative target. If there are multiple imperative targets, this method is called at every step, identifiable by their target name. It allows for easy orchestration between several targets.
+   - `onImperativeStep()`: This callback tracks the progress of imperative targets defined within a declarative target. If there are multiple imperative targets, this method is called at each step, identifiable by their target name. You can also use `on${targetName}Step` to track individual targets with their own callbacks. For example, `onWidthStep()` is called on each update of the `width` target.
 
 11. **onImperativeEnd**
-It is similar to onImperativeStep, but it is called when the imperative target is completed.
+   - Similar to `onImperativeStep`, but it is triggered when an imperative target completes. If multiple targets are expected to complete, you can use `on${targetName}End` instead. For example, `onWidthEnd` is called when the `width` target gets completed.
 
 12. **active**
 This is only property. It indicates that the target is in an inactive state and is ready to be executed.
