@@ -509,12 +509,12 @@ As a result of using targets, we can develop web sites or apps with the followin
 
 
 ## How to debug in TargetJ
-1. TargetJ.tapp.stop(): Stops the application.
-2. TargetJ.tapp.start(): Restarts the application
-3. TargetJ.tapp.throttle: Slows down the application. This represents the pause in milliseconds before starting another TargetJ task cycle. It is zero by default.
-4. TargetJ.tapp.debugLevel: Logs information about the TargetJ task cycle and its efficiency. It is zero by default. Set it to 1 to log basic information and 2 to log more detailed information.
+1. TargetJ.tApp.stop(): Stops the application.
+2. TargetJ.tApp.start(): Restarts the application
+3. TargetJ.tApp.throttle: Slows down the application. This represents the pause in milliseconds before starting another TargetJ task cycle. It is zero by default.
+4. TargetJ.tApp.debugLevel: Logs information about the TargetJ task cycle and its efficiency. It is zero by default. Set it to 1 to log any cycle that takes more than 10ms and 2 to log the name of the caller of each cycle.
 5. Use `t()` to find an object from the browser console using its `oid`.
-6. Inspect all the vital properities using `t(oid).bug`.
+6. Inspect all the vital properities using `t(oid).bug()`.
    
 ## Documentation
 Explore the full potential of TargetJ and dive into our interactive documentation at www.targetj.io.
