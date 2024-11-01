@@ -375,83 +375,96 @@ App(new TModel("scroller", {
 
 ## Simple Single Page App Example
 
-Below is a simple single-page app that demonstrates how to develop a fully-fledged application using TargetJ. You can now assemble your app by incorporating code segments from the examples on animation, event handling, API integration, and infinite scrolling provided above.
+Below is a simple single-page application that demonstrates how to build a fully-featured app using TargetJ. Each page is represented by a textarea. You’ll notice that when you type something, switch to another page, and then return to the same page, your input remains preserved. This also applies to the page's scroll position—when you return, the page will open at the same scroll position where you left it, rather than defaulting to the top.
+
+You can now assemble your app by incorporating code segments from the examples on animation, event handling, API integration, and infinite scrolling provided above.
 
 ![Single page app](https://targetj.io/img/singlePage.gif)
 
 ```bash
 import { App, TModel, getScreenHeight, getScreenWidth, getEvents, getPager } from "targetj";
 
-App(new TModel("app", {
-    width: getScreenWidth,
-    height: getScreenHeight,
-    children() {
-      const pageName = window.location.pathname.split("/").pop();
-      switch (pageName) {
-        case "page1":
-          return [Toolbar(), Page1()];
-        case "page2":
-          return [Toolbar(), Page2()];
-        default:
-          return [Toolbar(), HomePage()];
-      }
-    },
-    onResize: ["width", "height"],
-  })
-);
-
-const Toolbar = () =>
-  new TModel("toolbar", {
-    start() {
-      ["home", "page1", "page2"].forEach((menu) => {
-        this.addChild(new TModel("toolItem", {
-            canHandleEvents: "touch",
-            background: "bisque",
-            width: 100,
-            height: 50,
-            lineHeight: 50,
-            outerOverflowWidth: 0,
-            opacity: 0.5,
-            cursor: "pointer",
-            html: menu,
-            onEnterEvent() { this.setTarget("opacity", 1, 20); },
-            onLeaveEvent() { this.setTarget("opacity", 0.5, 20); },
-            onClickEvent() {
-              this.setTarget("opacity", 0.5);
-              getPager().openLink(menu);
+App(new TModel("simpleApp", {
+    width() { return getScreenWidth(); },
+    height() { return getScreenHeight(); },
+    menubar() {
+        return new TModel("menubar", {
+            children() {
+                return ["home", "page1", "page2"].map(menu => {
+                    return new TModel("toolItem", {
+                        canHandleEvents: "touch",
+                        background: "#fce961",
+                        width: 100,
+                        height: 50,
+                        lineHeight: 50,
+                        outerOverflowWidth: 0,
+                        opacity: 0.5,
+                        cursor: "pointer",
+                        html: menu,
+                        onEnterEvent() {
+                          this.setTarget("opacity", 1, 20);
+                        },
+                        onLeaveEvent() {
+                          this.setTarget("opacity", 0.5, 20);
+                        },
+                        onClickEvent() {
+                          this.setTarget("opacity", 0.5);
+                          getPager().openLink(menu);
+                        }
+                    });
+                });
             },
-          })
-        );
-      });
+            height: 50,
+            width() { return getScreenWidth(); },
+            onResize: ["width"]
+        }); 
     },
-    height: 50,
-    width: getScreenWidth,
-    onResize: ["width"],
-  });
-
-const HomePage = () => new TModel("homePage", {
-    background: "yellow",
-    width: getScreenWidth,
-    height: getScreenHeight,
-    html: "home page",
-    onResize: ["width", "height"],
-  });
-
-const Page1 = () => new TModel("page1", {
-    background: "blue",
-    width: getScreenWidth,
-    height: getScreenHeight,
-    html: "page 1",
-    onResize: ["width", "height"],
-  });
-
-const Page2 = () => new TModel("page2", {
-    background: "green",
-    width: getScreenWidth,
-    height: getScreenHeight,
-    html: "page 2",
-    onResize: ["width", "height"],
-  });
+    page() {
+        return new TModel({
+            width() { return getScreenWidth(); },
+            height() { return getScreenHeight() - 50; },
+            baseElement: 'textarea',
+            keepEventDefault: [ 'touchstart', 'touchend', 'mousedown', 'mouseup' ],
+            boxSizing: 'border-box',
+            html: "main page",
+            onKeyEvent() { this.setTarget('html', this.$dom.value()); },
+            onResize: [ "width", "height" ]
+        });        
+    },
+    mainPage() {
+        return new TModel({
+            ...this.val('page').targets,
+            background: "#e6f6fb",
+            html: 'main page'
+        });
+    },
+    page1() {
+        return new TModel({
+            ...this.val('page').targets,
+            background: "#C2FC61",
+            html: 'page1'
+        });        
+    },
+    page2() {
+        return new TModel({
+            ...this.val('page').targets,
+            background: "#B388FF",
+            html: 'page2'
+        });         
+    },    
+    children() {
+        const pageName = window.location.pathname.split("/").pop();
+        switch (pageName) {
+          case "page1":
+            return [ this.val('menubar'), this.val('page1')];
+          case "page2":
+            return [ this.val('menubar'), this.val('page2')];
+          default:
+            return [ this.val('menubar'), this.val('mainPage') ];
+        }
+    },
+    onResize: ["width", "height"]
+}));
 ```
 
 ## Special target names
