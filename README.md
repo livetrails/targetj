@@ -262,7 +262,7 @@ App(
 
 TargetJ provides efficient, easy-to-control UI animation and manipulation through special targets that reflect HTML style names, such as `x`, `y`, `width`, `height`, `scale`, `rotate`, and `opacity`. Below is a comparison between implementing animations in TargetJ versus using the Animation API. While the Animation API may still offer a slight performance edge, TargetJ comes very close.
 
-![animation api example](https://targetj.io/img/animationComparison.gif)
+![animation api example](https://targetj.io/img/animationComparison2.gif)
 
 ```bash
 import { App, TModel, getScreenHeight, getScreenWidth } from "targetj";
