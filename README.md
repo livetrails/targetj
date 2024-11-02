@@ -285,7 +285,7 @@ App(new TModel('TargetJ vs Animation Api', {
                         height: '120px',
                         background: 'brown'
                     }, {
-                        transform: 'translate(200px, 0) rotate(360deg) scale(1)',
+                        transform: 'translate(150px, 0) rotate(360deg) scale(1)',
                         width: '100px',
                         height: '100px',
                         background: 'crimson'
@@ -297,7 +297,7 @@ App(new TModel('TargetJ vs Animation Api', {
                     }];
 
                     return this.$dom.animate(keyframes, {
-                        duration: 5000, 
+                        duration: 4500, 
                         iterations: 1
                     });
                 }, enabledOn: function() {
