@@ -83,7 +83,7 @@ This method is invoked only after the final step of updating the actual value is
    - Similar to `onImperativeStep`, but it is triggered when an imperative target completes. If multiple targets are expected to complete, you can use `on${targetName}End` instead. For example, `onWidthEnd` is called when the `width` target gets completed.
 
 12. **active**
-This is only property. It indicates that the target is in an inactive state and is ready to be executed.
+This is only property. It indicates that the target is in an inactive state and is not ready to be executed.
 
 13. **initialValue**
 This is only property. It defines the initial value of the actual value.
