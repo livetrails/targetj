@@ -59,24 +59,24 @@ Determines whether the target is eligible for execution. If enabledOn() returns 
 Controls the repetition of target execution. If loop() returns true, the target will continue to execute indefinitely. It can also be defined as a boolean instead of a method.
 
 4. **cycles**
-Its purpose is similar to loop, but the number of repetitions is specified explicitly as a number.
+It works similarly to `loop`, but it specifies an explicit number of repetitions. It can also be combined with `loop`, in which case, once the specified cycles complete, they will rerun as long as `loop` returns true.
 
-5. **interval**
+6. **interval**
 It specifies the pause between each target execution or each actual value update when steps are defined.
 
-6. **steps**
+7. **steps**
 By default, the actual value is updated immediately after the target value. The steps option allows the actual value to be updated in iterations specified by the number of steps.
 
-7. **easing**
+8. **easing**
 An easing function that operates when steps are defined. It controls how the actual value is updated in relation to the steps.
 
-8. **onValueChange**
+9. **onValueChange**
 This callbak is triggered whenever there is a change returned by the target method, which is called value().
 
-9. **onStepsEnd**
+10. **onStepsEnd**
 This method is invoked only after the final step of updating the actual value is completed, assuming the target has a defined steps value.
 
-10. **onImperativeStep**
+11. **onImperativeStep**
    - `onImperativeStep()`: This callback tracks the progress of imperative targets defined within a declarative target. If there are multiple imperative targets, this method is called at each step, identifiable by their target name. You can also use `on${targetName}Step` to track individual targets with their own callbacks. For example, `onWidthStep()` is called on each update of the `width` target.
 
 11. **onImperativeEnd**
