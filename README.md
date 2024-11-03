@@ -178,11 +178,11 @@ App(
 
 ## Loading data example
 
-Calling backend APIs is simplified through the use of targets in TargetJ. It includes a loader that streamlines API integration.
+Calling backend APIs is simplified through the use of targets in TargetJ. Additionally, TargetJ provides a Loader class, accessible via getLoader(), which streamlines API integration.
 
-In the example below, we define a target named 'load' that attempts to fetch a specific user with an ID . Within the value() function, we initialize the API call. The first parameter specifies an ID that identifies the API call, which can also be used to access cached data. We chose to be the same as the uer ID.
+In the example below, we define a target named load. Inside the value function, we make the API call using fetch(). The second argument specifies the API URL, and the third argument contains the query parameters passed to the API. A fourth optional parameter, omitted in this example, can specify a cache ID if we want to cache the result. This cache ID can also be used to retrieve the cached data. If it’s not specified, the result will always come from the API. Once the API response is received, it triggers either onSuccess or onError, depending on the outcome.
 
-The target will remain active using the loop function, with value() continuing to return undefined while polling the system every 50ms (as specified in the interval property) until the loader retrieves the API result. When the API result arrives, it triggers onValueChange, which creates a user object based on the retrieved data. Additionally, we define two targets to handle scenarios for both fast and slow connections. The slow target is enabled if polling exceeds 100 times, while the fast target is enabled if the API result is retrieved in less than 600ms. The fast target will reactivate the load target till it fetches 10 users.
+In this example, we set the cycles to 9, triggering the API call 10 times at intervals of 1 second (interval set to 1000). Each API response is appended as a separate object in the output. Because we didn’t specify the fourth argument, the response is always fetched directly from the API rather than from the cache.
 
 ![api loading example](https://targetj.io/img/apiLoading3.gif)
 
