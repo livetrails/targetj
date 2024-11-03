@@ -260,7 +260,9 @@ App(
 
 ## Animation API example
 
-TargetJ provides efficient, easy-to-control UI animation and manipulation through special targets that reflect HTML style names, such as `x`, `y`, `width`, `height`, `scale`, `rotate`, and `opacity`. Below is a comparison between implementing animations in TargetJ versus using the Animation API. While the Animation API may still offer a slight performance edge, TargetJ comes very close.
+TargetJ provides efficient, easy-to-control UI animation and manipulation through special targets that reflect HTML style names, such as `width`, `height`, `scale`, `rotate`, and `opacity`. 
+
+Below is a comparison between implementing animations in TargetJ versus using the Animation API. While the Animation API may still offer a slight performance edge, TargetJ comes very close.
 
 ![animation api example](https://targetj.io/img/animationComparison2.gif)
 
@@ -490,8 +492,8 @@ App(new TModel("simpleApp", {
 
 All HTML style names and attributes are treated as special target names. The most commonly used style names and attributes have already been added to the framework, with the possibility of adding more in the future.
 
-### Examples:
-- `x`, `y`, `width`, `height`: Set the location and dimensions of the object.
+Examples:
+- `width`, `height`: Set the dimensions of the object.
 - `opacity`, `scale`, `rotate`: Adjust the opacity, scale, and rotation of the object.
 - `zIndex`: Sets the z-order of the object.
 
@@ -501,20 +503,20 @@ In addition to styles and attribute names, we have the following special names:
 2. **style**: An object to set the HTML style of the object, especially for style names that aren’t built-in.
 3. **css**: A string that sets the CSS of the object.
 4. **baseElement**: Sets the HTML tag of the object, defaulting to `div`.
-5. **scrollLeft** and **scrollTop**: Control the scrolling position of the object.
-6. **leftMargin**, **rightMargin**, **topMargin**, **bottomMargin**: Set margins between objects.
-7. **children**: Sets the `TModel` children of the object.
-8. **domHolder**: Assigned by the container to hold children or descendants without a `domParent`.
-9. **domParent**: Set by the container or children to control which DOM container they are embedded in.
-10. **isVisible**: An optional boolean to explicitly control the visibility of the object, bypassing TargetJ’s automatic calculation.
-11. **canHaveDom**: A boolean flag that determines if the object can have a DOM element on the page.
-12. **canHandleEvents**: Specifies which events the object can handle.
-13. **widthFromDom** and **heightFromDom**: Boolean flags to control if the width and height should be derived from the DOM element.
-14. **textOnly**: A boolean flag to set content type as text or HTML.
-15. **isInFlow**: A boolean flag that determines if the object will contribute to the content height and width of its parent.
+5. **x** and **y*: Sets the location of the object.
+6. **scrollLeft** and **scrollTop**: Control the scrolling position of the object.
+7. **leftMargin**, **rightMargin**, **topMargin**, **bottomMargin**: Set margins between objects.
+8. **children**: Sets the `TModel` children of the object.
+9. **domHolder**: Assigned by the container to hold children or descendants without a `domParent`.
+10. **domParent**: Set by the container or children to control which DOM container they are embedded in.
+11. **isVisible**: An optional boolean to explicitly control the visibility of the object, bypassing TargetJ’s automatic calculation.
+12. **canHaveDom**: A boolean flag that determines if the object can have a DOM element on the page.
+13. **canHandleEvents**: Specifies which events the object can handle.
+14. **widthFromDom** and **heightFromDom**: Boolean flags to control if the width and height should be derived from the DOM element.
+15. **textOnly**: A boolean flag to set content type as text or HTML.
+16. **isInFlow**: A boolean flag that determines if the object will contribute to the content height and width of its parent.
 
-### Event Targets
-Event targets can be an array of targets to activate on specific events or may implement the event handler directly.
+Lastly, we have the event targets which their values can be an array of targets to activate on specific events or may implement the event handler directly.
 
 **Example with Target Array:**
 ```javascript
@@ -529,7 +531,7 @@ onResize() {
 }
 ```
 
-Here are all the event targets
+Here are all the event targets:
 1. **onResize**: Triggered on screen resize events.
 2. **onParentResize**: Activated when the parent’s width or height is updated.
 3. **onFocusEvent**: Triggered on focus events.
