@@ -360,7 +360,7 @@ import { App, TModel, getEvents, getScreenHeight, getScreenWidth, } from "target
 
 App(new TModel("scroller", {
     canHandleEvents: "scrollTop",
-    innerOverflowWidth: 0,
+    containerOverflowMode: 'always',
     children: {
       value() {
         const childrenCount = this.getChildren().length;
@@ -418,7 +418,7 @@ App(new TModel("simpleApp", {
                         width: 100,
                         height: 50,
                         lineHeight: 50,
-                        outerOverflowWidth: 0,
+                        itemOverflowMode: 'never',
                         opacity: 0.5,
                         cursor: "pointer",
                         html: menu,
