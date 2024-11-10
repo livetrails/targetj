@@ -59,31 +59,31 @@ Determines whether the target is eligible for execution. If enabledOn() returns 
 Controls the repetition of target execution. If loop() returns true, the target will continue to execute indefinitely. It can also be defined as a boolean instead of a method.
 
 4. **cycles**
-Its purpose is similar to loop, but the number of repetitions is specified explicitly as a number.
+It works similarly to `loop`, but it specifies an explicit number of repetitions. It can also be combined with `loop`, in which case, once the specified cycles complete, they will rerun as long as `loop` returns true.
 
-5. **interval**
+6. **interval**
 It specifies the pause between each target execution or each actual value update when steps are defined.
 
-6. **steps**
+7. **steps**
 By default, the actual value is updated immediately after the target value. The steps option allows the actual value to be updated in iterations specified by the number of steps.
 
-7. **easing**
+8. **easing**
 An easing function that operates when steps are defined. It controls how the actual value is updated in relation to the steps.
 
-8. **onValueChange**
+9. **onValueChange**
 This callbak is triggered whenever there is a change returned by the target method, which is called value().
 
-9. **onStepsEnd**
+10. **onStepsEnd**
 This method is invoked only after the final step of updating the actual value is completed, assuming the target has a defined steps value.
 
-10. **onImperativeStep**
-onImperativeStep() This callback tracks the progress of imperative targets defined inside the declarative target. If there are multiple imperative targets, this method is called at every step, identifiable by their target name. It allows for easy orchestration between several targets.
+11. **onImperativeStep**
+   - `onImperativeStep()`: This callback tracks the progress of imperative targets defined within a declarative target. If there are multiple imperative targets, this method is called at each step, identifiable by their target name. You can also use `on${targetName}Step` to track individual targets with their own callbacks. For example, `onWidthStep()` is called on each update of the `width` target.
 
 11. **onImperativeEnd**
-It is similar to onImperativeStep, but it is called when the imperative target is completed.
+   - Similar to `onImperativeStep`, but it is triggered when an imperative target completes. If multiple targets are expected to complete, you can use `on${targetName}End` instead. For example, `onWidthEnd` is called when the `width` target gets completed.
 
 12. **active**
-This is only property. It indicates that the target is in an inactive state and is ready to be executed.
+This is only property. It indicates that the target is in an inactive state and is not ready to be executed.
 
 13. **initialValue**
 This is only property. It defines the initial value of the actual value.
@@ -142,7 +142,7 @@ By combining both declarative and imperative targets, you gain a powerful toolse
 
 ## Declarative an imperative example
 
-The following example demonstrates the use of both declarative and imperative approaches. In the animate target, we set two imperative targets to move a square across the screen. When x reaches the end of the screen, onImperativeEnd is triggered, reactivating the target and restarting the animation.
+The following example demonstrates both declarative and imperative approaches. In the `animate` target, two imperative targets are set to move a square across the screen. Once both `x` and `y` targets are completed, the `animate` target will re-execute because `loop` is defined as `true`, causing it to continue indefinitely. Additionally, we can add `onImperativeEnd()` to trigger when either the `x` or `y` target completes. We can also use `onXEnd` or `onYEnd` to listen specifically for the completion of the `x` or `y` target, respectively.
 
 ![declarative example](https://targetj.io/img/declarative.gif)
 
@@ -160,17 +160,13 @@ App(
           height: 50,
           background: "brown",
           animate: {
+            loop: true,
             value() {
               const width = this.getWidth();
               const parentWidth = this.getParentValue("width");
               this.setTarget("x", { list: [-width, parentWidth + width] }, Math.floor(30 + parentWidth * Math.random()));
               this.setTarget("y", Math.floor(Math.random() * (this.getParentValue("height") - this.getHeight())), 30);
-            },
-            onImperativeEnd(key) {
-              if (!this.hasTargetUpdates()) {
-                this.activateTarget(this.key);
-              }
-            },
+            }
           },
         }),
     },
@@ -182,11 +178,11 @@ App(
 
 ## Loading data example
 
-Calling backend APIs is simplified through the use of targets in TargetJ. It includes a loader that streamlines API integration.
+Calling backend APIs is simplified through the use of targets in TargetJ. Additionally, TargetJ provides a Loader class, accessible via getLoader(), which streamlines API integration.
 
-In the example below, we define a target named 'load' that attempts to fetch a specific user with an ID . Within the value() function, we initialize the API call. The first parameter specifies an ID that identifies the API call, which can also be used to access cached data. We chose to be the same as the uer ID.
+In the example below, we define a target named load. Inside the value function, we make the API call using fetch(). The second argument specifies the API URL, and the third argument contains the query parameters passed to the API. A fourth optional parameter, omitted in this example, can specify a cache ID if we want to cache the result. This cache ID can also be used to retrieve the cached data. If it’s not specified, the result will always come from the API. Once the API response is received, it triggers either onSuccess or onError, depending on the outcome.
 
-The target will remain active using the loop function, with value() continuing to return undefined while polling the system every 50ms (as specified in the interval property) until the loader retrieves the API result. When the API result arrives, it triggers onValueChange, which creates a user object based on the retrieved data. Additionally, we define two targets to handle scenarios for both fast and slow connections. The slow target is enabled if polling exceeds 100 times, while the fast target is enabled if the API result is retrieved in less than 600ms. The fast target will reactivate the load target till it fetches 10 users.
+In this example, we set the cycles to 9, triggering the API call 10 times at intervals of 1 second (interval set to 1000). Each API response is appended as a separate object in the output. Because we didn’t specify the fourth argument, the response is always fetched directly from the API rather than from the cache.
 
 ![api loading example](https://targetj.io/img/apiLoading3.gif)
 
@@ -206,6 +202,7 @@ App(
       onSuccess(res) {
         this.addChild(new TModel("user", {
             bounce: {
+              loop: true,
               value() {
                 this.setTarget("move",
                   Moves.bounceSimple(this, {
@@ -216,12 +213,7 @@ App(
                     widthStart: 50,
                     heightStart: 50,
                   }), 20);
-              },
-              onImperativeEnd() {
-                if (!this.hasUpdatingTargets(this)) {
-                  this.activateTarget(this.key);
-                }
-              },
+              }
             },
             lineHeight: 50,
             textAlign: "center",
@@ -268,79 +260,100 @@ App(
 
 ## Animation API example
 
-TargetJ offers efficient and easy-to-control UI animation and manipulation through special targets such as x, y, width, height, scale, rotate, and opacity, which directly impact the UI. A complete list of these targets can be found in the "Special target names" section below. For very intensive UI animations, you can leverage the Animation API. An example is provided below.
+TargetJ provides efficient, easy-to-control UI animation and manipulation through special targets that reflect HTML style names, such as `width`, `height`, `scale`, `rotate`, and `opacity`. 
 
-![animation api example](https://targetj.io/img/animationApi.gif)
+Below is a comparison between implementing animations in TargetJ versus using the Animation API. While the Animation API may still offer a slight performance edge, TargetJ comes very close.
+
+![animation api example](https://targetj.io/img/animationComparison2.gif)
 
 ```bash
-import { App, TModel } from "targetj";
+import { App, TModel, getScreenHeight, getScreenWidth } from "targetj";
 
-App(
-  new TModel("Animation Api", {
-    width: 150,
-    height: 150,
-    animate: {
-      value() {
-        const keyframes = [
-          {
-            transform: "translate(0, 0) rotate(0deg) scale(1)",
-            width: "80px",
-            height: "80px",
-            background: "orange",
-          },
-          {
-            transform: "translate(50px, 100px) rotate(180deg) scale(1.5)",
-            width: "120px",
-            height: "120px",
-            background: "brown",
-          },
-          {
-            transform: "translate(200px, 0) rotate(360deg) scale(1)",
-            width: "100px",
-            height: "100px",
-            background: "crimson",
-          },
-          {
-            transform: "translate(0, 0) rotate(360deg) scale(1)",
-            width: "150px",
-            height: "150px",
-            background: "purple",
-          },
-        ];
+App(new TModel('TargetJ vs Animation Api', { 
+    addAnimateChild() {
+        this.addChild(new TModel('animation', {
+            width: 150,
+            height: 150,
+            animate: {
+                value() {
+                    var keyframes = [{
+                        transform: 'translate(0, 0) rotate(0deg) scale(1)',
+                        width: '80px',
+                        height: '80px',
+                        background: 'orange'
+                    }, {
+                        transform: 'translate(50px, 100px) rotate(180deg) scale(1.5)',
+                        width: '120px',
+                        height: '120px',
+                        background: 'brown'
+                    }, {
+                        transform: 'translate(150px, 0) rotate(360deg) scale(1)',
+                        width: '100px',
+                        height: '100px',
+                        background: 'crimson'
+                    }, {
+                        transform: 'translate(0, 0) rotate(360deg) scale(1)',
+                        width: '150px',
+                        height: '150px',
+                        background: 'purple'
+                    }];
 
-        return this.$dom.animate(keyframes, {
-          duration: 5000,
-          iterations: 1,
-          easing: "ease-in-out",
-        });
-      },
-      enabledOn() {
-        return this.hasDom();
-      }
+                    return this.$dom.animate(keyframes, {
+                        duration: 4500, 
+                        iterations: 1
+                    });
+                }, enabledOn: function() {
+                    return this.hasDom();
+                }
+            }
+        }));
     },
-    trackProgress: {
-      loop: true,
-      interval: 100,
-      value() {
-        const currentTime = this.val("animate").currentTime;
-        this.setTarget("html", (currentTime / 5000).toFixed(1));
-        if (currentTime === 5000) {
-          this.activateTarget("animate");
+    addDomChild() {
+        this.addChild(new TModel('dom', {
+            color: 'white',
+            html: 'TargetJ',
+            animate: {
+                cycles: 3,
+                value(cycle) {
+                    return [
+                        { x: 200, y: 0, rotate: 0, scale: 1, width: 80, height: 80, background: 'orange' },
+                        { x: 250, y: 100, rotate: 180, scale: 1.5, width: 120, height: 120, background: 'brown' },
+                        { x: 350, y: 0, rotate: 360, scale: 1, width: 100, height: 100, background: 'crimson' },
+                        { x: 200, y: 0, rotate: 360, scale: 1, width: 150, height: 150, background: 'purple' }
+                    ][cycle];
+                },
+                onValueChange(newValue) {
+                    const steps = this.getTargetCycle(this.key) === 0 ? 0 : 180;
+                    this.setTarget("move", newValue, steps);
+                }
+            }
+        }));
+    },
+    restartOnBothComplete: {
+        loop: true,
+        interval: 50,
+        value() {
+            const animation = this.getChild(0).val('animate');            
+            if (animation.currentTime === animation.effect.getComputedTiming().duration 
+                    && this.getChild(1).isTargetComplete('animate')) {
+                this.getChild(0).activateTarget('animate');
+                this.getChild(1).activateTarget('animate');
+            }
+        },
+        enabledOn: function() {
+            return this.getChildren().length === 2 && this.getChild(0).val('animate');
         }
-      },
-      enabledOn() {
-        return this.isTargetComplete("animate");
-      }
-    }
-  })
-);
+    },
+    width() { return getScreenWidth(); },
+    height() { return getScreenHeight(); }    
+}));
 ```
 
 ## Infinite scrolling
 
 This example demonstrates how to handle scroll events and develop a simple infinite scrolling application.
 
-![Single page app](https://targetj.io/img/infiniteScrolling3.gif)
+![Single page app](https://targetj.io/img/infiniteScrolling4.gif)
 
 ```bash
 import { App, TModel, getEvents, getScreenHeight, getScreenWidth, } from "targetj";
@@ -383,111 +396,157 @@ App(new TModel("scroller", {
 
 ## Simple Single Page App Example
 
-Below is a simple single-page app that demonstrates how to develop a fully-fledged application using TargetJ. You can now assemble your app by incorporating code segments from the examples on animation, event handling, API integration, and infinite scrolling provided above.
+Below is a simple single-page application that demonstrates how to build a fully-featured app using TargetJ. Each page is represented by a textarea. You’ll notice that when you type something, switch to another page, and then return to the same page, your input remains preserved. This also applies to the page's scroll position—when you return, the page will open at the same scroll position where you left it, rather than defaulting to the top.
 
-![Single page app](https://targetj.io/img/singlePage.gif)
+You can now assemble your app by incorporating code segments from the examples on animation, event handling, API integration, and infinite scrolling provided above.
+
+![Single page app](https://targetj.io/img/singlePage2.gif)
 
 ```bash
 import { App, TModel, getScreenHeight, getScreenWidth, getEvents, getPager } from "targetj";
 
-App(new TModel("app", {
-    width: getScreenWidth,
-    height: getScreenHeight,
-    children() {
-      const pageName = window.location.pathname.split("/").pop();
-      switch (pageName) {
-        case "page1":
-          return [Toolbar(), Page1()];
-        case "page2":
-          return [Toolbar(), Page2()];
-        default:
-          return [Toolbar(), HomePage()];
-      }
-    },
-    onResize: ["width", "height"],
-  })
-);
-
-const Toolbar = () =>
-  new TModel("toolbar", {
-    start() {
-      ["home", "page1", "page2"].forEach((menu) => {
-        this.addChild(new TModel("toolItem", {
-            canHandleEvents: "touch",
-            background: "bisque",
-            width: 100,
-            height: 50,
-            lineHeight: 50,
-            outerOverflowWidth: 0,
-            opacity: 0.5,
-            cursor: "pointer",
-            html: menu,
-            onEnterEvent() { this.setTarget("opacity", 1, 20); },
-            onLeaveEvent() { this.setTarget("opacity", 0.5, 20); },
-            onClickEvent() {
-              this.setTarget("opacity", 0.5);
-              getPager().openLink(menu);
+App(new TModel("simpleApp", {
+    width() { return getScreenWidth(); },
+    height() { return getScreenHeight(); },
+    menubar() {
+        return new TModel("menubar", {
+            children() {
+                return ["home", "page1", "page2"].map(menu => {
+                    return new TModel("toolItem", {
+                        canHandleEvents: "touch",
+                        background: "#fce961",
+                        width: 100,
+                        height: 50,
+                        lineHeight: 50,
+                        outerOverflowWidth: 0,
+                        opacity: 0.5,
+                        cursor: "pointer",
+                        html: menu,
+                        onEnterEvent() {
+                          this.setTarget("opacity", 1, 20);
+                        },
+                        onLeaveEvent() {
+                          this.setTarget("opacity", 0.5, 20);
+                        },
+                        onClickEvent() {
+                          this.setTarget("opacity", 0.5);
+                          getPager().openLink(menu);
+                        }
+                    });
+                });
             },
-          })
-        );
-      });
+            height: 50,
+            width() { return getScreenWidth(); },
+            onResize: ["width"]
+        }); 
     },
-    height: 50,
-    width: getScreenWidth,
-    onResize: ["width"],
-  });
-
-const HomePage = () => new TModel("homePage", {
-    background: "yellow",
-    width: getScreenWidth,
-    height: getScreenHeight,
-    html: "home page",
-    onResize: ["width", "height"],
-  });
-
-const Page1 = () => new TModel("page1", {
-    background: "blue",
-    width: getScreenWidth,
-    height: getScreenHeight,
-    html: "page 1",
-    onResize: ["width", "height"],
-  });
-
-const Page2 = () => new TModel("page2", {
-    background: "green",
-    width: getScreenWidth,
-    height: getScreenHeight,
-    html: "page 2",
-    onResize: ["width", "height"],
-  });
+    page() {
+        return new TModel({
+            width() { return getScreenWidth(); },
+            height() { return getScreenHeight() - 50; },
+            baseElement: 'textarea',
+            keepEventDefault: [ 'touchstart', 'touchend', 'mousedown', 'mouseup' ],
+            boxSizing: 'border-box',
+            html: "main page",
+            onKeyEvent() { this.setTarget('html', this.$dom.value()); },
+            onResize: [ "width", "height" ]
+        });        
+    },
+    mainPage() {
+        return new TModel({
+            ...this.val('page').targets,
+            background: "#e6f6fb",
+            html: 'main page'
+        });
+    },
+    page1() {
+        return new TModel({
+            ...this.val('page').targets,
+            background: "#C2FC61",
+            html: 'page1'
+        });        
+    },
+    page2() {
+        return new TModel({
+            ...this.val('page').targets,
+            background: "#B388FF",
+            html: 'page2'
+        });         
+    },    
+    children() {
+        const pageName = window.location.pathname.split("/").pop();
+        switch (pageName) {
+          case "page1":
+            return [ this.val('menubar'), this.val('page1')];
+          case "page2":
+            return [ this.val('menubar'), this.val('page2')];
+          default:
+            return [ this.val('menubar'), this.val('mainPage') ];
+        }
+    },
+    onResize: ["width", "height"]
+}));
 ```
 
 ## Special target names
 
-The following are special target names to impact the UI or control properties of TargetJ objects (called TModel):
+All HTML style names and attributes are treated as special target names. The most commonly used style names and attributes have already been added to the framework, with the possibility of adding more in the future.
 
-1. x, y, width, height: Set the location and dimensions of the object.
-2. opacity, scale, rotate: Set the opacity, scale, and rotation of the object.
-3. zIndex: Sets the z-order of the object.
-4. html: Sets the content of the object. By default, it will be interpreted as text.
-5. style: An object that sets the style of the object.
-6. css: A string that sets the CSS of the object.
-7. scrollLeft and scrollTop: Used for scrolling the object.
-8. leftMargin, rightMargin, topMargin, bottomMargin: Set the margins between objects.
-9. children: Sets the TModel children of the object.
-10. domHolder and domParent: Set to control the HTML element containment and how HTML is nested.
-11. isVisible: An optional boolean flag to explicitly control the visibility of the object instead of leaving it to TargetJ to calculate.
-12. canHaveDom: A boolean flag that sets if the object can have a DOM element in the page.
-13. canHandleEvents: Sets what events the object can handle
-14. widthFromDom and heightFromDom: Boolean flags that control if the width and height should be calculated from the DOM element.
-15. textOnly: A boolean flag that sets the type of content to be text or HTML.
-16. isInFlow: A boolean flag that determines if the object will be used to calculate the content height and width of its parent.
-17. onResize: An array of targets that will be activated and executed after a resize event.
-18. onClickEvent: An array of targets that will be activated and executed after a click event.
-19. onTouchEvent: An array of targets that will be activated and executed after a touch event.
-20. onScrollEvent: An array of targets that will be activated and executed after a scroll event.
-21. onKeyEvent: An array of targets that will be activated and executed after a key event.
-22. onInvisibleEvent: An array of targets that will be activated and executed after the component becomes invisisble.
+Examples:
+- `width`, `height`: Set the dimensions of the object.
+- `opacity`, `scale`, `rotate`: Adjust the opacity, scale, and rotation of the object.
+- `zIndex`: Sets the z-order of the object.
+
+In addition to styles and attribute names, we have the following special names:
+
+1. **html**: Sets the content of the object, interpreted as text by default.
+2. **style**: An object to set the HTML style of the object, especially for style names that aren’t built-in.
+3. **css**: A string that sets the CSS of the object.
+4. **baseElement**: Sets the HTML tag of the object, defaulting to `div`.
+5. **x** and **y*: Sets the location of the object.
+6. **scrollLeft** and **scrollTop**: Control the scrolling position of the object.
+7. **leftMargin**, **rightMargin**, **topMargin**, **bottomMargin**: Set margins between objects.
+8. **children**: Sets the `TModel` children of the object.
+9. **domHolder**: Assigned by the container to hold children or descendants without a `domParent`.
+10. **domParent**: Set by the container or children to control which DOM container they are embedded in.
+11. **isVisible**: An optional boolean to explicitly control the visibility of the object, bypassing TargetJ’s automatic calculation.
+12. **canHaveDom**: A boolean flag that determines if the object can have a DOM element on the page.
+13. **canHandleEvents**: Specifies which events the object can handle.
+14. **widthFromDom** and **heightFromDom**: Boolean flags to control if the width and height should be derived from the DOM element.
+15. **textOnly**: A boolean flag to set content type as text or HTML.
+16. **isInFlow**: A boolean flag that determines if the object will contribute to the content height and width of its parent.
+
+Lastly, we have the event targets which their values can be an array of targets to activate on specific events or may implement the event handler directly.
+
+**Example with Target Array:**
+```javascript
+onResize: [ 'width', 'height' ]  // Activates 'width' and 'height' targets on screen resize.
+```
+
+**Example with Event handler:**
+```javascript
+onResize() { 
+    this.setTarget('width', getScreenWidth());
+    this.setTarget('height', getScreenHeight());
+}
+```
+
+Here are all the event targets:
+1. **onResize**: Triggered on screen resize events.
+2. **onParentResize**: Activated when the parent’s width or height is updated.
+3. **onFocusEvent**: Triggered on focus events.
+4. **onBlurEvent**: Triggered on blur events.
+5. **onClickEvent**: Activated on click events.
+6. **onTouchEvent**: Generic handler for all touch events.
+7. **onTouchEnd**: Called when `touchend` or `mouseup` events occur.
+8. **onSwipeEvent**: Activated on swipe events.
+9. **onEnterEvent**: Triggered when the mouse cursor enters the object’s DOM.
+10. **onLeaveEvent**: Triggered when the mouse cursor leaves the object’s DOM.
+11. **onScrollEvent**: Called on scroll events.
+12. **onKeyEvent**: Triggered by key events.
+13. **onInvisibleEvent**: Activated when the object becomes invisible.
+14. **onChildrenChange**: Triggered when the children count changes.
+15. **onVisibleChildrenChange**: Triggered when the count of visible children changes.
 
 ## Features
 
@@ -504,12 +563,12 @@ As a result of using targets, we can develop web sites or apps with the followin
 
 
 ## How to debug in TargetJ
-1. TargetJ.tapp.stop(): Stops the application.
-2. TargetJ.tapp.start(): Restarts the application
-3. TargetJ.tapp.throttle: Slows down the application. This represents the pause in milliseconds before starting another TargetJ task cycle. It is zero by default.
-4. TargetJ.tapp.debugLevel: Logs information about the TargetJ task cycle and its efficiency. It is zero by default. Set it to 1 to log basic information and 2 to log more detailed information.
+1. TargetJ.tApp.stop(): Stops the application.
+2. TargetJ.tApp.start(): Restarts the application
+3. TargetJ.tApp.throttle: Slows down the application. This represents the pause in milliseconds before starting another TargetJ task cycle. It is zero by default.
+4. TargetJ.tApp.debugLevel: Logs information about the TargetJ task cycle and its efficiency. It is zero by default. Set it to 1 to log any cycle that takes more than 10ms and 2 to log the name of the caller of each cycle.
 5. Use `t()` to find an object from the browser console using its `oid`.
-6. Inspect all the vital properities using `t(oid).bug`.
+6. Inspect all the vital properities using `t(oid).bug()`.
    
 ## Documentation
 Explore the full potential of TargetJ and dive into our interactive documentation at www.targetj.io.
