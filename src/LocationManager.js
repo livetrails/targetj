@@ -121,6 +121,8 @@ class LocationManager {
             }
             
             if (child.isInFlow()) {
+                const _contentWidth = container.getContentWidth();
+                const _contentHeight = container.getContentHeight();
                 if (TUtil.isNumber(child.val('appendNewLine'))) {
                     viewport.appendNewLine();
                     container.calcContentWidthHeight();
@@ -129,7 +131,9 @@ class LocationManager {
                     viewport.nextLocation();
                 }
                 
-                this.activateTargets(container, [ 'height', 'width', 'topBaseHeight', 'baseWidth' ].filter(key => !container.isTargetUpdating(key)));
+                if (_contentWidth !== container.getContentWidth() || _contentHeight !== container.getContentHeight()) {
+                    this.activateTargets(container, container.targets['onContentResize']);
+                }
             }
             
             if (!TUtil.isDefined(child.targetValues.height) && !TUtil.isDefined(child.targets.heightFromDom) && child.getContentHeight() > 0) {
