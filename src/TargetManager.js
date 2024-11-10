@@ -56,7 +56,7 @@ class TargetManager {
                 tmodel.resetTargetCycle(key);
             }
             tmodel.resetTargetStep(key);
-            tmodel.resetTargetInitialValue(key);
+            tmodel.resetTargetInitialValue(key);       
         }
        
         TargetExecutor.executeDeclarativeTarget(tmodel, key);        
@@ -91,7 +91,7 @@ class TargetManager {
 
     setActualValue(tmodel, key) {
         const targetValue = tmodel.targetValues[key];
-
+        
         if (!targetValue) {
             return;
         }
@@ -112,7 +112,7 @@ class TargetManager {
         let initialValue = tmodel.getTargetInitialValue(key);
         let originalTargetName, originalTarget, originalTModel;
         const capKey = TUtil.capitalizeFirstLetter(key);
-
+        
         if (step <= steps) {
             if (!TUtil.isDefined(initialValue)) {
                 initialValue = TUtil.isDefined(tmodel.actualValues[key]) ? tmodel.actualValues[key] : typeof theValue === 'number' ? 0 : undefined;
@@ -149,8 +149,8 @@ class TargetManager {
             tmodel.resetScheduleTimeStamp(key);
 
             tmodel.updateTargetStatus(key);
-
-            if (tmodel.isTargetUpdating(key)) {
+                     
+            if (tmodel.getTargetStep(key) < steps) {
                 getRunScheduler().schedule(interval, `${tmodel.oid}---${key}-${step}/${steps}-${cycle}-${interval}`);
                 return;
             }
@@ -198,10 +198,10 @@ class TargetManager {
                     originalTModel.setTargetMethodName(originalTargetName, 'onImperativeEnd');
                 }
             } else {
-                if (tmodel.getTargetCycle(key) < tmodel.getTargetCycles(key)) {
+                if (!targetValue.valueList && tmodel.getTargetCycle(key) < tmodel.getTargetCycles(key)) {
                     tmodel.incrementTargetCycle(key, tmodel.getTargetCycle(key));
                     tmodel.resetTargetStep(key).resetTargetInitialValue(key).resetTargetExecutionFlag(key);
-
+                    
                     TargetExecutor.executeDeclarativeTarget(tmodel, key);
                 }
 
@@ -211,9 +211,9 @@ class TargetManager {
                 }
             }
         }
-
+        
         tmodel.updateTargetStatus(key);
-
+        
         getRunScheduler().schedule(scheduleTime, `${tmodel.oid}---${key}-${step}/${steps}-${cycle}-${interval}`);
     }
 }

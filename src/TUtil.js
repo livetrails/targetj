@@ -6,19 +6,6 @@ import { getLocationManager, tRoot } from "./App.js";
  * It provide a variety of helping functions that are used by the framework.
  */
 class TUtil {
-    static getBoundingRect(tmodel) {
-
-        const parent = tmodel.getParent();
-
-        const left = parent.absX;
-        const top = parent.absY;
-        const right = left + parent.getWidth();
-        const bottom = top + parent.getHeight();
-        const oid = parent.oid;
-            
-        return { left, top, right, bottom, oid };
-    }
-    
     static calcVisibility(child) {
         const x = child.absX;
         const y = child.absY;

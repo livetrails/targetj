@@ -104,7 +104,7 @@ class TargetExecutor {
 
         tmodel.targetValues[key] = targetValue;
         const easing = TUtil.isDefined(tmodel.targets[key].easing) ? tmodel.targets[key].easing : undefined;
-
+        
         if (TargetUtil.isChildrenTarget(key, newValue)) {
             if (Array.isArray(newValue)) {
                 newValue.forEach((child) => tmodel.addChild(child));                      

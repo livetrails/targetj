@@ -9,11 +9,8 @@ class Bracket extends TModel {
     constructor(parent) {
         super("BI", {
             canHaveDom: false,
-            outerOverflowWidth: 0
+            itemOverflowMode: 'never'
         });
-
-        this.innerContentWidth = 0;
-        this.innerContentHeight = 0;
         
         this.parent = parent;
         this.newFlag = true;
@@ -31,16 +28,16 @@ class Bracket extends TModel {
         return this.getContentHeight();
     }
 
-    getInnerWidth() {
-        return this.innerContentWidth;
+    getBaseWidth() {
+        return this.bottomBaseWidth;
     }
 
-    getInnerOverflowWidth() {
-        return this.getRealParent().getInnerOverflowWidth();
+    getContainerOverflowMode() {
+        return this.getRealParent().getContainerOverflowMode();
     }
-
-    getInnerContentHeight() {
-        return this.innerContentHeight;
+    
+        getTopBaseHeight() {
+        return this.topBaseHeight;
     }
 
     isVisible() {
@@ -58,7 +55,11 @@ class Bracket extends TModel {
         this.viewport.xSouth = this.x;
         this.viewport.xWest = this.x;
         
-        this.viewport.xOverflow = this.getRealParent().getXOverflow();       
+        this.viewport.absX = this.getRealParent().viewport.absX;
+        this.viewport.scrollLeft = this.getRealParent().viewport.scrollLeft;
+        this.viewport.xOverflowReset = this.getRealParent().viewport.xOverflowReset;        
+        this.viewport.xOverflowLimit = this.getRealParent().viewport.xOverflowLimit;
+
 
         this.viewport.yNext = this.y;
         this.viewport.yNorth = this.y;
@@ -73,7 +74,7 @@ class Bracket extends TModel {
         return this.realParent;
     }
     
-    calculateAbsolutePosition(x, y) {
+    calcAbsolutePosition(x, y) {
         this.absX = x + this.getRealParent().absX;
         this.absY = y + this.getRealParent().absY;
     }
@@ -87,14 +88,6 @@ class Bracket extends TModel {
     getChildren() {
         return this.allChildren;
     }
-    
-    calcContentWidthHeight() {
-        this.contentHeight = this.viewport.ySouth - this.viewport.yNorth;
-        this.innerContentHeight = this.viewport.yEast - this.viewport.yNorth;
-        this.innerContentWidth = this.viewport.xSouth - this.viewport.xWest;
-        this.contentWidth = this.viewport.xEast - this.viewport.xWest;
-    }
-
 }
 
 export { Bracket };

@@ -30,11 +30,15 @@ class TModel extends BaseModel {
 
         this.contentWidth = 0;
         this.contentHeight = 0;
-
+        this.bottomBaseWidth = 0;
+        this.topBaseHeight = 0;
+        
         this.styleMap = {};
         this.transformMap = {};
         
         this.visibilityStatus = { top: false, right: false, bottom: false, left: false };
+        this.isNowInvisible = false;
+        this.overflowingFlag = false;
         
         this.visibleChildren = [];         
 
@@ -46,39 +50,41 @@ class TModel extends BaseModel {
 
         const scrollLeft = -this.getScrollLeft();
         const scrollTop = -this.getScrollTop();
-
+        
         this.viewport.xNext = scrollLeft;
         this.viewport.xNorth = scrollLeft;
         this.viewport.xEast = scrollLeft;
         this.viewport.xSouth = scrollLeft;
         this.viewport.xWest = scrollLeft;
         
-        this.viewport.xOverflow = this.getXOverflow();       
+        this.viewport.absX = this.absX;
+        this.viewport.scrollLeft = scrollLeft;
+        this.viewport.xOverflowReset = this.absX;        
+        this.viewport.xOverflowLimit = this.absX +this.getWidth();
 
         this.viewport.yNext = scrollTop;
         this.viewport.yNorth = scrollTop;
         this.viewport.yWest = scrollTop;
         this.viewport.yEast = scrollTop;
         this.viewport.ySouth = scrollTop;
-
+        
+        Object.assign(this.viewport, this.actualValues.viewport || {});
+        
+        for (const key in this.viewport) {
+            const prefixedKey = `viewport_${key}`;
+            if (Object.prototype.hasOwnProperty.call(this.actualValues, prefixedKey)) {
+                this.viewport[key] = this.actualValues[prefixedKey];
+            }
+        }
+        
         return this.viewport;
     }
 
-    setLocation(viewport) {
-        this.x = viewport.getXNext();
-        this.y = viewport.getYNext();
+    calcAbsolutePosition(x, y) {
+        this.absX = this.getParent().absX + x;
+        this.absY = this.getParent().absY + y;
     }
 
-    calculateAbsolutePosition(x, y) {
-        const rect = this.getBoundingRect();
-        this.absX = rect.left + x;
-        this.absY = rect.top + y;
-    }
-    
-    getBoundingRect() {
-        return TUtil.getBoundingRect(this);
-    }     
-    
     addChild(child) {
         const index = this.addedChildren.count + this.allChildren.length;
         this.addedChildren.count++;
@@ -183,15 +189,11 @@ class TModel extends BaseModel {
     }
 
     findChild(type) {
-        return this.getChildren().find(child => {
-            return typeof type === 'function' ? type.call(child) : child.type === type;
-        });
+        return this.getChildren().find(child => child.type === type);
     }
 
     findLastChild(type) {
-        return this.getChildren().findLast(child => {
-            return typeof type === 'function' ? type.call(child) : child.type === type;
-        });
+        return this.getChildren().findLast(child => child.type === type);
     }
 
     getParentValue(targetName) {
@@ -265,43 +267,45 @@ class TModel extends BaseModel {
     hasDom() {
         return !!this.$dom && this.$dom.exists();
     }
-
+    
+    getRealParent() {
+        return this.parent;
+    }
+    
     getContentHeight() {
         return this.contentHeight;
     }
-
-    getInnerContentHeight() {
-        return 0;
-    }
+    
+    getContentWidth() {
+        return this.contentWidth;
+    }  
     
     calcContentWidthHeight() {
         this.contentHeight = this.viewport.ySouth - this.viewport.yNorth;
+        this.topBaseHeight = this.viewport.yEast - this.viewport.yNorth;
+        this.bottomBaseWidth = this.viewport.xSouth - this.viewport.xWest;        
         this.contentWidth = this.viewport.xEast - this.viewport.xWest;
     }
     
-    getInnerHeight() {
-        return this.actualValues.innerHeight ?? this.getHeight();
-    }
-
-    getInnerWidth() {
-        return this.actualValues.innerWidth ?? this.getWidth();
-    }
-
-    getInnerOverflowWidth() {
-        return this.actualValues.innerOverflowWidth ?? this.absX + this.getInnerWidth();
-    }
-
-    getOuterOverflowWidth() {
-        return this.actualValues.outerOverflowWidth ?? this.absX + this.getInnerWidth();
-    }
-
-    getContentWidth() {
-        return this.contentWidth;
+    getBaseWidth() {
+        return this.actualValues.baseWidth ?? this.getWidth();
     }
     
-    getXOverflow() {
-        return this.actualValues.xOverflow ?? -this.getScrollLeft();
+     getMinWidth() {
+        return this.actualValues.minWidth ?? this.getWidth();
     }
+   
+    getTopBaseHeight() {
+        return this.actualValues.topBaseHeight ?? 0;
+    }
+
+    getContainerOverflowMode() {
+        return this.actualValues.containerOverflowMode ?? 'auto';
+    }
+    
+    getItemOverflowMode() {
+        return this.actualValues.itemOverflowMode ?? 'auto';
+    }    
 
     getUIDepth() {
         let depth = 0;
@@ -314,7 +318,7 @@ class TModel extends BaseModel {
 
         return depth;
     }
-
+    
     isTextOnly() {
         return this.actualValues.textOnly;
     }

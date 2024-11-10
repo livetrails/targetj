@@ -140,7 +140,8 @@ class TargetUtil {
     };
 
     static targetConditionMap = {
-        onResize: () => getLocationManager().resizeFlag,
+        onVisibleEvent: tmodel => tmodel.isNowVisible,
+        onResize: tmodel => getLocationManager().resizeFlag || tmodel.isNowVisible,
         onParentResize: tmodel => { return tmodel.getParent().getActualValueLastUpdate('width') > tmodel.getActualValueLastUpdate('width') ||
                     tmodel.getParent().getActualValueLastUpdate('height') > tmodel.getActualValueLastUpdate('height'); },
         onFocusEvent: tmodel => getEvents().onFocus(tmodel),
@@ -157,7 +158,7 @@ class TargetUtil {
     };
     
     static otherTargetEventsMap = {
-        onInvisibleEvent: true,
+        onVisibleEvent: true,
         onChildrenChange: true,
         onVisibleChildrenChange: true,
         onPageClose: true,

@@ -159,14 +159,6 @@ class TModelManager {
         for (const tmodel of this.lists.invisibleDom) {
             tmodel.styleMap = {};
             tmodel.transformMap = {};
-            
-            let activateTargets = [];
-            ['onInvisibleEvent', 'onResize' ].forEach(target => {
-                if (tmodel.targets[target]) {
-                    activateTargets = activateTargets.concat(tmodel.targets[target]);
-                }
-            });
-            getLocationManager().activateTargets(tmodel, activateTargets);
 
             tmodel.$dom.detach();
             tmodel.$dom = null;

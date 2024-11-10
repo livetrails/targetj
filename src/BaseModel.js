@@ -51,10 +51,6 @@ class BaseModel {
         return this.parent;
     }
 
-    getRealParent() {
-        return this.parent;
-    }
-    
     initTargets() {
         this.actualValues = TModelUtil.defaultActualValues();
         this.targetValues = {};
@@ -508,7 +504,7 @@ class BaseModel {
                 targetValue.executionFlag = false;
                 targetValue.scheduleTimeStamp = undefined;
                 targetValue.step = 0;
-                targetValue.cycle = 0;
+                targetValue.cycle = Array.isArray(targetValue.valueList) ? 1 : 0;
 
                 this.updateTargetStatus(key);
             } else {
