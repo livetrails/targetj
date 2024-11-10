@@ -184,78 +184,39 @@ In the example below, we define a target named load. Inside the value function, 
 
 In this example, we set the cycles to 9, triggering the API call 10 times at intervals of 1 second (interval set to 1000). Each API response is appended as a separate object in the output. Because we didn’t specify the fourth argument, the response is always fetched directly from the API rather than from the cache.
 
-![api loading example](https://targetj.io/img/apiLoading3.gif)
+![api loading example](https://targetj.io/img/apiLoading4.gif)
 
 ```bash
 import { App, TModel, getLoader, getScreenHeight, getScreenWidth, Moves } from "targetj";
 
-App(
-  new TModel("apiCall", {
-    width: getScreenWidth,
-    height: getScreenHeight,
-    load: {
-      interval: 1000,
-      cycles: 9,
-      value: function (cycle) {
-        return getLoader().fetch(this, "https://targetj.io/api/randomUser", { id: `user${cycle}` });
-      },
-      onSuccess(res) {
-        this.addChild(new TModel("user", {
-            bounce: {
-              loop: true,
-              value() {
-                this.setTarget("move",
-                  Moves.bounceSimple(this, {
-                    xStart: this.getX() || Math.random() * 300,
-                    yStart: 200,
-                    from: 0,
-                    to: 200,
-                    widthStart: 50,
-                    heightStart: 50,
-                  }), 20);
-              }
-            },
-            lineHeight: 50,
-            textAlign: "center",
-            html: res.result.name,
-            background: "yellow",
-          })
-        );
-      },
+App(new TModel("apiCall", {
+  width: 160,
+  height: getScreenHeight,
+  load: {
+    interval: 1000,
+    cycles: 8,
+    value: function (cycle) {
+      return getLoader().fetch(this, "https://targetj.io/api/randomUser", {
+        id: `user${cycle}`,
+      });
     },
-  })
-);
-```
-
-## Event handling example
-
-In the following example, the background color of the pane changes randomly whenever you click on it. The `canHandleEvents` target ensures that the object can handle touch events, such as clicks. However, we’ve set a limit of 10 executions for the background change. After reaching this limit, the component will no longer respond to click events. The `onClickEvent` is a system target that activates all associated targets when a click occurs. The `html` target tracks the number of executions and displays it within the pane.
-
-![event handling example](https://targetj.io/img/eventHandling.gif)
-
-```bash
-import { App, TModel } from "targetj";
-
-App(
-  new TModel("events", {
-    canHandleEvents() {
-      return this.getTargetExecutionCount("background") < 10 ? "touch" : "";
-    },
-    width: 120,
-    height: 120,
-    background: {
-      active: false,
-      initialValue: "#f00",
-      value() {
-        return "#" + Math.random().toString(16).slice(-6);
-      },
-    },
-    html() {
-      return this.getTargetExecutionCount("background");
-    },
-    onClickEvent: ["background", "canHandleEvents", "html"]
-  })
-);
+    onSuccess(res) {
+      this.addChild(
+        new TModel("user", {
+          lineHeight: 50,
+          textAlign: "center",
+          html: res.result.name,
+          width: 50,
+          height: 50,
+          rightMargin: 5,
+          bottomMargin: 5,
+          color: "#fff",
+          background: "#B388FF",
+        })
+      );
+    }
+  }
+}));
 ```
 
 ## Animation API example
@@ -367,7 +328,7 @@ App(new TModel("scroller", {
         return Array.from({ length: 5 }, (_, i) =>
             new TModel("scrollItem", {
               width: 300,
-              background: "brown",
+              background: "#B388FF",
               height: 30,
               color: "#fff",
               textAlign: "center",
