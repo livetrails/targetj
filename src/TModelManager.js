@@ -283,7 +283,7 @@ class TModelManager {
             if ($Dom.query(`#${tmodel.oid}`)) {
                 $dom = new $Dom(`#${tmodel.oid}`);
                 tmodel.$dom = $dom;
-            } else {
+            } else {                
                 needsDom.push(tmodel);
             }
         }

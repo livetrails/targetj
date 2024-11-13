@@ -42,7 +42,7 @@ class LocationManager {
     }
 
     getChildren(container) {
-        if (container.shouldBeBracketed()) {
+            if (container.shouldBeBracketed()) {
             return BracketGenerator.generate(container);
         }
         
@@ -56,23 +56,26 @@ class LocationManager {
     calculateContainer(container, shouldCalculateChildTargets = true) {
         const allChildren = this.getChildren(container);
         const viewport = container.createViewport();
-        const visibleChildrenCount = container.visibleChildren.length;
         container.visibleChildren.length = 0;
-                
-        let i = 0;
-        const childrenLength = allChildren.length;
+                        
+        const visibleChildrenLength = container.visibleChildren.length;  
+        const childrenLength = container.getChildren().length;
+        const length = allChildren.length;
+        let i = 0;        
 
-        while (i < childrenLength) {
+        while (i < length) {
             const child = allChildren[i++];
             if (!child) {
                 continue;
             }
             
+            viewport.setCurrentChild(child);
+            viewport.setLocation();            
+            
             if (container.manageChildTargetExecution(child, shouldCalculateChildTargets)) {
                 this.calculateTargets(child);
             }
 
-            viewport.setCurrentChild(child);
             viewport.setLocation();
 
             child.overflowingFlag = false;
@@ -87,16 +90,14 @@ class LocationManager {
                 this.addToLocationList(child);
             }
             
-            if (child.isTargetEnabled('x') && !child.isTargetUpdating('x') && !child.isTargetImperative('x') && child.getTargetSteps('x') === 0) {
-                TargetExecutor.resolveTargetValue(child, 'x');
-                TargetExecutor.snapActualToTarget(child, 'x');
+            if (child.isTargetEnabled('x') && !child.isTargetUpdating('x') && !child.isTargetImperative('x')) {
+                TargetExecutor.executeDeclarativeTarget(child, 'x');
             } else if (!TUtil.isDefined(child.targetValues.x)) {
                 child.val('x', child.x);
             }
 
-            if (child.isTargetEnabled('y') && !child.isTargetUpdating('y') && !child.isTargetImperative('y') && child.getTargetSteps('y') === 0) {
-                TargetExecutor.resolveTargetValue(child, 'y');
-                TargetExecutor.snapActualToTarget(child, 'y');
+            if (child.isTargetEnabled('y') && !child.isTargetUpdating('y') && !child.isTargetImperative('y')) {
+                TargetExecutor.executeDeclarativeTarget(child, 'y');
             } else if (!TUtil.isDefined(child.targetValues.y)) {
                 child.val('y', child.y);
             }
@@ -107,7 +108,7 @@ class LocationManager {
             child.calcAbsolutePosition(child.getX(), child.getY());
             
             const isVisible = child.isVisible();
-                    
+            
             TUtil.isDefined(child.targets.isVisible) 
                 ? TargetExecutor.executeDeclarativeTarget(child, 'isVisible') 
                 : child.calcVisibility();
@@ -156,20 +157,23 @@ class LocationManager {
             this.locationListStats.push(`${child.oid}-${child.updatingTargetList.length}-${TUtil.now() - this.startTime}`);
         }
         
-        if ((visibleChildrenCount !== container.visibleChildren.length || container.visibleChildren.length  === 0) && container.targets['onVisibleChildrenChange']) {
+        if ((visibleChildrenLength !== container.visibleChildren.length || container.visibleChildren.length  === 0) && container.targets['onVisibleChildrenChange']) {
             this.activateTargets(container, container.targets['onVisibleChildrenChange']);
-        }        
+        }
         
+        if (childrenLength !== container.getChildren().length && container.targets['onChildrenChange']) {
+            this.activateTargets(container, container.targets['onChildrenChange']); 
+        }        
     }
 
     calculateTargets(tmodel) {
-        const childrenCount = tmodel.getChildren().length;
+        const childrenLength = tmodel.getChildren().length;
         this.activateTargetsOnEvents(tmodel);
         tApp.targetManager.applyTargetValues(tmodel);
         tApp.targetManager.setActualValues(tmodel);
 
-        if (childrenCount !== tmodel.getChildren().length && tmodel.targets['onChildrenChange']) {
-            this.activateTargets(tmodel, tmodel.targets['onChildrenChange']);           
+        if (tmodel.getChildren().length === 0 && childrenLength > 0 && tmodel.targets['onChildrenChange']) {
+            this.activateTargets(tmodel, tmodel.targets['onChildrenChange']); 
         }
 
         if (tmodel.hasDom()) {

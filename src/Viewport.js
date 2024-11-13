@@ -46,7 +46,7 @@ class Viewport {
     appendNewLine() {
         const height = this.currentChild.getHeight() * this.currentChild.getMeasuringScale();
 
-        this.xNext = this.xOverflowReset;
+        this.xNext = this.scrollLeft - this.absX + this.xOverflowReset;
         this.yNext = this.ySouth > this.yNext ? this.ySouth + this.currentChild.val('appendNewLine') : this.ySouth + height + this.currentChild.val('appendNewLine');
 
         this.yEast = this.yNext;

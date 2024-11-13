@@ -21,7 +21,7 @@ class EventListener {
 
         this.touchTimeStamp = 0;
 
-        this.cursor = { x: 0, y: 0 };
+        this.cursor = { x: 0, y: 0, handlerX: 0, handlerY: 0 };
         this.start0 = undefined;
         this.start1 = undefined;
         this.end0 = undefined;
@@ -122,21 +122,20 @@ class EventListener {
             } else if (diff > 600) {
                 this.clearTouch();
                 this.touchTimeStamp = 0;
-                this.touchCount = 0;
             }
 
             getRunScheduler().schedule(runDelay, "scroll decay");
         }
     } 
     
-    findEventHandlers({ tmodel }) {
+    findEventHandlers({ tmodel, eventType }) {
         
         let touchHandler, scrollLeftHandler, scrollTopHandler, pinchHandler, focusHandler;
-        
+       
         if (tmodel) {
-            touchHandler = SearchUtil.findFirstTouchHandler(tmodel);
-            scrollLeftHandler = SearchUtil.findFirstScrollLeftHandler(tmodel);
-            scrollTopHandler = SearchUtil.findFirstScrollTopHandler(tmodel);
+            touchHandler = SearchUtil.findFirstTouchHandler(tmodel);            
+            scrollLeftHandler = SearchUtil.findFirstScrollLeftHandler(tmodel, eventType);
+            scrollTopHandler = SearchUtil.findFirstScrollTopHandler(tmodel, eventType);
             pinchHandler = SearchUtil.findFirstPinchHandler(tmodel);
             focusHandler = $Dom.hasFocus(tmodel) ? tmodel : this.currentHandlers.focus;
         }
@@ -175,8 +174,10 @@ class EventListener {
             return;
         }
         const lastEvent = this.eventQueue.shift();
-
-        this.findEventHandlers(lastEvent);
+        
+        if (this.touchCount === 0) {
+            this.findEventHandlers(lastEvent);
+        }
 
         this.currentEventName = lastEvent.eventName;
         this.currentEventType = lastEvent.eventType;
@@ -223,10 +224,12 @@ class EventListener {
             }
         }
 
-        if (queue) {
-            this.eventQueue.push({ eventName, eventItem, eventType, originalName, tmodel, timeStamp: now });
-        }
+        const newEvent = { eventName, eventItem, eventType, originalName, tmodel, timeStamp: now };
 
+        if (queue) {
+            this.eventQueue.push(newEvent);
+        }
+        
         switch (eventName) {
             case 'mousedown':
             case 'touchstart':
@@ -237,13 +240,20 @@ class EventListener {
                 if (this.preventDefault(tmodel, eventName)) {
                     event.preventDefault();
                 }
-
+                
                 this.start0 = this.getTouch(event);
                 this.start1 = this.getTouch(event, 1);
 
                 this.cursor.x = this.start0.x;
                 this.cursor.y = this.start0.y;
-
+                
+                this.findEventHandlers(newEvent);                
+                
+                if (this.currentHandlers.touch) {
+                    this.cursor.handlerX = this.start0.x - this.currentHandlers.touch.getX();
+                    this.cursor.handlerY = this.start0.y - this.currentHandlers.touch.getY();                    
+                }
+                
                 event.stopPropagation();
                 break;
 
@@ -367,7 +377,15 @@ class EventListener {
     cursorY() {
         return this.cursor.y;
     }
+    
+    swipeX() {
+        return this.cursor.x - this.cursor.handlerX;
+    }
 
+    swipeY() {
+        return this.cursor.y - this.cursor.handlerY;
+    }
+    
     pinchDelta() {
         return this.currentTouch.pinchDelta;
     }
@@ -409,11 +427,22 @@ class EventListener {
     }
     
     isSwipeEvent() {
-        return (this.deltaX() !== 0 || this.deltaY() !== 0) && this.touchCount === 1;
+        return this.hasDelta() && this.touchCount === 1;
     }
     
+    isScrollEvent() {
+        return this.hasDelta() && this.isCurrentSource('wheel');        
+    }
+    
+    hasDelta() {
+        return this.deltaX() !== 0 || this.deltaY() !== 0;
+    }
     isEndEvent() {
         return this.getEventType() === 'end';
+    }
+    
+    isStartEvent() {
+        return this.getEventType() === 'start';        
     }
 
     getEventName() {
@@ -581,8 +610,6 @@ class EventListener {
                 this.currentTouch.orientation = "horizontal";
                 this.currentTouch.dir = deltaX <= -1 ? "left" : deltaX >= 1 ? "right" : this.currentTouch.dir;
                 this.currentTouch.source = source;
-                this.currentTouch.deltaX = deltaX;
-                this.currentTouch.deltaY = 0;
             }
         } else if (
             this.currentTouch.orientation === "none" ||
@@ -592,12 +619,10 @@ class EventListener {
             this.currentTouch.orientation = "vertical";
             this.currentTouch.dir = deltaY <= -1 ? "up" : deltaY >= 1 ? "down" : this.currentTouch.dir;
             this.currentTouch.source = source;
-            this.currentTouch.deltaY = deltaY;
-            this.currentTouch.deltaX = 0;
-        } else {
-            this.currentTouch.deltaY = 0;
-            this.currentTouch.deltaX = 0;
         }
+        
+        this.currentTouch.deltaY = deltaY;
+        this.currentTouch.deltaX = deltaX;
     }
 
     wheel(event) {

@@ -15,16 +15,28 @@ class SearchUtil {
         return SearchUtil.findEventHandler(tmodel, 'pinch');
     }
 
-    static findFirstScrollTopHandler(tmodel) {
-        return SearchUtil.findEventHandler(tmodel, 'scrollTop');
+    static findFirstScrollTopHandler(tmodel, eventType) {
+        return SearchUtil.findScrollHandler(tmodel, eventType, 'scrollTop');
     }
 
-    static findFirstScrollLeftHandler(tmodel) {
-        return SearchUtil.findEventHandler(tmodel, 'scrollLeft');
+    static findFirstScrollLeftHandler(tmodel, eventType) {
+        return SearchUtil.findScrollHandler(tmodel, eventType, 'scrollLeft');
     }
 
     static findFirstTouchHandler(tmodel) {
         return SearchUtil.findEventHandler(tmodel, 'touch');
+    }
+
+    static findScrollHandler(tmodel, eventType, eventName) {
+        while (tmodel) {
+            if (tmodel.canHandleEvents('swipe') && eventType !== 'wheel') {
+                break;
+            }
+            if (tmodel.canHandleEvents(eventName)) {
+                return tmodel;
+            }
+            tmodel = tmodel.getParent();
+        }
     }
 
     static findEventHandler(tmodel, eventName) {

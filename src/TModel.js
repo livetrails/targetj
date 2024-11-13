@@ -104,6 +104,59 @@ class TModel extends BaseModel {
         return this;
     }
     
+    moveChildTo(child, toIndex) {
+        const newArray = this.allChildren.slice(0); 
+        const fromIndex = this.allChildren.indexOf(child);
+
+        if (fromIndex === -1 || toIndex < 0 || toIndex > newArray.length) {
+            return;
+        }
+
+        newArray.splice(fromIndex, 1);
+        if (toIndex === newArray.length) {
+            newArray.push(child);        
+        } else {
+            newArray.splice(toIndex, 0, child);            
+        }
+        this.allChildren = newArray;
+
+        getRunScheduler().schedule(10, `addChild-${this.oid}-${child.oid}`);
+    }
+
+    getChildren() {
+        if (this.addedChildren.count > 0) {
+            this.addedChildren.list.forEach(({ index, segment }) => {
+                
+                segment.forEach(t => t.parent = this);
+                
+                if (index >= this.allChildren.length) {
+                    this.allChildren.push(...segment);
+                } else {
+                    this.allChildren.splice(index, 0, ...segment);
+                }
+            });
+            
+            this.lastChildrenUpdate.additions = this.lastChildrenUpdate.additions.concat(this.addedChildren.list);
+            
+            this.addedChildren.list.length = 0;
+            this.addedChildren.count = 0;
+        }
+        
+        if (this.deletedChildren.length > 0) {
+            this.deletedChildren.forEach(child => {
+                const index = this.allChildren.indexOf(child);
+                this.lastChildrenUpdate.deletions.push(index);
+                if (index >= 0) {
+                    this.allChildren.splice(index, 1);
+                }
+            });
+                        
+            this.deletedChildren.length = 0;
+        }
+        
+        return this.allChildren;
+    }
+
     removeAllChildren() {
         this.allChildren.length = 0;
         this.updatingChildrenList.length = 0;
@@ -137,38 +190,8 @@ class TModel extends BaseModel {
         return this.getChildren().length > 0;
     }
     
-    getChildren() {
-        if (this.addedChildren.count > 0) {
-            this.addedChildren.list.forEach(({ index, segment }) => {
-                
-                segment.forEach(t => t.parent = this);
-                
-                if (index >= this.allChildren.length) {
-                    this.allChildren.push(...segment);
-                } else {
-                    this.allChildren.splice(index, 0, ...segment);
-                }
-            });
-            
-            this.lastChildrenUpdate.additions = this.lastChildrenUpdate.additions.concat(this.addedChildren.list);
-            
-            this.addedChildren.list.length = 0;
-            this.addedChildren.count = 0;
-        }
-        
-        if (this.deletedChildren.length > 0) {
-            this.deletedChildren.forEach(child => {
-                const index = this.allChildren.indexOf(child);
-                this.lastChildrenUpdate.deletions.push(index);
-                if (index >= 0) {
-                    this.allChildren.splice(index, 1);
-                }
-            });
-                        
-            this.deletedChildren.length = 0;
-        }
-        
-        return this.allChildren;
+    findChildren(type) {
+        return this.getChildren().filter(child => child.type === type);
     }
 
     getLastChild() {

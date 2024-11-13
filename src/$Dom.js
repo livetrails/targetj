@@ -67,11 +67,12 @@ class $Dom {
             return;
         }
 
+        const currentValue = this.element.value;
         if (TUtil.isDefined(value)) {
             this.element.value = value;
-        } else {
-            return this.element.value;
         }
+        
+        return currentValue;
     }
 
     select() {
