@@ -371,6 +371,10 @@ class BaseModel {
     }
 
     setTarget(key, value, steps, interval, easing, originalTargetName) {
+        if (typeof key === 'object' && key !== null) {
+            [value, steps, interval, easing, originalTargetName] = [key, value, steps, interval, easing];
+            key = '';
+        }        
         originalTargetName = originalTargetName || this.key;
         TargetExecutor.executeImperativeTarget(this, key, value, steps, interval, easing, originalTargetName);
 
