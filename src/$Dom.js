@@ -25,6 +25,10 @@ class $Dom {
         }
         return !!this.element;
     }
+    
+    contains(dom) {
+        return dom instanceof $Dom ? this.element.contains(dom.element) : this.element.contains(dom);
+    }
 
     create(tagName) {
         this.element = document.createElement(tagName);

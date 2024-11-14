@@ -159,6 +159,7 @@ class TModelManager {
         for (const tmodel of this.lists.invisibleDom) {
             tmodel.styleMap = {};
             tmodel.transformMap = {};
+            tmodel.actualValues.isVisible = false;
 
             tmodel.$dom.detach();
             tmodel.$dom = null;
