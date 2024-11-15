@@ -26,8 +26,8 @@ class $Dom {
         return !!this.element;
     }
     
-    contains(dom) {
-        return dom instanceof $Dom ? this.element.contains(dom.element) : this.element.contains(dom);
+    contains(element) {
+        return element instanceof Node && this.element.contains(element);
     }
 
     create(tagName) {

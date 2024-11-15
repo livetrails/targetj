@@ -21,7 +21,7 @@ class EventListener {
 
         this.touchTimeStamp = 0;
 
-        this.cursor = { x: 0, y: 0, handlerX: 0, handlerY: 0 };
+        this.cursor = { x: 0, y: 0 };
         this.start0 = undefined;
         this.start1 = undefined;
         this.end0 = undefined;
@@ -166,7 +166,7 @@ class EventListener {
         this.currentHandlers.enterEvent = null;
         this.currentHandlers.leaveEvent = null;
         this.currentHandlers.justFocused = null;
-        this.currentHandlers.blur = null;        
+        this.currentHandlers.blur = null;
         
         if (this.eventQueue.length === 0) {
             this.currentEventName = "";
@@ -254,12 +254,7 @@ class EventListener {
                 this.cursor.y = this.start0.y;
                 
                 this.findEventHandlers(newEvent);                
-                
-                if (this.currentHandlers.touch) {
-                    this.cursor.handlerX = this.start0.x - this.currentHandlers.touch.getX();
-                    this.cursor.handlerY = this.start0.y - this.currentHandlers.touch.getY();                    
-                }
-                
+
                 event.stopPropagation();
                 break;
 
@@ -298,7 +293,7 @@ class EventListener {
                 }
 
                 this.clearStart();
-                this.touchCount = 0;             
+                this.touchCount = 0; 
 
                 event.stopPropagation();
                 break;
@@ -385,12 +380,12 @@ class EventListener {
         return this.cursor.y;
     }
     
-    swipeX() {
-        return this.cursor.x - this.cursor.handlerX;
+    swipeX(handler) {
+        return this.cursor.x - (this.start0.x - handler.getX());
     }
 
-    swipeY() {
-        return this.cursor.y - this.cursor.handlerY;
+    swipeY(handler) {
+        return this.cursor.y - (this.start0.y - handler.getY());
     }
     
     pinchDelta() {
@@ -534,7 +529,12 @@ class EventListener {
         const handler = this.getTouchHandler();
 
         return target === handler || target.getParent() === handler;
-    }    
+    }   
+    
+    isTouchHandlerOrChild(target) {
+        const handler = this.getTouchHandler();
+        return target === handler || handler?.getParent() === target;        
+    }
 
     countTouches(event) {
         return event.touches?.length ||
