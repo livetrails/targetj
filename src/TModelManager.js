@@ -240,7 +240,7 @@ class TModelManager {
                 tmodel.$dom.attr(key, tmodel.val(key));
             } else {
                 if (TUtil.isDefined(tmodel.val(key)) && tmodel.styleMap[key] !== tmodel.val(key)) {
-                    tmodel.$dom.style(key, tmodel.val(key));
+                    tmodel.$dom.style(key, `${tmodel.val(key)}`);
                     tmodel.styleMap[key] = tmodel.val(key);
                 }                    
             }

@@ -70,13 +70,11 @@ class LocationManager {
             }
             
             viewport.setCurrentChild(child);
-            viewport.setLocation();            
+            viewport.setLocation();  
             
             if (container.manageChildTargetExecution(child, shouldCalculateChildTargets)) {
                 this.calculateTargets(child);
             }
-
-            viewport.setLocation();
 
             child.overflowingFlag = false;
             if (container.getContainerOverflowMode() === 'always' 
@@ -84,6 +82,7 @@ class LocationManager {
                     || (container.getContainerOverflowMode() === 'auto' && child.getItemOverflowMode() === 'auto' && viewport.isOverflow())) {
                 child.overflowingFlag = true;
                 viewport.overflow();
+                viewport.setLocation();  
             }
             
             if (child.isIncluded() && !this.hasLocationMap[child.oid]) {

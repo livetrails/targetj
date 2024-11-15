@@ -14,9 +14,9 @@ class TargetManager {
         const activeList = tmodel.activeTargetList.slice(0);
         for (const key of activeList) {
             if (!tmodel.isTargetImperative(key)) {
-                this.applyTargetValue(tmodel, key);
-            }
+            this.applyTargetValue(tmodel, key);
         }
+    }
     }
 
     applyTargetValue(tmodel, key) {

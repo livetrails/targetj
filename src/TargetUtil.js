@@ -48,7 +48,6 @@ class TargetUtil {
         padding: true,
         left: true,
         top: true,
-        fontWeight: true,
         letterSpacing: true
     }
 
@@ -85,7 +84,8 @@ class TargetUtil {
         fontFamily: true,
         overflow: true,
         textDecoration: true,
-        boxShadow: true
+        boxShadow: true,
+        fontWeight: true
     };
     
     static scaleMap = {
@@ -148,7 +148,7 @@ class TargetUtil {
         onBlurEvent: tmodel => getEvents().onBlur(tmodel),
         onClickEvent: tmodel => getEvents().getEventType() === 'click' && getEvents().isClickHandler(tmodel),
         onTouchStart: tmodel => getEvents().isStartEvent() && getEvents().isTouchHandler(tmodel),
-        onTouchEnd: () => getEvents().isEndEvent(),
+        onTouchEnd: tmodel => getEvents().isEndEvent() && getEvents().isTouchHandler(tmodel),
         onKeyEvent: () => getEvents().getEventType() === 'key' && getEvents().currentKey,
         onSwipeEvent: tmodel => getEvents().isTouchHandler(tmodel) && getEvents().isSwipeEvent(),        
         onAnySwipeEvent: () => getEvents().isSwipeEvent(),

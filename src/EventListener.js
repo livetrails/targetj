@@ -27,7 +27,8 @@ class EventListener {
         this.end0 = undefined;
         this.end1 = undefined;
         this.touchCount = 0;
-
+        this.canFindHandlers = true;
+        
         this.currentEventName = "";
         this.currentEventType = "";
         this.currentHandlers = { 
@@ -175,8 +176,12 @@ class EventListener {
         }
         const lastEvent = this.eventQueue.shift();
         
-        if (this.touchCount === 0) {
+        if (this.canFindHandlers) {
             this.findEventHandlers(lastEvent);
+        }
+        
+        if (lastEvent.eventType === 'end') {
+            this.canFindHandlers = true;
         }
 
         this.currentEventName = lastEvent.eventName;
@@ -237,6 +242,7 @@ class EventListener {
                 this.clearTouch();
 
                 this.touchCount = this.countTouches(event);
+                this.canFindHandlers = false;
                 if (this.preventDefault(tmodel, eventName)) {
                     event.preventDefault();
                 }
@@ -265,7 +271,7 @@ class EventListener {
                 if (this.preventDefault(tmodel, eventName)) {
                     event.preventDefault();
                 }
-                if (this.touchCount > 0) {
+                if (this.touchCount > 0) {                    
                     this.move(event);
                     event.stopPropagation();
                 } else if (this.isCurrentSource('wheel')) {
@@ -339,7 +345,6 @@ class EventListener {
         this.start1 = undefined;
         this.end0 = undefined;
         this.end1 = undefined;
-        this.touchCount = 0;
     }
 
     clearTouch() {
@@ -360,6 +365,8 @@ class EventListener {
         this.clearTouch();
         this.eventQueue.length = 0;
         this.touchTimeStamp = 0;
+        this.touchCount = 0; 
+        this.canFindHandlers = true;
     }
 
     deltaX() {

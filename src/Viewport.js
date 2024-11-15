@@ -39,8 +39,6 @@ class Viewport {
     overflow() {
         this.xNext = this.scrollLeft - this.absX + this.xOverflowReset;
         this.yNext = this.ySouth;
-        this.currentChild.x = this.xNext + this.currentChild.getLeftMargin();
-        this.currentChild.y = this.yNext + this.currentChild.getTopMargin();
     }
 
     appendNewLine() {
