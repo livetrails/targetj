@@ -129,7 +129,7 @@ class EventListener {
         }
     } 
     
-    findEventHandlers({ tmodel, eventType, eventTarget }) {
+    findEventHandlers({ tmodel, eventType }) {
         
         let touchHandler, scrollLeftHandler, scrollTopHandler, pinchHandler, focusHandler;
        
@@ -147,7 +147,7 @@ class EventListener {
 
         if (this.currentHandlers.touch !== touchHandler) {
             this.currentHandlers.enterEvent = touchHandler;
-            this.currentHandlers.leaveEvent = this.currentHandlers.touch?.$dom?.contains(eventTarget) ? undefined : this.currentHandlers.touch;
+            this.currentHandlers.leaveEvent = TUtil.contains(this.currentHandlers.touch, touchHandler) ? undefined : this.currentHandlers.touch;
         }
         
         if (this.currentHandlers.focus !== focusHandler) {
@@ -180,7 +180,7 @@ class EventListener {
             this.findEventHandlers(lastEvent);
         }
         
-        if (lastEvent.eventType === 'end') {
+        if (lastEvent.eventType === 'end' || lastEvent.eventType === 'click') {
             this.canFindHandlers = true;
         }
 
@@ -197,7 +197,7 @@ class EventListener {
             return;
         }
 
-        const { type: originalName, target: eventTarget } = event;
+        const { type: originalName } = event;
         const eventItem = this.eventMap[originalName];
 
         if (!eventItem) {
@@ -229,7 +229,7 @@ class EventListener {
             }
         }
 
-        const newEvent = { eventName, eventItem, eventType, originalName, tmodel, timeStamp: now, eventTarget };
+        const newEvent = { eventName, eventItem, eventType, originalName, tmodel, timeStamp: now };
 
         if (queue) {
             this.eventQueue.push(newEvent);
@@ -472,12 +472,11 @@ class EventListener {
     }
     
     isEnterEventHandler(handler) {
-        return this.currentHandlers.enterEvent === handler || this.currentHandlers.enterEvent?.getDomParent() === handler;
+        return TUtil.contains(handler, this.currentHandlers.enterEvent);
     }
     
     isLeaveEventHandler(handler) {
-        const parent = this.currentHandlers.leaveEvent?.getDomParent();
-        return this.currentHandlers.leaveEvent === handler || (parent === handler && this.currentHandlers.enterEvent !== parent);
+        return TUtil.contains(handler, this.currentHandlers.leaveEvent) && !this.isEnterEventHandler(handler);
     }
     
     onFocus(handler) {
@@ -531,9 +530,8 @@ class EventListener {
         return target === handler || target.getParent() === handler;
     }   
     
-    isTouchHandlerOrChild(target) {
-        const handler = this.getTouchHandler();
-        return target === handler || handler?.getParent() === target;        
+    containsTouchHandler(target) {
+        return TUtil.contains(target, this.getTouchHandler());      
     }
 
     countTouches(event) {

@@ -48,6 +48,24 @@ class TUtil {
             }
         }
     }
+    
+    static contains(container, tmodel) {
+        if (!container || !tmodel) {
+            return false;
+        }
+        
+        if (container === tmodel || tmodel.getDomHolder() === container.$dom) {
+            return true;
+        } 
+        if (tmodel.getDomParent()?.getDomHolder() === container.$dom) {
+            return true;
+        }
+        if (tmodel.getDomParent()?.getDomParent()?.getDomHolder() === container.$dom) {
+            return true;
+        }
+
+        return false;
+    }
 
     static list2map(list, defaultValue) {
         return list.reduce((map, item) => {
