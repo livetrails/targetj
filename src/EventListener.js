@@ -147,7 +147,7 @@ class EventListener {
 
         if (this.currentHandlers.touch !== touchHandler) {
             this.currentHandlers.enterEvent = touchHandler;
-            this.currentHandlers.leaveEvent = TUtil.contains(this.currentHandlers.touch, touchHandler) ? undefined : this.currentHandlers.touch;
+            this.currentHandlers.leaveEvent = this.currentHandlers.touch;
         }
         
         if (this.currentHandlers.focus !== focusHandler) {
@@ -163,10 +163,10 @@ class EventListener {
     }    
 
     captureEvents() {
-        this.currentHandlers.enterEvent = null;
-        this.currentHandlers.leaveEvent = null;
-        this.currentHandlers.justFocused = null;
-        this.currentHandlers.blur = null;
+        this.currentHandlers.enterEvent = undefined;
+        this.currentHandlers.leaveEvent = undefined;
+        this.currentHandlers.justFocused = undefined;
+        this.currentHandlers.blur = undefined;
         
         if (this.eventQueue.length === 0) {
             this.currentEventName = "";
@@ -440,7 +440,7 @@ class EventListener {
         return this.deltaX() !== 0 || this.deltaY() !== 0;
     }
     isEndEvent() {
-        return this.getEventType() === 'end';
+        return this.getEventType() === 'end' || this.getEventType() === 'click';
     }
     
     isStartEvent() {
@@ -463,20 +463,16 @@ class EventListener {
         return this.getTouchHandlerType() === type && this.isClickEvent();
     }
     
-    isTouchEndHandler(handler) {
-        return this.getTouchHandler() === handler && this.getEventType() === 'end';
-    }
-
     isTouchHandler(handler) {
         return this.getTouchHandler() === handler && handler.canHandleEvents('touch');
     }
     
     isEnterEventHandler(handler) {
-        return TUtil.contains(handler, this.currentHandlers.enterEvent);
+        return TUtil.contains(handler, this.currentHandlers.enterEvent) && !TUtil.contains(handler, this.currentHandlers.leaveEvent);
     }
     
     isLeaveEventHandler(handler) {
-        return TUtil.contains(handler, this.currentHandlers.leaveEvent) && !this.isEnterEventHandler(handler);
+        return TUtil.contains(handler, this.currentHandlers.leaveEvent) && !TUtil.contains(handler, this.currentHandlers.enterEvent);
     }
     
     onFocus(handler) {
@@ -530,8 +526,8 @@ class EventListener {
         return target === handler || target.getParent() === handler;
     }   
     
-    containsTouchHandler(target) {
-        return TUtil.contains(target, this.getTouchHandler());      
+    containsTouchHandler(tmodel) {
+        return TUtil.contains(tmodel, this.getTouchHandler());      
     }
 
     countTouches(event) {

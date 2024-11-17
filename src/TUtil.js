@@ -54,13 +54,9 @@ class TUtil {
             return false;
         }
         
-        if (container === tmodel || tmodel.getDomHolder() === container.$dom) {
-            return true;
-        } 
-        if (tmodel.getDomParent()?.getDomHolder() === container.$dom) {
-            return true;
-        }
-        if (tmodel.getDomParent()?.getDomParent()?.getDomHolder() === container.$dom) {
+        if (container === tmodel 
+                || tmodel.getDomParent() === container
+                || tmodel.getDomParent()?.getDomParent() === container) {
             return true;
         }
 
