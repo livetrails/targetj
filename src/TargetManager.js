@@ -8,15 +8,14 @@ import { SearchUtil } from "./SearchUtil.js";
  * It is responsible for managing target execution and cycles, as well as updating actual values toward target values.
  */
 class TargetManager {
-    applyTargetValues(tmodel) {
+    applyTargetValues(tmodel, activeList = tmodel.activeTargetList.slice(0)) {
         tmodel.targetMethodMap = {};
 
-        const activeList = tmodel.activeTargetList.slice(0);
         for (const key of activeList) {
             if (!tmodel.isTargetImperative(key)) {
-            this.applyTargetValue(tmodel, key);
+                this.applyTargetValue(tmodel, key);
+            }
         }
-    }
     }
 
     applyTargetValue(tmodel, key) {
@@ -34,52 +33,79 @@ class TargetManager {
         if (!tmodel.isTargetEnabled(key)) {
             return;
         }
-        
+
         if (tmodel.isExecuted(key) && tmodel.hasUpdatingTargets(key)) {
             return;
         }
 
         if (tmodel.isExecuted(key) && tmodel.getTargetStep(key) === tmodel.getTargetSteps(key)) {
+            if (tmodel.isScheduledPending(key)) {
+                return;
+            }
             const schedulePeriod = TargetUtil.scheduleExecution(tmodel, key);
             if (schedulePeriod > 0) {
-                getRunScheduler().schedule(schedulePeriod, `actualInterval__${tmodel.oid}__${key}`);
+                getRunScheduler().schedule(schedulePeriod, `targetSchedule__${tmodel.oid}__${key}_${schedulePeriod}`);
                 return;
-            }            
+            }
         }
 
         tmodel.resetScheduleTimeStamp(key);
-                
-        if (tmodel.isExecuted(key) && tmodel.getTargetCycles(key) > 0) {
-            if (tmodel.getTargetCycle(key) < tmodel.getTargetCycles(key)) {
-                tmodel.incrementTargetCycle(key, tmodel.getTargetCycle(key));
+
+        if (tmodel.shouldExecuteCyclesInParallel(key)) {
+            let cycles = 0;
+            if (tmodel.isExecuted(key)) {
+                cycles = tmodel.getTargetCycles(key);
             } else {
-                tmodel.resetTargetCycle(key);
+                cycles = typeof target.cycles === 'function' ? target.cycles.call(tmodel, 0) : target.cycles || 0;
             }
-            tmodel.resetTargetStep(key);
-            tmodel.resetTargetInitialValue(key);       
-        }
-       
-        TargetExecutor.executeDeclarativeTarget(tmodel, key);        
-       
-        tmodel.setScheduleTimeStamp(key, TUtil.now());
-        
-        if (tmodel.shouldScheduleRun(key)) {
-            getRunScheduler().schedule(tmodel.getTargetInterval(key), `actualInterval__${tmodel.oid}__${key}`);
+
+            const promises = [];
+            for (let cycle = 0; cycle <= cycles; cycle++) {
+                promises.push(
+                    new Promise(resolve => {
+                        TargetExecutor.executeDeclarativeTarget(tmodel, key);
+                        resolve();
+                    })
+                );
+            }
+            
+            Promise.all(promises).then(() => {
+                tmodel.targetValues[key].cycle = cycles;
+                tmodel.updateTargetStatus(key);
+                if (tmodel.shouldScheduleRun(key)) {
+                    getRunScheduler().schedule(tmodel.getTargetInterval(key), `targetSchedule__${tmodel.oid}__${key}_rerun`);
+                }            
+            });
+        } else {            
+            if (tmodel.isExecuted(key) && tmodel.getTargetCycles(key) > 0) {
+                if (tmodel.getTargetCycle(key) < tmodel.getTargetCycles(key)) {
+                    tmodel.incrementTargetCycle(key, tmodel.getTargetCycle(key));
+                } else {
+                    tmodel.resetTargetCycle(key);
+                }
+                tmodel.resetTargetStep(key);
+                tmodel.resetTargetInitialValue(key);       
+            }
+
+            TargetExecutor.executeDeclarativeTarget(tmodel, key);       
         }
     }
 
-    setActualValues(tmodel) {
-        const updatingList = tmodel.updatingTargetList.slice(0);
+    setActualValues(tmodel, updatingList = tmodel.updatingTargetList.slice(0)) {
         let schedulePeriod = 0;
 
         for (const key of updatingList) {
+            if (tmodel.isScheduledPending(key)) {
+                continue;
+            }
+            
             schedulePeriod = TargetUtil.scheduleExecution(tmodel, key);
 
-            if (schedulePeriod === 0) {
-                tmodel.addToStyleTargetList(key);
-                this.setActualValue(tmodel, key);
+            if (schedulePeriod > 0) {
+                getRunScheduler().schedule(schedulePeriod, `setActualValues-${tmodel.oid}__${key}_${schedulePeriod}`);  
             } else {
-                getRunScheduler().schedule(schedulePeriod, `setActualValues-${tmodel.oid}__${key}`);                
+                tmodel.resetScheduleTimeStamp(key);
+                this.setActualValue(tmodel, key);                
             }
         }
     }
@@ -105,8 +131,8 @@ class TargetManager {
         let step = tmodel.getTargetStep(key);
         const steps = tmodel.getTargetSteps(key);
         let cycle = tmodel.getTargetCycle(key);
-        const interval = tmodel.getTargetInterval(key) || 0;
-        const oldValue = tmodel.actualValues[key];
+        const interval = tmodel.getTargetInterval(key);
+        const oldValue = tmodel.val(key);
         const oldStep = step;
         const oldCycle = cycle;
         let initialValue = tmodel.getTargetInitialValue(key);
@@ -115,11 +141,12 @@ class TargetManager {
         
         if (step <= steps) {
             if (!TUtil.isDefined(initialValue)) {
-                initialValue = TUtil.isDefined(tmodel.actualValues[key]) ? tmodel.actualValues[key] : typeof theValue === 'number' ? 0 : undefined;
+                initialValue = TUtil.isDefined(tmodel.val(key)) ? tmodel.val(key) : typeof theValue === 'number' ? 0 : undefined;
                 tmodel.setTargetInitialValue(key, initialValue);
             }
 
-            tmodel.actualValues[key] = TargetUtil.morph(tmodel, key, initialValue, theValue, step, steps);
+            tmodel.val(key, TargetUtil.morph(tmodel, key, initialValue, theValue, step, steps));
+             tmodel.addToStyleTargetList(key);
 
             tmodel.setActualValueLastUpdate(key);
 
@@ -133,20 +160,18 @@ class TargetManager {
                 }
                 
                 if (originalTarget && typeof originalTarget[`on${capKey}Step`] === 'function') {
-                    originalTarget[`on${capKey}Step`].call(originalTModel, originalTModel.actualValues[key], theValue, step, steps);
+                    originalTarget[`on${capKey}Step`].call(originalTModel, originalTModel.val(key), theValue, step, steps);
                     originalTModel.setTargetMethodName(originalTargetName, [`on${capKey}Step`]);
                 } else if (originalTarget && typeof originalTarget.onImperativeStep === 'function') {
-                    originalTarget.onImperativeStep.call(originalTModel, key, originalTModel.actualValues[key], theValue, step, steps);
+                    originalTarget.onImperativeStep.call(originalTModel, key, originalTModel.val(key), theValue, step, steps);
                     originalTModel.setTargetMethodName(originalTargetName, 'onImperativeStep');
                 }
                 
             } else {
-                TargetUtil.handleValueChange(tmodel, key, tmodel.actualValues[key], oldValue, oldStep, oldCycle);
+                TargetUtil.handleValueChange(tmodel, key, tmodel.val(key), oldValue, oldStep, oldCycle);
             }
 
             tmodel.incrementTargetStep(key);
-
-            tmodel.resetScheduleTimeStamp(key);
 
             tmodel.updateTargetStatus(key);
                      
@@ -156,7 +181,9 @@ class TargetManager {
             }
         }
 
-        tmodel.actualValues[key] = theValue;
+        tmodel.val(key, theValue);
+        tmodel.addToStyleTargetList(key);
+        
         tmodel.setActualValueLastUpdate(key);
         step = tmodel.getTargetStep(key);
 
@@ -183,18 +210,18 @@ class TargetManager {
                 }
                 
                 if (originalTarget && typeof originalTarget[`on${capKey}Step`] === 'function') {
-                    originalTarget[`on${capKey}Step`].call(originalTModel, originalTModel.actualValues[key], theValue, step, steps);
+                    originalTarget[`on${capKey}Step`].call(originalTModel, originalTModel.val(key), theValue, step, steps);
                     originalTModel.setTargetMethodName(originalTargetName, [`on${capKey}Step`]);
                 } else if (originalTarget && typeof originalTarget.onImperativeStep === 'function') {
-                    originalTarget.onImperativeStep.call(originalTModel, key, originalTModel.actualValues[key], theValue, step, steps);
+                    originalTarget.onImperativeStep.call(originalTModel, key, originalTModel.val(key), theValue, step, steps);
                     originalTModel.setTargetMethodName(originalTargetName, 'onImperativeStep');
                 }
                 
                 if (originalTarget && typeof originalTarget[`on${capKey}End`] === 'function') {
-                    originalTarget[`on${capKey}End`].call(originalTModel, originalTModel.actualValues[key], theValue, step, steps);
+                    originalTarget[`on${capKey}End`].call(originalTModel, originalTModel.val(key), theValue, step, steps);
                     originalTModel.setTargetMethodName(originalTargetName, [`on${capKey}End`]);
                 } else if (originalTarget && typeof originalTarget.onImperativeEnd === 'function') {
-                    originalTarget.onImperativeEnd.call(originalTModel, key, originalTModel.actualValues[key]);
+                    originalTarget.onImperativeEnd.call(originalTModel, key, originalTModel.val(key));
                     originalTModel.setTargetMethodName(originalTargetName, 'onImperativeEnd');
                 }
             } else {

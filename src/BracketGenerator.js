@@ -11,14 +11,20 @@ class BracketGenerator {
 
     static bracketMap = {};
     static all = {}
-
+    
     static generate(page, regenerate = false) {
         let brackets = BracketGenerator.bracketMap[page.oid];
 
-        if (!brackets || page.lastChildrenUpdate.deletions.length > 0 || regenerate) {
-            BracketGenerator.bracketMap[page.oid] = {brackets: BracketGenerator.buildTreeBottomUp(page, page.getChildren()), updateCount: 0};
+        if (!brackets || brackets.allChildren !== page.allChildren || regenerate) {
+            BracketGenerator.bracketMap[page.oid] = { 
+                brackets: BracketGenerator.buildTreeBottomUp(page, page.getChildren()), 
+                updateCount: 0, 
+                allChildren: page.allChildren 
+            };
+        } else if (page.lastChildrenUpdate.deletions.length > 0) {
+            BracketGenerator.updateTreeOnDeletions(page.lastChildrenUpdate.deletions);            
         } else if (page.lastChildrenUpdate.additions.length > 0) {
-            BracketGenerator.updateTree(page, page.lastChildrenUpdate.additions);
+            BracketGenerator.updateTreeOnAdditions(page, page.lastChildrenUpdate.additions);
         }
        
         page.lastChildrenUpdate.additions.length = 0;
@@ -26,8 +32,24 @@ class BracketGenerator {
 
         return BracketGenerator.bracketMap[page.oid].brackets;
     }
-
-    static updateTree(page, additions = []) {
+    
+    static updateTreeOnDeletions(deletions) {
+        function deleteChildRecursively(parent, child) {
+            if (parent) {
+                const index = parent.allChildren.indexOf(child);
+                if (index >= 0) {
+                    parent.allChildren.splice(index, 1);
+                    if (parent.allChildren.length === 0) {
+                        deleteChildRecursively(parent.parent, parent);
+                    }
+                }
+            }
+        }
+        
+        deletions.forEach(child => deleteChildRecursively(child.bracket, child));
+    }
+        
+    static updateTreeOnAdditions(page, additions = []) {
         const list = page.getChildren();
 
         const affectedIndices = new Set();
@@ -102,7 +124,7 @@ class BracketGenerator {
             replaceCount++;
         }
                 
-        var indexOffset = currentLevel.length > mergeIndex ? currentLevel[mergeIndex].startIndex : currentLevel[currentLevel.length - 1].endIndex;
+        let indexOffset = currentLevel.length > mergeIndex ? currentLevel[mergeIndex].startIndex : currentLevel.length > 0 ? currentLevel[currentLevel.length - 1].endIndex : 0;
 
         currentLevel.splice(mergeIndex, replaceCount, ...updatedSegment);
         
@@ -154,6 +176,8 @@ class BracketGenerator {
             if (t instanceof Bracket) {
                 t.realParent = page;
                 t.parent = bracket;
+            } else {
+                t.bracket = bracket;
             }
         });
 

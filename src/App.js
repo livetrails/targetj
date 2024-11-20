@@ -24,7 +24,6 @@ const AppFn = (firstChild) => {
         my.browser = new Browser();
         my.browser.setup();
         
-        my.$document = new $Dom(document);
         my.$window = new $Dom(window);
         my.$window.addEvent("popstate", function(event) {
             if (event.state) {
@@ -40,7 +39,6 @@ const AppFn = (firstChild) => {
         my.manager = new TModelManager();
         my.runScheduler = new RunScheduler();
 
-
         my.tRootFactory = () => {
             const tmodel = new TModel('tRoot', {
                 start() {
@@ -55,9 +53,11 @@ const AppFn = (firstChild) => {
                         this.$dom = new $Dom('#tj-root');
                     }
                 },
+                styling: false,
                 domHolder() {
                     return this.$dom;
                 },
+                isVisible: true,
                 width() {
                     return document.documentElement.clientWidth || document.body.clientWidth;
                 },
@@ -92,14 +92,11 @@ const AppFn = (firstChild) => {
 
     my.start = async function() {
         my.runningFlag = false;
-
-        my.events.clearAll();
                
-        my.events.removeHandlers(my.$document);
-        my.events.addHandlers(my.$document);
-
-        my.events.removeWindowHandlers();
-        my.events.addWindowHandlers();
+        my.events.detachAll();        
+        my.events.detachWindowEvents();
+        my.events.attachWindowEvents();
+        my.events.clearAll();
 
         await my.runScheduler.resetRuns();
 
@@ -112,10 +109,10 @@ const AppFn = (firstChild) => {
     my.stop = async function() {
         my.runningFlag = false;
 
-        my.events.removeWindowHandlers();
-        my.events.removeHandlers(my.$document);
-        
+        my.events.detachAll();
+        my.events.detachWindowEvents();        
         my.events.clearAll();
+        
         await my.runScheduler.resetRuns();
 
         return my;
@@ -135,9 +132,7 @@ const AppFn = (firstChild) => {
         my.locationManager.hasLocationList.length = 0;
         my.locationManager.screenWidth = 0;
         my.locationManager.screenHeight = 0;
-        SearchUtil.foundParentWithTarget = {};
-        SearchUtil.foundTypeMap = {};
-        SearchUtil.foundTargetMap = {};
+        SearchUtil.clear();
     };
 
     my.isRunning = function() {

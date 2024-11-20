@@ -43,7 +43,7 @@ class $Dom {
     }
 
     setId(id) {
-        this.attr("id", id[0] === '#' ? id.slice(1) : id);
+        this.attr('id', id[0] === '#' ? id.slice(1) : id);
     }
 
     focus() {
@@ -103,9 +103,9 @@ class $Dom {
 
     css(css) {
         if (TUtil.isDefined(css)) {
-            this.attr('class', css);
+            this.element.className = css;
         } else {
-            return this.attr('class');
+            return this.element.className;
         }
     }
 
@@ -134,6 +134,17 @@ class $Dom {
     getBoundingClientRect() {
         return this.element.getBoundingClientRect();
     }
+    
+    isXYWithinElement(x, y) {
+        const rect = this.getBoundingClientRect();
+
+        return (
+            x >= rect.left &&
+            x <= rect.right &&
+            y >= rect.top &&
+            y <= rect.bottom
+        );
+    }
 
     parent() {
         return this.element ? this.element.parentElement : null;
@@ -144,6 +155,10 @@ class $Dom {
         if (this.$domParent && this.$domParent.childrenCount > 0) {
             this.$domParent.childrenCount--;
         }
+    }
+    
+    child(index) {
+        return this.element.children[index];
     }
 
     append$Dom($dom) {
@@ -168,7 +183,12 @@ class $Dom {
         tmodel.$dom.$domParent = this;
         this.childrenCount++;
     }
-
+    
+    deleteAllChildren() {
+        this.element.innerHTML = this.originalContent || '';
+        this.childrenCount = 0;
+    }
+   
     html(html) {
         if (TUtil.isDefined(html)) {
             if (this.childrenCount > 0) {
@@ -190,7 +210,7 @@ class $Dom {
                 this.textOnly = false;
             }
         } else {
-            return this.originalContent;
+            return TUtil.isDefined(this.originalContent) ? this.originalContent : this.element.innerHTML;
         }
     }
 
@@ -213,7 +233,7 @@ class $Dom {
                 this.textOnly = true;
             }
         } else {
-            return this.originalContent;
+            return TUtil.isDefined(this.originalContent) ? this.originalContent : this.element.textContent;
         }
     }
 
@@ -227,6 +247,14 @@ class $Dom {
         } else {
             return this.element.innerHTML;
         }
+    }
+    
+    innerText(text) {
+        if (TUtil.isDefined(text)) {
+            this.element.innerText = text;
+        } else {
+            return this.element.innerText;
+        }        
     }
 
     addClass(className) {
@@ -280,6 +308,14 @@ class $Dom {
     query(selector) {
         return selector[0] === '#' ? $Dom.findById(selector) : selector[0] === '.' ? this.findFirstByClass(selector) : this.findFirstByTag(selector);
     }
+    
+    stamp() {
+        this.attr('data-tgt', 'true');
+    }
+    
+    static getAllStamped() {
+        return document.querySelectorAll('[data-tgt="true"]');
+    }
 
     static query(selector) {
         return selector[0] === '#' ? $Dom.findById(selector) : selector[0] === '.' ? $Dom.findFirstByClass(selector) : $Dom.findFirstByTag(selector);
@@ -328,6 +364,14 @@ class $Dom {
     static hasFocus(tmodel) {
         return tmodel.hasDom() && document.activeElement === tmodel.$dom.element;
     }
+
+    static getWindowScrollTop() {
+        return window.pageYOffset || document.documentElement.scrollTop || 0;        
+    }
+    
+    static getWindowScrollLeft() {
+        return window.pageXOffset || document.documentElement.scrollLeft || 0;        
+    }    
 
     static ready(callback) {
         const $doc = new $Dom(document);

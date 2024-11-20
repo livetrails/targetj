@@ -1,14 +1,17 @@
 import { TargetUtil } from "./TargetUtil.js";
 import { TUtil } from "./TUtil.js";
 import { Easing } from "./Easing.js";
+import { getEvents } from "./App.js";
 
 /**
  * It is responsible for executing both declarative and imperative targets.
  */
 class TargetExecutor {
-    static executeDeclarativeTarget(tmodel, key) {
+    static needsRerun = false;
+    
+    static executeDeclarativeTarget(tmodel, key) {  
         TargetExecutor.resolveTargetValue(tmodel, key);
-        TargetExecutor.updateTarget(tmodel, tmodel.targetValues[key], key);
+        TargetExecutor.updateTarget(tmodel, tmodel.targetValues[key], key);      
     }
 
     static executeImperativeTarget(tmodel, key, value, steps, interval, easing, originalTargetName) {
@@ -17,7 +20,6 @@ class TargetExecutor {
 
         targetValue.isImperative = true;
         targetValue.originalTargetName = originalTargetName;
-
 
         if (TargetUtil.isListTarget(value)) {
             TargetExecutor.assignListTarget(targetValue, value.list, value.list[0], steps, interval, easing);
@@ -38,14 +40,18 @@ class TargetExecutor {
         targetValue.executionCount++;
         targetValue.executionFlag = true;
 
-        tmodel.addToStyleTargetList(key);
-        tmodel.setTargetMethodName(key, 'value');
-
         if (tmodel.getTargetSteps(key) === 0) {
             TargetExecutor.snapActualToTarget(tmodel, key);
         }
+        
+        tmodel.addToStyleTargetList(key);
+        tmodel.setTargetMethodName(key, 'value');        
 
         tmodel.updateTargetStatus(key);
+        
+        if (tmodel.isTargetUpdating(key)) {
+            TargetExecutor.needsRerun = true;
+        }
     }
 
     static assignListTarget(targetValue, valueList, initialValue, steps, interval, easing) {
@@ -64,6 +70,14 @@ class TargetExecutor {
         targetValue.step = 0;
         targetValue.cycles = 0;
     }
+    
+    static executeEventHandlerTarget(groupValue) {
+        if (typeof groupValue === 'string') {
+            getEvents().attachGroupEvent(groupValue);
+        } else if (Array.isArray(groupValue)) {
+            groupValue.forEach(group =>  getEvents().attachGroupEvent(group));
+        }
+    }
 
     static assignSingleTarget(targetValue, value, initialValue, steps, cycles, interval, easing) {
         delete targetValue.valueList;
@@ -80,11 +94,11 @@ class TargetExecutor {
     }
 
     static snapActualToTarget(tmodel, key) {
-        const oldValue = tmodel.actualValues[key];
+        const oldValue = tmodel.val(key);
         const value = tmodel.targetValues[key].value;
-        tmodel.actualValues[key] = typeof value === 'function' ? value.call(tmodel) : value;
+        tmodel.val(key, typeof value === 'function' ? value.call(tmodel) : value);
         tmodel.setActualValueLastUpdate(key);
-        TargetUtil.handleValueChange(tmodel, key, tmodel.actualValues[key], oldValue, 0, 0);
+        TargetUtil.handleValueChange(tmodel, key, tmodel.val(key), oldValue, 0, 0);
     }
 
     static resolveTargetValue(tmodel, key) {
@@ -98,7 +112,7 @@ class TargetExecutor {
         const newSteps = valueArray[1] || 0;
         const newInterval = valueArray[2] || 0;
         const newCycles = valueArray[3] || 0;
-        
+                
         const targetValue = tmodel.targetValues[key] || TargetUtil.emptyValue();
         const theValue = targetValue.value;
 
@@ -117,7 +131,7 @@ class TargetExecutor {
             TargetExecutor.assignListTarget(targetValue, newValue.list, newValue.list[0], newSteps, newInterval, easing);
         } else {
             TargetExecutor.assignSingleTarget(targetValue, newValue, targetInitial, newSteps, newCycles, newInterval, easing);
-            if (newSteps > 0 && TUtil.areEqual(theValue, newValue, tmodel.targets[key] ? !!tmodel.targets[key].deepEquality : false)) {
+            if (newSteps > 0 && TUtil.areEqual(theValue, newValue, tmodel.targets[key]?.deepEquality ?? false) && newValue !== tmodel.val(key)) {
                 tmodel.resetTargetStep(key);
             }
         }

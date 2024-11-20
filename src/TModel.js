@@ -1,9 +1,10 @@
 import { BaseModel } from "./BaseModel.js";
 import { getRunScheduler } from "./App.js";
 import { Viewport } from "./Viewport.js";
-    import { TUtil } from "./TUtil.js";
+import { TUtil } from "./TUtil.js";
 import { SearchUtil } from "./SearchUtil.js";
- import { TModelUtil } from "./TModelUtil.js";
+import { TModelUtil } from "./TModelUtil.js";
+import { TargetUtil } from "./TargetUtil.js";
 
 /**
  * It provides the base class for all objects in an app where targets are defined. 
@@ -38,9 +39,12 @@ class TModel extends BaseModel {
         
         this.visibilityStatus = { top: false, right: false, bottom: false, left: false };
         this.isNowInvisible = false;
-        this.overflowingFlag = false;
         
-        this.visibleChildren = [];         
+        this.visibleChildren = [];
+        
+        this.hasDomNow = false;
+        this.isNowVisible = false;
+        this.currentStatus = 'new';
 
         this.initTargets();        
     }
@@ -51,29 +55,35 @@ class TModel extends BaseModel {
         const scrollLeft = -this.getScrollLeft();
         const scrollTop = -this.getScrollTop();
         
-        this.viewport.xNext = scrollLeft;
-        this.viewport.xNorth = scrollLeft;
-        this.viewport.xEast = scrollLeft;
-        this.viewport.xSouth = scrollLeft;
-        this.viewport.xWest = scrollLeft;
+        const x = scrollLeft, y = scrollTop;
+        
+        this.viewport.xNext = x;
+        this.viewport.xNorth = x;
+        this.viewport.xEast = x;
+        this.viewport.xSouth = x;
+        this.viewport.xWest = x;
+        
+        this.viewport.scrollLeft = scrollLeft;
+        this.viewport.scrollTop = scrollTop;        
         
         this.viewport.absX = this.absX;
-        this.viewport.scrollLeft = scrollLeft;
+        this.viewport.absY = this.absY;
+        
         this.viewport.xOverflowReset = this.absX;        
         this.viewport.xOverflowLimit = this.absX +this.getWidth();
 
-        this.viewport.yNext = scrollTop;
-        this.viewport.yNorth = scrollTop;
-        this.viewport.yWest = scrollTop;
-        this.viewport.yEast = scrollTop;
-        this.viewport.ySouth = scrollTop;
-        
-        Object.assign(this.viewport, this.actualValues.viewport || {});
+        this.viewport.yNext = y;
+        this.viewport.yNorth = y;
+        this.viewport.yWest = y;
+        this.viewport.yEast = y;
+        this.viewport.ySouth = y;
+                
+        Object.assign(this.viewport, this.val('viewport') || {});
         
         for (const key in this.viewport) {
             const prefixedKey = `viewport_${key}`;
-            if (Object.prototype.hasOwnProperty.call(this.actualValues, prefixedKey)) {
-                this.viewport[key] = this.actualValues[prefixedKey];
+            if (TUtil.isDefined(this.val(prefixedKey))) {
+                this.viewport[key] = this.val(prefixedKey);
             }
         }
         
@@ -81,53 +91,73 @@ class TModel extends BaseModel {
     }
 
     calcAbsolutePosition(x, y) {
-        this.absX = this.getParent().absX + x;
-        this.absY = this.getParent().absY + y;
+        this.absX = TUtil.isDefined(this.val('absX')) ? this.val('absX') : this.getParent().absX + x;
+        this.absY = TUtil.isDefined(this.val('absY')) ? this.val('absY') : this.getParent().absY + y;
     }
-
-    addChild(child) {
-        const index = this.addedChildren.count + this.allChildren.length;
+    
+    addChild(child, index = this.addedChildren.count + this.allChildren.length) {
         this.addedChildren.count++;
         TModelUtil.addItem(this.addedChildren.list, child, index);
-
-        getRunScheduler().schedule(10, 'addChild-' + this.oid + "-" + child.oid);
+        
+        getRunScheduler().schedule(1, 'addChild-' + this.oid + "-" + child.oid);
 
         return this;
     }
     
     removeChild(child) {
-        this.deletedChildren.push(child);
+        child.val('canDeleteDom', true);
+        this.deletedChildren.push(child);   
         this.removeFromUpdatingChildren(child);
 
-        getRunScheduler().schedule(10, 'removeChild-' + this.oid + "-" + child.oid);
+        getRunScheduler().schedule(1, 'removeChild-' + this.oid + "-" + child.oid);
 
         return this;
     }
     
-    moveChildTo(child, toIndex) {
-        const newArray = this.allChildren.slice(0); 
-        const fromIndex = this.allChildren.indexOf(child);
+    moveChild(child, newIndex) {
+        
+        const currentIndex = this.allChildren.indexOf(child);
 
-        if (fromIndex === -1 || toIndex < 0 || toIndex > newArray.length) {
-            return;
+        if (currentIndex === newIndex) {
+            return this;
         }
 
-        newArray.splice(fromIndex, 1);
-        if (toIndex === newArray.length) {
-            newArray.push(child);        
-        } else {
-            newArray.splice(toIndex, 0, child);            
-        }
-        this.allChildren = newArray;
+        this.deletedChildren.push(child);
 
-        getRunScheduler().schedule(10, `addChild-${this.oid}-${child.oid}`);
+        this.addedChildren.count++;
+        const segment = [{ index: newIndex, segment: [child] }];
+        this.addedChildren.list.push(...segment);
+
+        this.addedChildren.list.sort((a, b) => a.index - b.index);
+        
+        getRunScheduler().schedule(1, 'removeChild-' + this.oid + "-" + child.oid);
+        
+        return this;
     }
-
+    
+    
     getChildren() {
+        if (this.deletedChildren.length > 0) {
+            this.deletedChildren.forEach(child => {
+                const index = this.allChildren.indexOf(child);
+                this.lastChildrenUpdate.deletions.push(child);
+                if (index >= 0) {
+                    this.allChildren.splice(index, 1);
+                }
+            });
+                                    
+            this.deletedChildren.length = 0;
+        }        
+        
         if (this.addedChildren.count > 0) {
             this.addedChildren.list.forEach(({ index, segment }) => {
-                
-                segment.forEach(t => t.parent = this);
+                                                
+                segment.forEach(t => {
+                    t.parent = this;
+                    if (!TUtil.isDefined(t.val('canDeleteDom')) && this.val('canDeleteDom') === false) {
+                        t.val('canDeleteDom', false);
+                    }
+                });
                 
                 if (index >= this.allChildren.length) {
                     this.allChildren.push(...segment);
@@ -142,44 +172,35 @@ class TModel extends BaseModel {
             this.addedChildren.count = 0;
         }
         
-        if (this.deletedChildren.length > 0) {
-            this.deletedChildren.forEach(child => {
-                const index = this.allChildren.indexOf(child);
-                this.lastChildrenUpdate.deletions.push(index);
-                if (index >= 0) {
-                    this.allChildren.splice(index, 1);
-                }
-            });
-                        
-            this.deletedChildren.length = 0;
-        }
-        
         return this.allChildren;
     }
-
-    removeAllChildren() {
-        this.allChildren.length = 0;
+   
+    removeAll() {
+        this.allChildren = [];
         this.updatingChildrenList.length = 0;
         this.updatingChildrenMap = {};
-        
-        getRunScheduler().schedule(10, 'removeAllChildren-' + this.oid);
-
+        if (this.hasDom()) {
+            this.$dom.deleteAllChildren();
+        }
         return this;        
-    }    
+    }   
     
-    //we need to use the parent so in case there is a bracket, the child will be added to the real parent
     addToParentVisibleChildren() {
         if (this.isVisible() && this.isInFlow() && this.getParent()) {
             this.getParent().visibleChildren.push(this);
         }
-    }
-    
-    shouldCalculateChildren() {
-        if (TUtil.isDefined(this.actualValues.calculateChildren)) {
-            return this.actualValues.calculateChildren;
-        }
+    }    
 
-        return this.isVisible() && this.isIncluded() && (this.hasChildren() || this.addedChildren.count > 0 || this.getContentHeight() > 0);
+    shouldCalculateChildren() {
+        if (TUtil.isDefined(this.val('calculateChildren'))) {
+            return this.val('calculateChildren');
+        }
+        const result = this.isIncluded() && 
+                (this.isVisible() || this.currentStatus === 'new')  && 
+                (this.hasChildren() || this.addedChildren.count > 0 || this.getContentHeight() > 0);
+
+        this.currentStatus = undefined;
+        return result;
     }
          
     getFirstChild() {
@@ -198,7 +219,6 @@ class TModel extends BaseModel {
         return this.hasChildren() ? this.getChildren()[this.getChildren().length - 1] : undefined;
     }
     
-
     getChild(index) {
         return this.hasChildren() ? this.getChildren()[index] : undefined;
     }
@@ -224,29 +244,51 @@ class TModel extends BaseModel {
         return parent ? parent.val(targetName) : undefined;
     }
     
+    delVal(key) {
+        if (key.startsWith('_')) {
+            delete this[key.slice(1)];
+        } else {
+            delete this.actualValues[key];
+        }
+    }
+
     val(key, value) {
-        if (arguments.length === 2) {
-            this.actualValues[key] = value;
+        let actual = this.actualValues;
+        if (key.startsWith('_')) {
+            actual = this;
+            key = key.slice(1);
+        }
+        if (value !== undefined) {
+            if (value !== actual[key]) {
+                actual[key] = value;
+            }
             return this;
         }
-        return this.actualValues[key];
+        
+        return actual[key];
     }
-    
+
     floorVal(key) {
         return Math.floor(this.val(key));
     }
-    
-    addValue(key, value) {
-        this.actualValues[key] += value;
-        return this;
-    }
 
     getDomParent() {
-        return this.actualValues.domParent || SearchUtil.findParentByTarget(this, 'domHolder');
+        return this.val('domParent') || SearchUtil.findParentByTarget(this, 'domHolder');
     }
+   
+    getDomHolder(tmodel) {
+        const domHolder = this.val('domHolder');
+        const domParent = this.getDomParent();
 
-    getDomHolder() {
-        return this.actualValues.domHolder ? this.actualValues.domHolder : this.getDomParent() ? this.getDomParent().$dom : null;
+        if (domHolder === true && tmodel !== this) {
+            return this.$dom;
+        }
+
+        if (domHolder && domHolder !== true && tmodel.$dom !== domHolder) {
+            return domHolder;
+        }
+
+        return domParent ? domParent.$dom : null;
     }
 
     bug() {
@@ -260,7 +302,8 @@ class TModel extends BaseModel {
             { height: this.getHeight() },
             { activeTargetList: this.activeTargetList },
             { updatingTargetList: this.updatingTargetList },
-            { styleTargetList: this.styleTargetList },
+            { updatingChildrenList: this.updatingChildrenList },
+            { activeChildrenList: this.activeChildrenList },            
             { children: this.getChildren() },
             { targetValues: this.targetValues },
             { actualValues: this.actualValues }
@@ -272,18 +315,22 @@ class TModel extends BaseModel {
     }
     
     isVisible() {
-        return this.actualValues.isVisible;
+        return this.val('isVisible')
     }
     
     calcVisibility() {
         return TUtil.calcVisibility(this);
     }
+    
+    validateVisibilityInParent() {
+        return TUtil.isDefined(this.val('validateVisibilityInParent')) ? this.val('validateVisibilityInParent') : false;
+    }
 
     hasDomHolderChanged() {
-        return this.getDomHolder() && this.getDomHolder().exists() && this.$dom.parent().getAttribute("id") !== this.getDomHolder().attr("id");
+        return !this.reuseDomDefinition() && this.getDomHolder(this) && this.getDomHolder(this).exists() && this.$dom.parent() !== this.getDomHolder(this).element;
     }
     
-    hasDomChanged() {
+    hasBaseElementChanged() {
         return this.getBaseElement() !== this.$dom.getTagName();
     }
 
@@ -311,23 +358,23 @@ class TModel extends BaseModel {
     }
     
     getBaseWidth() {
-        return this.actualValues.baseWidth ?? this.getWidth();
+        return this.val('baseWidth') ?? this.getWidth();
     }
     
      getMinWidth() {
-        return this.actualValues.minWidth ?? this.getWidth();
+        return this.val('minWidth') ?? this.getWidth();
     }
    
     getTopBaseHeight() {
-        return this.actualValues.topBaseHeight ?? 0;
+        return this.val('topBaseHeight') ?? 0;
     }
 
     getContainerOverflowMode() {
-        return this.actualValues.containerOverflowMode ?? 'auto';
+        return this.val('containerOverflowMode') ?? 'auto';
     }
     
     getItemOverflowMode() {
-        return this.actualValues.itemOverflowMode ?? 'auto';
+        return this.val('itemOverflowMode') ?? 'auto';
     }    
 
     getUIDepth() {
@@ -343,55 +390,70 @@ class TModel extends BaseModel {
     }
     
     isTextOnly() {
-        return this.actualValues.textOnly;
+        return this.val('textOnly');
     }
 
     getHtml() {
-        return this.actualValues.html;
+        return this.val('html');
     }
 
     isInFlow() {
-        return this.actualValues.isInFlow;
+        return this.isInFlow;
     }
 
     canHandleEvents(eventName) {
-        const events = this.actualValues.canHandleEvents;
-        return events === eventName || (Array.isArray(events) && events.includes(eventName));
+        const events = this.val('canHandleEvents');
+        if (TUtil.isDefined(events)) {
+            return events === eventName || (Array.isArray(events) && events.includes(eventName));
+        } else {
+            if (!TUtil.isDefined(this.val('autoHandleEvents'))) {
+                this.val('autoHandleEvents', TargetUtil.getAutoHandleEvents(this));
+            }
+            return this.val('autoHandleEvents').includes(eventName);
+        }
     }
 
     keepEventDefault() {
-        return this.actualValues.keepEventDefault;
+        return TUtil.isDefined(this.val('keepEventDefault')) ? this.val('keepEventDefault') : this.reuseDomDefinition() ? true : undefined;
     }
     
+    canDeleteDom() {
+        return TUtil.isDefined(this.val('canDeleteDom')) ? this.val('canDeleteDom') : !this.reuseDomDefinition();
+    }
+
+    excludeDefaultStyling() {
+        return this.targets['defaultStyling'] === false || this.excludeStyling() || (this.reuseDomDefinition() && this.allStyleTargetList.length === 0);
+    }
+    
+    excludeStyling() {
+        return this.targets['styling'] === false
+    }
+        
     getBracketThreshold() {
-        return this.actualValues.bracketThreshold;
+        return this.val('bracketThreshold');
     }
     
     shouldBeBracketed() {
-        if (TUtil.isDefined(this.actualValues.shouldBeBracketed)) {
-            return this.actualValues.shouldBeBracketed;
+        if (TUtil.isDefined(this.val('shouldBeBracketed'))) {
+            return this.val('shouldBeBracketed');
         }        
         return this.getChildren().length > this.getBracketThreshold();  
     }
    
     isIncluded() {
-        return this.actualValues.isIncluded;
+        return this.val('isIncluded');
     }
 
     canHaveDom() {
-        return this.actualValues.canHaveDom;
+        return this.val('canHaveDom');
     }
     
     getBaseElement() {
-        return this.actualValues.baseElement;
-    }
-
-    isDomDeletable() {
-        return this.actualValues.isDomDeletable;
+        return this.val('baseElement');
     }
 
     getOpacity() {
-        return this.actualValues.opacity;
+        return this.val('opacity');
     }
     
     getCenterX() {
@@ -403,128 +465,144 @@ class TModel extends BaseModel {
     }    
 
     getX() {
-        return this.actualValues.x;
+        return this.val('x');
     }
 
     getY() {
-        return this.actualValues.y;
+        return this.val('y');
     }
     
+    getTransformX() {
+        return this.absX - this.getDomParent()?.absX;
+    }
+    
+    getTransformY() {
+        return this.absY - this.getDomParent()?.absY;
+    }    
+   
     getZ() {
-        return this.actualValues.z;
+        return this.val('z');
     }    
              
     getPerspective() {
-        return this.actualValues.perspective;
+        return this.val('perspective');
     }  
     
     getRotate() {
-        return this.actualValues.rotate;
+        return this.val('rotate');
     }     
     
     getRotateX() {
-        return this.actualValues.rotateX;
+        return this.val('rotateX');
     }    
     
     getRotateY() {
-        return this.actualValues.rotateY;
+        return this.val('rotateY');
     }   
     
     getRotateZ() {
-        return this.actualValues.rotateZ;
+        return this.val('rotateZ');
     } 
 
     getScale() {
-        return this.actualValues.scale;
+        return this.val('scale');
     }    
    
     getScaleX() {
-        return this.actualValues.scaleX;
+        return this.val('scaleX');
     }    
     
     getScaleY() {
-        return this.actualValues.scaleY;
+        return this.val('scaleY');
     }   
     
     getScaleZ() {
-        return this.actualValues.scaleZ;
+        return this.val('scaleZ');
     }    
     
     getSkewX() {
-        return this.actualValues.skewX;
+        return this.val('skewX');
     }   
     
     getSkewY() {
-        return this.actualValues.skewY;
+        return this.val('skewY');
     }    
     
     getSkewZ() {
-        return this.actualValues.skewZ;
+        return this.val('skewZ');
     }      
 
     getMeasuringScale() {
-        return this.actualValues.scale;
+        return this.val('scale');
     }
 
     getZIndex() {
-        return this.actualValues.zIndex;
+        return this.val('zIndex');
     }    
 
     getTopMargin() {
-        return this.actualValues.topMargin;
+        return this.val('topMargin');
     }
 
     getLeftMargin() {
-        return this.actualValues.leftMargin;
+        return this.val('leftMargin');
     }
 
     getRightMargin() {
-        return this.actualValues.rightMargin;
+        return this.val('rightMargin');
     }
 
     getBottomMargin() {
-        return this.actualValues.bottomMargin;
+        return this.val('bottomMargin');
     }
 
     getWidth() {
-        return this.actualValues.width;
+        return this.val('width');
     }
 
     getHeight() {
-        return this.actualValues.height;
+        return this.val('height');
     }
 
     getScrollTop() {
-        return Math.floor(this.actualValues.scrollTop);
+        return Math.floor(this.val('scrollTop'));
     }
 
     getScrollLeft() {
-        return Math.floor(this.actualValues.scrollLeft);
+        return Math.floor(this.val('scrollLeft'));
     }
 
     getCss() {
-        return this.actualValues.css.includes('tgt') ? this.actualValues.css : !this.actualValues.css ? 'tgt' : 'tgt ' + this.actualValues.css;
+        return this.val('css');
     }
 
     getStyle() {
-        return this.actualValues.style;
+        return this.val('style');
     }
     
     getBackground() {
-        return this.actualValues.background;
+        return this.val('background');
     }
     
     getBackgroundColor() {
-        return this.actualValues.backgroundColor;
+        return this.val('backgroundColor');
     }
     
     getAttributes() {
-        return this.actualValues.attributes;
+        return this.val('attributes');
     }
     
     getInputValue() {
         return this.hasDom() ? this.$dom.value() : undefined;
     }
+    
+    isOverflowHidden() {
+        return this.val('overflow') === 'hidden';
+    }
+    
+    reuseDomDefinition() {
+        return this.val('reuseDomDefinition');
+    } 
 }
 
 export { TModel };

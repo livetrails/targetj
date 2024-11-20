@@ -1,8 +1,7 @@
 import { $Dom } from "./$Dom.js";
 import { TUtil } from "./TUtil.js";
-import { getLocationManager,  getRunScheduler } from "./App.js";
+import { getLocationManager } from "./App.js";
 import { TModelUtil } from "./TModelUtil.js";
-import { TargetUtil } from "./TargetUtil.js";
 
 /**
  * It analyzes all objects and based on their needs, creates or removes DOM elements, restyles objects, and rerenders them. 
@@ -18,9 +17,10 @@ class TModelManager {
             visible: [],
             rerender: [],
             restyle: [],
+            reasyncStyle: [],
             reattach: [],
             invisibleDom: [],
-            visibleNoDom: [],
+            noDom: [],
             updatingTModels: [],
             updatingTargets: [],
             activeTargets: []
@@ -28,6 +28,7 @@ class TModelManager {
         this.visibleTypeMap = {};
         this.visibleOidMap = {};
         this.targetMethodMap = {};
+        this.noDomMap = {};
 
         this.doneTargets = [];
     }
@@ -36,14 +37,16 @@ class TModelManager {
         this.lists.visible.length = 0;
         this.lists.rerender.length = 0;
         this.lists.restyle.length = 0;
+        this.lists.reasyncStyle.length = 0;
         this.lists.reattach.length = 0;
-        this.lists.visibleNoDom.length = 0;
+        this.lists.noDom.length = 0;
         this.lists.updatingTModels.length = 0;
         this.lists.updatingTargets.length = 0;
         this.lists.activeTargets.length = 0;
         this.visibleTypeMap = {};
         this.visibleOidMap = {};
         this.targetMethodMap = {};
+        this.noDomMap = {};
     }
 
     analyze() {
@@ -61,6 +64,16 @@ class TModelManager {
                 }
 
                 this.lists.visible.push(tmodel);
+                
+                this.visibleOidMap[tmodel.oid] = tmodel;
+                if (!this.visibleTypeMap[tmodel.type]) {
+                    this.visibleTypeMap[tmodel.type] = [];
+                }
+                
+                this.visibleTypeMap[tmodel.type].push(tmodel);                
+            }
+            
+            if (visible || tmodel.isActivated()) {
                 this.needsRerender(tmodel);
                 this.needsRestyle(tmodel);
                 this.needsReattach(tmodel);
@@ -78,35 +91,37 @@ class TModelManager {
                 if (Object.keys(tmodel.targetMethodMap).length > 0) {
                     this.targetMethodMap[tmodel.oid] = { ...tmodel.targetMethodMap };
                 }
-
-                this.visibleOidMap[tmodel.oid] = tmodel;
-                if (!this.visibleTypeMap[tmodel.type]) {
-                    this.visibleTypeMap[tmodel.type] = [];
-                }
-                this.visibleTypeMap[tmodel.type].push(tmodel);
-
-                if (
-                    tmodel.canHaveDom() &&
-                    !tmodel.hasDom() &&
-                    tmodel.getDomHolder() &&
-                    tmodel.getDomHolder().exists() &&
-                    !this.lists.visibleNoDom.includes(tmodel)
-                ) {
-                    this.lists.visibleNoDom.push(tmodel);
-                }
+                
+                tmodel.deactivate();
             }
+            
+            if ((visible || !tmodel.canDeleteDom()) && 
+                    (tmodel.canHaveDom() &&
+                    !tmodel.hasDom() &&
+                    !this.noDomMap[tmodel.oid])
+            ) {
+                this.lists.noDom.push(tmodel);
+                this.noDomMap[tmodel.oid] = true;
+            }   
         }
 
         const lastVisible = Object.values(lastVisibleMap)
-            .filter(tmodel => tmodel !== null && tmodel.hasDom() && tmodel.isDomDeletable());
+            .filter(tmodel => tmodel !== null && tmodel.hasDom() && tmodel.canDeleteDom());
 
         this.lists.invisibleDom.push(...lastVisible);
+
+        return this.lists.noDom.length > 0 ? 0 : 
+            this.lists.reattach.length > 0 ? 1 : 
+            this.lists.rerender.length > 0 ? 2 : 
+            this.lists.reasyncStyle.length > 0 ? 3 :
+            this.lists.invisibleDom.length > 0 ? 4 :
+            this.lists.restyle.length > 0 ? 5 : -1;    
     }
 
     needsRerender(tmodel) {
         if (tmodel.hasDom() && TUtil.isDefined(tmodel.getHtml()) &&
                 (tmodel.$dom.html() !== tmodel.getHtml() || tmodel.$dom.textOnly !== tmodel.isTextOnly())) {
-            this.lists.rerender.push(tmodel);
+            this.lists.rerender.push(tmodel);            
             return true;
         }
 
@@ -114,28 +129,27 @@ class TModelManager {
     }
 
     needsRestyle(tmodel) {
-        if (tmodel.hasDom() && tmodel.styleTargetList.length > 0) {
-            this.lists.restyle.push(tmodel);
-            tmodel.domHeight = undefined;
-            tmodel.domWidth = undefined;            
-            return true;
+        if (tmodel.hasDom()) {  
+            if (tmodel.styleTargetList.length > 0) {
+                this.lists.restyle.push(tmodel);
+                tmodel.domHeight = undefined;
+                tmodel.domWidth = undefined;            
+            }
+            if (tmodel.asyncStyleTargetList.length > 0) {
+                this.lists.reasyncStyle.push(tmodel);
+            }
         }
-
-        return false;
     }
 
     needsReattach(tmodel) {
-        if (tmodel.hasDom() && (tmodel.hasDomHolderChanged() || tmodel.hasDomChanged())) {
+        if (tmodel.hasDom() && !tmodel.reuseDomDefinition() && (tmodel.hasDomHolderChanged() || tmodel.hasBaseElementChanged())) {
             this.lists.reattach.push(tmodel);
-            return true;
         }
-
-        return false;
     }
 
     renderTModels() {
         for (const tmodel of this.lists.rerender) {
-            tmodel.isTextOnly() ? tmodel.$dom.text(tmodel.getHtml()) : tmodel.$dom.html(tmodel.getHtml());
+            tmodel.isTextOnly() ? tmodel.$dom?.text(tmodel.getHtml()) : tmodel.$dom?.html(tmodel.getHtml());
             tmodel.setActualValueLastUpdate('html');
             tmodel.domHeight = undefined;
             tmodel.domWidth = undefined;
@@ -143,15 +157,16 @@ class TModelManager {
     }
 
     reattachTModels() {
-        for (const tmodel of this.lists.reattach) {
-            tmodel.$dom.detach();
+        for (const tmodel of this.lists.reattach) {            
+            tmodel.$dom?.detach();
             
-            if (tmodel.hasDomChanged()) {
+            if (tmodel.hasBaseElementChanged()) {
                 TModelUtil.createDom(tmodel);
-                this.fixStyle(tmodel);
             }
-                           
-            tmodel.getDomHolder().appendTModel$Dom(tmodel);
+              
+            if (tmodel.getDomHolder(tmodel)) {  
+                tmodel.getDomHolder(tmodel).appendTModel$Dom(tmodel);
+            }
         }
     }
     
@@ -159,101 +174,30 @@ class TModelManager {
         for (const tmodel of this.lists.invisibleDom) {
             tmodel.styleMap = {};
             tmodel.transformMap = {};
-            tmodel.actualValues.isVisible = false;
-
-            tmodel.$dom.detach();
+            tmodel.val('isVisible', false);
+            
+            tmodel.$dom?.detach();
             tmodel.$dom = null;
         }
 
         this.lists.invisibleDom.length = 0;
-
-        getRunScheduler().schedule(0, "deleteDoms");
     }
 
     fixStyles() {
         for (const tmodel of this.lists.restyle) {
-            this.fixStyle(tmodel);
-        }
+            if (tmodel.hasDom()) {
+                TModelUtil.fixStyle(tmodel);
+            }
+        }       
     }
     
-    fixStyle(tmodel) {
-
-        let transformUpdate = false;
-        tmodel.styleTargetList.forEach(key => {
-            if (key === 'x') {
-                const x = tmodel.absX - tmodel.getDomParent().absX
-                if (tmodel.transformMap['x'] !== x) {
-                    tmodel.transformMap[key] = x;
-                    transformUpdate = true;
-                }
-            } else if (key === 'y') {
-                const y = tmodel.absY - tmodel.getDomParent().absY;
-                if (tmodel.transformMap['y'] !== y) {
-                    tmodel.transformMap[key] = y;
-                    transformUpdate = true;
-                }
-            } else if (TargetUtil.transformMap[key]) {
-                const value = TargetUtil.rotate3D[key] ? tmodel.val(key) : TargetUtil.scaleMap[key] ? TUtil.formatNum(tmodel.val(key), 2) : tmodel.floorVal(key);
-                if (tmodel.transformMap[key] !== value) {
-                    tmodel.transformMap[key] = value;
-                    transformUpdate = true;
-                } 
-            } else if (key === 'width') {
-                const width = Math.floor(tmodel.getWidth());
-
-                if (tmodel.$dom.width() !== width) {
-                    tmodel.styleMap['width'] = width;
-                    tmodel.$dom.width(width);
-                }
-            } else if (key === 'height') {
-                const height = Math.floor(tmodel.getHeight());
-
-                if (tmodel.$dom.height() !== height) {
-                    tmodel.styleMap['height'] = height;                    
-                    tmodel.$dom.height(height);
-                }                    
-            } else if (key === 'style') {
-                const style = tmodel.getStyle();
-                if (TUtil.isDefined(style) && tmodel.styleMap.style !== style) {
-                    tmodel.$dom.setStyleByMap(tmodel.getStyle());
-                    tmodel.styleMap.style = style;
-                }
-            } else if (key === 'attributes') {
-                const attributes = tmodel.getAttributes();
-                if (TUtil.isDefined(attributes) && tmodel.styleMap.attributes !== attributes) {
-                    Object.keys(attributes).forEach(key => {
-                        tmodel.$dom.attr(key, attributes[key]);
-                    });
-                    tmodel.styleMap.attributes = attributes;
-                }                  
-            } else if (key === 'css') {
-                const css = tmodel.getCss();
-                if (tmodel.$dom.css() !== css) {
-                    tmodel.$dom.css(css);
-                }                    
-            } else if (TargetUtil.styleWithUnitMap[key]) {
-                if (TUtil.isDefined(tmodel.val(key)) && tmodel.styleMap[key] !== tmodel.val(key)) {
-                    tmodel.$dom.style(key, TUtil.isNumber(tmodel.val(key)) ? `${tmodel.val(key)}px` : tmodel.val(key));
-                    tmodel.styleMap[key] = tmodel.val(key);
-                } 
-            } else if (TargetUtil.attributeTargetMap[key]) {
-                tmodel.$dom.attr(key, tmodel.val(key));
-            } else {
-                if (TUtil.isDefined(tmodel.val(key)) && tmodel.styleMap[key] !== tmodel.val(key)) {
-                    tmodel.$dom.style(key, `${tmodel.val(key)}`);
-                    tmodel.styleMap[key] = tmodel.val(key);
-                }                    
+    fixAsyncStyles() {
+        for (const tmodel of this.lists.reasyncStyle) {
+            if (tmodel.hasDom()) {
+                TModelUtil.fixAsyncStyle(tmodel);
             }
-        });
-            
-        if (transformUpdate) {
-            tmodel.$dom.transform(TModelUtil.getTransformString(tmodel));
         }
-        
-        tmodel.styleTargetMap = {};
-        tmodel.styleTargetList.length = 0;
-        
-    }
+    }    
 
     completeDoneTModels() {
         this.doneTargets.forEach(target => {
@@ -267,51 +211,34 @@ class TModelManager {
         });
     }
 
-    createDoms() {
-        const contentList = [];
+    createDoms() {        
+        if (this.lists.noDom.length === 0) { 
+            return;
+        }
+        
         const needsDom = [];
 
-        this.lists.visibleNoDom.sort((a, b) => {
-            if (a.hasChildren() && b.hasChildren()) {
-                return a.getUIDepth() < b.getUIDepth() ? -1 : 1;
-            } else {
-                return a.hasChildren() ? -1 : 1;
-            }
+        this.lists.noDom.sort((a, b) => {
+            return a.getUIDepth() < b.getUIDepth() ? -1 : 1;
         });
 
-        for (const tmodel of this.lists.visibleNoDom) {
+        for (const tmodel of this.lists.noDom) {
             let $dom;
             if ($Dom.query(`#${tmodel.oid}`)) {
                 $dom = new $Dom(`#${tmodel.oid}`);
                 tmodel.$dom = $dom;
+                tmodel.hasDomNow = true;
             } else {                
                 needsDom.push(tmodel);
             }
         }
         
         for (const tmodel of needsDom) {
-            
-            tmodel.$dom = new $Dom();
-            TModelUtil.createDom(tmodel);
-            this.fixStyle(tmodel);  
-
-            const contentItem = contentList.find(item => item.domHolder === tmodel.getDomHolder());
-
-            if (contentItem) {
-                contentItem.tmodels.push(tmodel);
-            } else {
-                contentList.push({ domHolder: tmodel.getDomHolder(), tmodels: [tmodel] });
+            if (tmodel.getDomHolder(tmodel)?.exists()) {
+                tmodel.$dom = new $Dom();
+                TModelUtil.createDom(tmodel);
+                tmodel.getDomHolder(tmodel).appendTModel$Dom(tmodel);
             }
-        }
-
-        contentList.map(content => {
-            content.tmodels.map(tmodel => {
-                content.domHolder.appendTModel$Dom(tmodel);
-            });
-        });
-
-        if (contentList.length) {
-            getRunScheduler().schedule(1, "createDom");
         }
     }
 }

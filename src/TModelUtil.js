@@ -1,4 +1,5 @@
 import { TUtil } from "./TUtil.js";
+import { TargetUtil } from "./TargetUtil.js";
 import { $Dom } from "./$Dom.js";
 
 /**
@@ -88,13 +89,12 @@ class TModelUtil {
             isInFlow: true,
             baseElement: 'div',
             canHaveDom: true,
-            canHandleEvents: false,
             widthFromDom: false,
             heightFromDom: false,
-            keepEventDefault: false,
             isIncluded: true,
             bracketThreshold: 5,
-            isDomDeletable: true
+            keepEventDefault: undefined,            
+            canDeleteDom: undefined
         };
     }
     
@@ -103,24 +103,138 @@ class TModelUtil {
             position: 'absolute', 
             left: 0, 
             top: 0,
-            zIndex: 1,
-            css: ''
+            zIndex: 1
         };
     }
     
+    static shouldMeasureHeightFromDom(tmodel) {
+        return (!tmodel.excludeDefaultStyling() && !TUtil.isDefined(tmodel.targetValues.height) && !TUtil.isDefined(tmodel.targets.height) && !tmodel.hasChildren()) 
+            || !!tmodel.getTargetValue('heightFromDom');   
+    }
+    
+    static shouldMeasureWidthFromDom(tmodel) {
+        return (!tmodel.excludeDefaultStyling() && !tmodel.reuseDomDefinition() && !TUtil.isDefined(tmodel.targetValues.width) && !TUtil.isDefined(tmodel.targets.width) && !tmodel.hasChildren()) 
+            || !!tmodel.getTargetValue('widthFromDom');   
+    } 
+
     static createDom(tmodel) {
         tmodel.$dom = new $Dom();
         tmodel.$dom.create(tmodel.getBaseElement());
         tmodel.$dom.setSelector(`#${tmodel.oid}`);
         tmodel.$dom.setId(tmodel.oid);
+        tmodel.$dom.stamp();
+        tmodel.isTextOnly() ? tmodel.$dom.text(tmodel.getHtml()) : tmodel.$dom.html(tmodel.getHtml());
+        tmodel.setActualValueLastUpdate('html');
+        tmodel.domHeight = undefined;
+        tmodel.domWidth = undefined;        
         tmodel.transformMap = {};
         tmodel.styleMap = {};
         tmodel.allStyleTargetList.forEach(function(key) {
             if (TUtil.isDefined(tmodel.val(key))) {
                 tmodel.addToStyleTargetList(key);
             }
-        });                 
+        });
+        TModelUtil.fixStyle(tmodel);
+        TModelUtil.fixAsyncStyle(tmodel);
     }
+    
+    static getTransformValue(tmodel, key) {
+        let value;
+        
+        if (key === 'x') {
+            value = tmodel.getTransformX();
+        } else if (key === 'y') {
+            value = tmodel.getTransformY();
+        } else if (TargetUtil.transformMap[key]) {
+            value = TargetUtil.rotate3D[key]
+                ? tmodel.val(key)
+                : TargetUtil.scaleMap[key]
+                ? TUtil.formatNum(tmodel.val(key), 2)
+                : tmodel.floorVal(key);
+        }
+        
+        return value;
+    }
+
+    static fixStyle(tmodel) {
+        let transformUpdate = false;
+        tmodel.styleTargetList.forEach(key => {
+            if (TargetUtil.transformMap[key]) {
+                const value = TModelUtil.getTransformValue(tmodel, key);
+                if (tmodel.transformMap[key] !== value) {
+                    tmodel.transformMap[key] = value;
+                    transformUpdate = true;
+                }          
+            } else if (key === 'width') {
+                const width = Math.floor(tmodel.getWidth());
+
+                if (tmodel.$dom.getStyleValue('width') !== width) {
+                    tmodel.styleMap['width'] = width; 
+                    tmodel.$dom.width(width); 
+                }            
+            } else if (key === 'height') {
+                const height = Math.floor(tmodel.getHeight());
+
+                if (tmodel.$dom.getStyleValue('height') !== height) {
+                    tmodel.styleMap['height'] = height; 
+                    tmodel.$dom.height(height); 
+                }                                      
+            } else if (TargetUtil.styleWithUnitMap[key]) {
+                if (TUtil.isDefined(tmodel.val(key)) && tmodel.styleMap[key] !== tmodel.val(key)) {
+                    tmodel.$dom.style(key, TUtil.isNumber(tmodel.val(key)) ? `${tmodel.val(key)}px` : tmodel.val(key));
+                    tmodel.styleMap[key] = tmodel.val(key);
+                } 
+            } else {
+                if (TUtil.isDefined(tmodel.val(key)) && tmodel.styleMap[key] !== tmodel.val(key)) {
+                    tmodel.$dom.style(key, `${tmodel.val(key)}`);
+                    tmodel.styleMap[key] = tmodel.val(key);
+                }                    
+            }
+        });
+                
+        if (transformUpdate) {
+            tmodel.$dom.transform(TModelUtil.getTransformString(tmodel));
+        }
+        
+        tmodel.styleTargetMap = {};
+        tmodel.styleTargetList.length = 0;
+    }    
+
+    
+    static fixAsyncStyle(tmodel) {
+        tmodel.asyncStyleTargetList.forEach(key => { 
+            if (key === 'style') {
+                const style = tmodel.getStyle();
+                if (TUtil.isDefined(style) && tmodel.styleMap.style !== style) {
+                    tmodel.$dom.setStyleByMap(tmodel.getStyle());
+                    tmodel.styleMap.style = style;
+                }
+            } else if (key === 'attributes') {
+                const attributes = tmodel.getAttributes();
+                if (TUtil.isDefined(attributes) && tmodel.styleMap.attributes !== attributes) {
+                    Object.keys(attributes).forEach(key => {
+                        tmodel.$dom.attr(key, attributes[key]);
+                    });
+                    tmodel.styleMap.attributes = attributes;
+                }                  
+            } else if (key === 'css') {
+                const css = tmodel.getCss();
+                if (tmodel.$dom.css() !== css) {
+                    tmodel.$dom.css(css);
+                }                    
+            } else if (TargetUtil.attributeTargetMap[key]) {
+                tmodel.$dom.attr(key, tmodel.val(key));
+            } else {
+                if (TUtil.isDefined(tmodel.val(key)) && tmodel.styleMap[key] !== tmodel.val(key)) {
+                    tmodel.$dom.style(key, `${tmodel.val(key)}`);
+                    tmodel.styleMap[key] = tmodel.val(key);
+                }                    
+            }
+        });
+                
+        tmodel.asyncStyleTargetMap = {};
+        tmodel.asyncStyleTargetList.length = 0;
+    }    
     
     static getTransformString(tmodel) {
         const processed = {};

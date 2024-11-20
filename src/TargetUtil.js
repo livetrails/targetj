@@ -62,17 +62,20 @@ class TargetUtil {
         ...TargetUtil.dimMap,
         ...TargetUtil.styleWithUnitMap,
         ...TargetUtil.colorMap,
-        position: true,
         opacity: true,
         zIndex: true,
-        css: true,
-        style: true,
-        textAlign: true,
         border: true,
         borderTop: true,
         borderLeft: true,
         borderRight: true,
         borderBottom: true,
+    };
+    
+    static asyncStyleTargetMap = {
+        position: true,
+        css: true,
+        style: true,
+        textAlign: true,
         boxSizing: true,
         transformStyle: true,
         transformOrigin: true,
@@ -132,41 +135,26 @@ class TargetUtil {
         tabindex: true
     };
     
+    static mustExecuteTargets = {
+        width: true,
+        height: true,
+        canHandleEvents: true,
+        heightFromDom: true,
+        widthFromDom: true
+    };
+    
+    static coreTargetMap = {
+        x: true,
+        y: true
+    };
+    
     static cssFunctionMap = {
         skew: { x: 0, y: 0 },
         translate3d: { x: 0, y: 0, z: 0 },
         rotate3d: { x: 0, y: 0, z: 0, a: 0 },
         scale3d: { x: 0, y: 0, z: 0 }
     };
-
-    static targetConditionMap = {
-        onVisibleEvent: tmodel => tmodel.isNowVisible,
-        onResize: tmodel => getLocationManager().resizeFlag || tmodel.isNowVisible,
-        onParentResize: tmodel => { return tmodel.getParent().getActualValueLastUpdate('width') > tmodel.getActualValueLastUpdate('width') ||
-                    tmodel.getParent().getActualValueLastUpdate('height') > tmodel.getActualValueLastUpdate('height'); },
-        onFocusEvent: tmodel => getEvents().onFocus(tmodel),
-        onBlurEvent: tmodel => getEvents().onBlur(tmodel),
-        onClickEvent: tmodel => getEvents().getEventType() === 'click' && getEvents().isClickHandler(tmodel),
-        onTouchStart: tmodel => getEvents().isStartEvent() && getEvents().containsTouchHandler(tmodel),
-        onTouchEnd: tmodel => getEvents().isEndEvent() && getEvents().containsTouchHandler(tmodel),
-        onSwipeEvent: tmodel => getEvents().containsTouchHandler(tmodel) && getEvents().isSwipeEvent(),        
-        onAnySwipeEvent: () => getEvents().isSwipeEvent(),
-        onTouchEvent: tmodel => getEvents().isTouchHandler(tmodel),
-        onKeyEvent: () => getEvents().getEventType() === 'key' && getEvents().currentKey,
-        onEnterEvent: tmodel => getEvents().isEnterEventHandler(tmodel),
-        onLeaveEvent: tmodel => getEvents().isLeaveEventHandler(tmodel),
-        onScrollEvent: tmodel => (getEvents().isScrollLeftHandler(tmodel) && getEvents().deltaX()) || 
-                      (getEvents().isScrollTopHandler(tmodel) && getEvents().deltaY())
-    };
-    
-    static otherTargetEventsMap = {
-        onVisibleEvent: true,
-        onChildrenChange: true,
-        onVisibleChildrenChange: true,
-        onPageClose: true,
-        isVisible: true
-    };
-    
+     
     static emptyValue() {
         return {
             value: undefined,
@@ -186,6 +174,73 @@ class TargetUtil {
             easing: undefined,
             creationTime: TUtil.now()
         };
+    }
+    
+    static otherTargetEventsMap = {
+        onChildrenChange: true,
+        onVisibleChildrenChange: true,
+        onPageClose: true,
+        isVisible: true
+    };
+    
+    static targetToEventsMapping = {
+        onClickEvent: [ 'startEvents', 'endEvents', 'cancelEvents' ],
+        onTouchStart: [ 'startEvents' ],
+        onTouchEnd: [ 'endEvents' ],
+        onSwipeEvent: [ 'startEvents', 'endEvents', 'cancelEvents', 'moveEvents' ],
+        onAnySwipeEvent: [ 'startEvents', 'endEvents', 'cancelEvents', 'moveEvents' ],
+        onTouchEvent: [ 'startEvents', 'endEvents', 'cancelEvents' ],
+        onEnterEvent: [ 'moveEvents', 'leaveEvents' ],
+        onLeaveEvent: [ 'moveEvents', 'leaveEvents' ],
+        onScrollEvent: [ 'startEvents', 'endEvents', 'cancelEvents', 'moveEvents', 'wheelEvents' ],
+        onWindowScrollEvent: [ 'windowScrollEvents' ]
+    };
+    
+    static touchEventMap = {
+        onClickEvent: tmodel => getEvents().getEventType() === 'click' && getEvents().isClickHandler(tmodel),
+        onTouchStart: tmodel => getEvents().isStartEvent() && getEvents().containsTouchHandler(tmodel),
+        onTouchEnd: tmodel => getEvents().isEndEvent() && getEvents().containsTouchHandler(tmodel),
+        onSwipeEvent: tmodel => getEvents().containsTouchHandler(tmodel) && getEvents().isSwipeEvent(),        
+        onAnySwipeEvent: () => getEvents().isSwipeEvent(),
+        onTouchEvent: tmodel => getEvents().isTouchHandler(tmodel),
+        onEnterEvent: tmodel => getEvents().isEnterEventHandler(tmodel),
+        onLeaveEvent: tmodel => getEvents().isLeaveEventHandler(tmodel),
+    };
+    
+    static internalEventMap = {
+        onVisibleEvent: tmodel => tmodel.isNowVisible,
+        onDomEvent: tmodel => tmodel.hasDomNow,
+        onResize: tmodel => getLocationManager().resizeLastUpdate > Math.max(tmodel.getActualValueLastUpdate('width'), tmodel.getActualValueLastUpdate('height')),
+        onParentResize: tmodel => { return tmodel.getParent().getActualValueLastUpdate('width') > tmodel.getActualValueLastUpdate('width') ||
+                    tmodel.getParent().getActualValueLastUpdate('height') > tmodel.getActualValueLastUpdate('height'); },        
+    };
+ 
+    static allEventMap = {
+        ...TargetUtil.touchEventMap,
+        onFocusEvent: tmodel => getEvents().onFocus(tmodel),
+        onBlurEvent: tmodel => getEvents().onBlur(tmodel),
+        onKeyEvent: () => getEvents().getEventType() === 'key' && getEvents().currentKey, 
+        onScrollEvent: tmodel => (getEvents().isScrollLeftHandler(tmodel) && getEvents().deltaX()) || 
+              (getEvents().isScrollTopHandler(tmodel) && getEvents().deltaY()),    
+        onWindowScrollEvent: () => getEvents().getEventType() === 'windowScroll'
+    };
+    
+    static getAutoHandleEvents(tmodel) {
+        const autoHandleEvents = [];
+        const touchEvents = Object.keys(TargetUtil.touchEventMap);
+
+        if (touchEvents.some(event => tmodel.eventTargetMap[event])) {
+            autoHandleEvents.push('touch');
+        }
+
+        if (tmodel.eventTargetMap['onScrollEvent']) {
+            autoHandleEvents.push('scrollTop', 'scrollLeft');
+        }
+        if (tmodel.eventTargetMap['onSwipeEvent']) {
+            autoHandleEvents.push('swipe');
+        }
+
+        return autoHandleEvents;
     }
    
     static bindTargetName(targetInstance, key) {
@@ -231,9 +286,13 @@ class TargetUtil {
     static isListTarget(value) {
         return typeof value === 'object' && value !== null && Array.isArray(value.list);
     }
-
-    static isObjectTarget(key , value) {
-        return key !== 'style' && typeof value === 'object' && !(value instanceof TModel) && value !== null && !Array.isArray(value);       
+    
+    static isObjectTarget(key, value) {
+        return key !== 'style'
+            && typeof value === 'object'
+            && value !== null
+            && !Array.isArray(value)
+            && Object.getPrototypeOf(value) === Object.prototype;
     }
     
     static isChildrenTarget(key, value) {
@@ -263,7 +322,7 @@ class TargetUtil {
                 }
             }
 
-            if (typeof target === 'object' && target !== null) {
+            if (typeof target === 'object' && target !== null && Object.getPrototypeOf(target) === Object.prototype) {
                 value = typeof target.value === 'function' ? target.value.call(tmodel, cycle, lastValue) : TUtil.isDefined(target.value) ? target.value : target;
                 steps = typeof target.steps === 'function' ? target.steps.call(tmodel, cycle) : TUtil.isDefined(target.steps) ? target.steps : 0;
                 interval = typeof target.interval === 'function' ? target.interval.call(tmodel, cycle) : TUtil.isDefined(target.interval) ? target.interval : 0;
@@ -288,24 +347,24 @@ class TargetUtil {
     }
 
     static scheduleExecution(tmodel, key) {
-        const now = TUtil.now();
         const interval = tmodel.getTargetInterval(key);
+
+        if (interval <= 0) {
+            return 0;
+        }
+        
+        const now = TUtil.now();
         const lastScheduledTime = tmodel.getScheduleTimeStamp(key);
-
-        let schedulePeriod = 0;
-
-        if (interval > 0) {
-            if (TUtil.isDefined(lastScheduledTime)) {
-                const elapsed = now - lastScheduledTime;
-                schedulePeriod = Math.max(interval - elapsed, 0);
-            } else {
-                schedulePeriod = interval;
-                tmodel.setScheduleTimeStamp(key, now);
-            }
+        
+        if (TUtil.isDefined(lastScheduledTime)) {
+            const elapsed = now - lastScheduledTime;
+            return Math.max(interval - elapsed, 0);
         }
 
-        return schedulePeriod;
-    }
+        tmodel.setScheduleTimeStamp(key, now);
+        
+        return interval;
+    }    
 
     static getTargetSchedulePeriod(tmodel, key, intervalValue) {
         const now = TUtil.now();
@@ -368,7 +427,7 @@ class TargetUtil {
         }
     }
 
-    static setWidthFromDom(child) {
+    static setWidthFromDom(child, resizeFlag) {
         let height = child.domWidth?.height;
         let width = child.domWidth?.width;
         
@@ -380,7 +439,7 @@ class TargetUtil {
             rerender = true;
         }
 
-        if (!TUtil.isDefined(child.domWidth) || rerender || height !== child.getHeight() ||
+        if (!TUtil.isDefined(child.domWidth) || rerender || height !== child.getHeight() || resizeFlag ||
                 (domParent && child.getActualValueLastUpdate('width') <= domParent.getActualValueLastUpdate('width'))) {
             child.$dom.width('auto');
             width = child.$dom.width();
@@ -393,7 +452,7 @@ class TargetUtil {
         return width;
     }
 
-    static setHeightFromDom(child) {
+    static setHeightFromDom(child, resizeFlag) {
         let height = child.domHeight?.height;
         let width = child.domHeight?.width;
         
@@ -405,7 +464,7 @@ class TargetUtil {
             rerender = true;
         }     
 
-        if (!TUtil.isDefined(child.domHeight) || rerender || width !== child.getWidth() ||
+        if (!TUtil.isDefined(child.domHeight) || rerender || width !== child.getWidth() || resizeFlag ||
                 (domParent && child.getActualValueLastUpdate('height') <= domParent.getActualValueLastUpdate('height'))) {
             child.$dom.height('auto');
             width = child.$dom.width();

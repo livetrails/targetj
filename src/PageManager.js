@@ -16,7 +16,9 @@ class PageManager {
         tApp.reset();
 
         if (!this.pageCache[link]) {
-            tApp.tRoot.$dom.innerHTML("");
+            if (tApp.tRoot.hasDom()) {
+                tApp.tRoot.$dom.innerHTML("");                
+            }
             tApp.tRoot = tApp.tRootFactory();
             this.lastLink = link;
             tApp.start();
@@ -45,8 +47,7 @@ class PageManager {
     
     onPageClose(visibles) {
         visibles.forEach(tmodel => {
-            const activateTargets = [].concat(tmodel.targets['onPageClose'], tmodel.targets['onResize']);
-            getLocationManager().activateTargets(tmodel, activateTargets);             
+            getLocationManager().runEventTargets(tmodel, ['onPageClose', 'onResize']);             
         });          
     }
 

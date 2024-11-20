@@ -1,8 +1,9 @@
 import { BracketGenerator } from "./BracketGenerator.js";
 import { TUtil } from "./TUtil.js";
 import { TargetUtil } from "./TargetUtil.js";
+import { TModelUtil } from "./TModelUtil.js";
 import { TargetExecutor } from "./TargetExecutor.js";
-import { tApp, getScreenWidth, getScreenHeight } from "./App.js";
+import { tApp, getScreenWidth, getScreenHeight, getEvents } from "./App.js";
 
 /*
  * It calculates the locations and dimensions of all objects and triggers the calculation of all targets. 
@@ -12,28 +13,52 @@ class LocationManager {
     constructor() {
         this.hasLocationList = [];
         this.hasLocationMap = {};
+        
+        this.visibleChildrenLengthList = [];
+        this.childrenLengthList = [];
 
         this.locationListStats = [];
+        
+        this.activatedList = [];
+        this.activatedMap = {};
                
         this.screenWidth = getScreenWidth();
         this.screenHeight = getScreenHeight();
-        this.resizeFlag = false;
+        this.resizeLastUpdate = 0;
+        this.resizeFlag = false;        
     }
 
     calculateAll() {
         this.hasLocationList.length = 0;
         this.hasLocationMap = {};
-        this.locationListStats.length = 0;
+        this.locationListStats = [];
+        
+        this.visibleChildrenLengthList.length = 0;
+        this.childrenLengthList.length = 0;
+
         this.startTime = TUtil.now();
         this.resizeFlag = false;
 
         if (this.screenWidth !== getScreenWidth() || this.screenHeight !== getScreenHeight()) {
-            this.resizeFlag = true;
+            this.resizeLastUpdate = this.startTime;
+            this.resizeFlag = false;
             this.screenWidth = getScreenWidth();
             this.screenHeight = getScreenHeight();
         }
 
         this.calculate();
+        
+        this.visibleChildrenLengthList.forEach(({ tmodel, length }) => {
+            if ((length !== tmodel.visibleChildren.length || tmodel.visibleChildren.length === 0)) {
+                this.runEventTargets(tmodel, 'onVisibleChildrenChange');
+            }
+        });
+        
+        this.childrenLengthList.forEach(({ tmodel, length }) => {
+            if ((length !== tmodel.getChildren().length)) {
+                this.runEventTargets(tmodel, 'onChildrenChange');
+            }
+        }); 
     }
 
     calculate() {
@@ -41,8 +66,29 @@ class LocationManager {
         this.calculateContainer(tApp.tRoot);
     }
 
+    calculateActivated() {
+        let i = 0;     
+                
+        while (i < this.activatedList.length) {
+            const child = this.activatedList[i++];
+
+            tApp.targetManager.applyTargetValues(child, child.activatedTargets);
+            
+            if (child.updatingTargetList.length > 0) {
+                tApp.targetManager.setActualValues(child, child.updatingTargetList.filter((key => child.getTargetStep(key) === 0)));
+            }
+            
+            if (!this.hasLocationMap[child.oid]) {
+                this.addToLocationList(child);
+            }
+        }
+        
+        this.activatedList.length = 0;
+        this.activatedMap = {};
+    }
+
     getChildren(container) {
-            if (container.shouldBeBracketed()) {
+        if (container.shouldBeBracketed()) {
             return BracketGenerator.generate(container);
         }
         
@@ -52,59 +98,65 @@ class LocationManager {
         
         return container.getChildren();
     }
-
+    
     calculateContainer(container, shouldCalculateChildTargets = true) {
         const allChildren = this.getChildren(container);
-        const viewport = container.createViewport();
-        container.visibleChildren.length = 0;
-                        
-        const visibleChildrenLength = container.visibleChildren.length;  
-        const childrenLength = container.getChildren().length;
-        const length = allChildren.length;
-        let i = 0;        
-
-        while (i < length) {
-            const child = allChildren[i++];
+        const viewport = container.createViewport();                        
+        const contentWidth = container.getContentWidth();
+        const contentHeight = container.getContentHeight();
+        container.visibleChildren.length = 0;                
+        
+        for (const child of allChildren) {
             if (!child) {
                 continue;
             }
+                        
+            this.locationListStats.push(child.oid);
             
             viewport.setCurrentChild(child);
-            viewport.setLocation();  
+            viewport.setLocation(); 
             
-            if (container.manageChildTargetExecution(child, shouldCalculateChildTargets)) {
+            if (child.isIncluded() && container.manageChildTargetExecution(child, shouldCalculateChildTargets)) {
                 this.calculateTargets(child);
             }
 
-            child.overflowingFlag = false;
             if (container.getContainerOverflowMode() === 'always' 
                     || child.getItemOverflowMode() === 'always' 
                     || (container.getContainerOverflowMode() === 'auto' && child.getItemOverflowMode() === 'auto' && viewport.isOverflow())) {
-                child.overflowingFlag = true;
                 viewport.overflow();
                 viewport.setLocation();  
             }
             
-            if (child.isIncluded() && !this.hasLocationMap[child.oid]) {
+            if (child.isIncluded()) {  
+                if (child.targets['onVisibleChildrenChange']) {
+                    this.visibleChildrenLengthList.push({ tmodel: child, length: child.visibleChildren.length });
+                }
+                if (child.targets['onChildrenChange']) {
+                   this.childrenLengthList.push({ tmodel: child, length: child.getChildren().length });
+                }
+                
                 this.addToLocationList(child);
             }
+
+            child.getCoreTargets().forEach(target => {
+                if (child.isTargetEnabled(target) && !child.isTargetUpdating(target) && !child.isTargetImperative(target)) {
+                    TargetExecutor.executeDeclarativeTarget(child, target); 
+                };
+            });
             
-            if (child.isTargetEnabled('x') && !child.isTargetUpdating('x') && !child.isTargetImperative('x')) {
-                TargetExecutor.executeDeclarativeTarget(child, 'x');
-            } else if (!TUtil.isDefined(child.targetValues.x)) {
+            if (!TUtil.isDefined(child.targetValues.x)) {
                 child.val('x', child.x);
             }
-
-            if (child.isTargetEnabled('y') && !child.isTargetUpdating('y') && !child.isTargetImperative('y')) {
-                TargetExecutor.executeDeclarativeTarget(child, 'y');
-            } else if (!TUtil.isDefined(child.targetValues.y)) {
+            if (!TUtil.isDefined(child.targetValues.y)) {
                 child.val('y', child.y);
             }
-
-            child.addToStyleTargetList('x');
-            child.addToStyleTargetList('y');                
-                    
+                
             child.calcAbsolutePosition(child.getX(), child.getY());
+            
+            if (!child.excludeDefaultStyling()) {
+                child.addToStyleTargetList('x');           
+                child.addToStyleTargetList('y'); 
+            }            
             
             const isVisible = child.isVisible();
             
@@ -115,127 +167,117 @@ class LocationManager {
             child.isNowVisible = isVisible === false && child.isVisible();
             
             child.addToParentVisibleChildren();
-           
+
             if (child.shouldCalculateChildren()) {
                 this.calculateContainer(child, shouldCalculateChildTargets && container.shouldCalculateChildTargets() !== false);
             }
             
             if (child.isInFlow()) {
-                const _contentWidth = container.getContentWidth();
-                const _contentHeight = container.getContentHeight();
                 if (TUtil.isNumber(child.val('appendNewLine'))) {
                     viewport.appendNewLine();
                     container.calcContentWidthHeight();
                 } else {
                     container.calcContentWidthHeight();
                     viewport.nextLocation();
-                }
-                
-                if (_contentWidth !== container.getContentWidth() || _contentHeight !== container.getContentHeight()) {
-                    this.activateTargets(container, container.targets['onContentResize']);
-                }
+                }  
             }
-            
-            if (!TUtil.isDefined(child.targetValues.height) && !TUtil.isDefined(child.targets.heightFromDom) && child.getContentHeight() > 0) {
-                const preVal = child.getHeight();
+           
+            if (!child.excludeDefaultStyling() && !TUtil.isDefined(child.targetValues.height) && !TUtil.isDefined(child.targets.heightFromDom) && child.getContentHeight() > 0) {
                 child.val('height', child.getContentHeight());
-                if (preVal !== child.getHeight()) {
-                    child.addToStyleTargetList('height');
-                }
+                child.addToStyleTargetList('height');
             }
 
-            if (!TUtil.isDefined(child.targetValues.width) && !TUtil.isDefined(child.targets.widthFromDom) && child.getContentWidth() > 0) {
-                const preVal = child.getWidth();
+            if (!child.excludeDefaultStyling() && !TUtil.isDefined(child.targetValues.width) && !TUtil.isDefined(child.targets.widthFromDom) && child.getContentWidth() > 0) {
                 child.val('width', child.getContentWidth());
-                if (preVal !== child.getWidth()) {
-                    child.addToStyleTargetList('width');
-                }
+                child.addToStyleTargetList('width');
             }
             
             container.calcContentWidthHeight();
-            this.locationListStats.push(`${child.oid}-${child.updatingTargetList.length}-${TUtil.now() - this.startTime}`);
         }
         
-        if ((visibleChildrenLength !== container.visibleChildren.length || container.visibleChildren.length  === 0) && container.targets['onVisibleChildrenChange']) {
-            this.activateTargets(container, container.targets['onVisibleChildrenChange']);
-        }
-        
-        if (childrenLength !== container.getChildren().length && container.targets['onChildrenChange']) {
-            this.activateTargets(container, container.targets['onChildrenChange']); 
+        if (contentWidth !== container.getContentWidth() || contentHeight !== container.getContentHeight()) {
+            this.runEventTargets(container, 'onContentResize');
         }        
+
+        for (const child of allChildren) {
+            this.checkEventTargets(child);
+        }
     }
 
     calculateTargets(tmodel) {
-        const childrenLength = tmodel.getChildren().length;
-        this.activateTargetsOnEvents(tmodel);
+        this.checkInternalEventTargets(tmodel);
         tApp.targetManager.applyTargetValues(tmodel);
         tApp.targetManager.setActualValues(tmodel);
 
-        if (tmodel.getChildren().length === 0 && childrenLength > 0 && tmodel.targets['onChildrenChange']) {
-            this.activateTargets(tmodel, tmodel.targets['onChildrenChange']); 
-        }
-
         if (tmodel.hasDom()) {
-            const preWidth = tmodel.getWidth();
-            const preHeight = tmodel.getHeight();
-
-            if ((!TUtil.isDefined(tmodel.targetValues.width) && !TUtil.isDefined(tmodel.targets.width) && !tmodel.hasChildren()) ||
-                tmodel.getTargetValue('widthFromDom')
-            ) {
-                TargetUtil.setWidthFromDom(tmodel);
-            }
-            if ((!TUtil.isDefined(tmodel.targetValues.height) && !TUtil.isDefined(tmodel.targets.height) && !tmodel.hasChildren()) ||
-                tmodel.getTargetValue('heightFromDom')
-            ) {
-                TargetUtil.setHeightFromDom(tmodel);
-            }
-
-            if (preWidth !== tmodel.getWidth() || !TUtil.isDefined(tmodel.styleMap['width'])) {
-                tmodel.addToStyleTargetList('width');
-            }
-            
-            if (preHeight !== tmodel.getHeight() || !TUtil.isDefined(tmodel.styleMap['height'])) {
-                tmodel.addToStyleTargetList('height');                
+            if (TModelUtil.shouldMeasureWidthFromDom(tmodel)) {
+                TargetUtil.setWidthFromDom(tmodel, this.resizeFlag);
+                tmodel.addToStyleTargetList('width');              
             }
         }
         
+        if (tmodel.hasDom()) {
+            if (TModelUtil.shouldMeasureHeightFromDom(tmodel)) {
+                TargetUtil.setHeightFromDom(tmodel, this.resizeFlag);
+                tmodel.addToStyleTargetList('height');                       
+            }           
+        }        
+        
         tmodel.isNowVisible = false;
+        tmodel.hasDomNow = false;
         tmodel.targetExecutionCount++;
     }
+    
+    checkEventTargetsByType(tmodel, eventMap, attachEvents = false) {
+        const eventTargets = [];
 
-    activateTargetsOnEvents(tmodel) {
-        let activateTargets = [];
+        tmodel.eventTargetList.forEach(targetName => {
+            if (eventMap[targetName] && eventMap[targetName](tmodel)) {
+                eventTargets.push(targetName);
+            }
 
-        tmodel.eventTargets.forEach(target => {
-            if (TargetUtil.targetConditionMap[target](tmodel)) {
-                activateTargets = activateTargets.concat(tmodel.targets[target]);
+            if (attachEvents && TargetUtil.targetToEventsMapping[targetName]) {
+                getEvents().attachTargetEvents(targetName);
             }
         });
 
-        this.activateTargets(tmodel, activateTargets);
+        this.runEventTargets(tmodel, eventTargets);
     }
 
-    activateTargets(tmodel, targetList) {
-        if (!Array.isArray(targetList)) {
-            targetList = [targetList];
+    checkInternalEventTargets(tmodel) {
+        this.checkEventTargetsByType(tmodel, TargetUtil.internalEventMap);
+    }
+
+    checkEventTargets(tmodel) {
+        this.checkEventTargetsByType(tmodel, TargetUtil.allEventMap, true);
+    }
+
+    runEventTargets(tmodel, eventTargets) {
+        if (!Array.isArray(eventTargets)) {
+            eventTargets = [eventTargets];
         }
-        targetList.forEach(targetName => {
-            if (typeof targetName === 'function') {
-                let targets = targetName.call(tmodel);
-                if (targets) {
-                    targets = Array.isArray(targets) ? targets : [targets];
-                    targets.forEach(target => {
-                        this.activateSingleTarget(tmodel, target);                           
-                    });
+               
+        const originalTarget = getEvents().getEventTarget();
+
+        eventTargets.forEach(targetName => {
+            const target = tmodel.targets[targetName];
+            if (typeof target === 'function') {
+                target.call(tmodel, originalTarget);
+            } else if (Array.isArray(target)) {
+                target.forEach(t => this.activateSingleTarget(tmodel, t));
+            } else if (typeof target === 'object') {
+                if (tmodel.isTargetEnabled(targetName) && typeof target.value === 'function') {
+                    target.value.call(tmodel, originalTarget);
                 }
+            
             } else {
-                this.activateSingleTarget(tmodel, targetName);
+                this.activateSingleTarget(tmodel, target);
             }
         });
     }
 
     activateSingleTarget(tmodel, targetName) {
-        if (tmodel.targets[targetName]) {
+        if (tmodel.targets[targetName] && tmodel.canTargetBeActivated(targetName)) {
             if (tmodel.isTargetEnabled(targetName)) {
                 tmodel.activateTarget(targetName);
             } else {
@@ -244,9 +286,22 @@ class LocationManager {
         }
     }
 
-    addToLocationList(child) {
-        this.hasLocationList.push(child);
-        this.hasLocationMap[child.oid] = child;
+    addToLocationList(tmodel) {
+        if (!this.hasLocationMap[tmodel.oid]) {
+            this.hasLocationList.push(tmodel);
+            this.hasLocationMap[tmodel.oid] = tmodel;
+        }
+    }
+    
+    addToActivatedList(tmodel) {
+        if (!this.activatedMap[tmodel.oid]) {
+            this.activatedList.push(tmodel);
+            this.activatedMap[tmodel.oid] = tmodel; 
+        }
+    }
+    
+    isActivated(tmodel) {
+        return this.activatedMap[tmodel.oid];
     }
 }
 

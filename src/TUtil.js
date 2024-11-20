@@ -1,5 +1,5 @@
 import { $Dom } from "./$Dom.js";
-import { getLocationManager, tRoot } from "./App.js";
+import { getLocationManager, tRoot, getScreenHeight, getScreenWidth } from "./App.js";
 
 /**
  * 
@@ -17,19 +17,24 @@ class TUtil {
         const maxHeight = TUtil.isDefined(child.getHeight()) ? scale * child.getHeight() : 0;
 
         const status = child.visibilityStatus;
-   
-        status.right = Math.floor(x) <= parent.absX + parent.getWidth();
-        status.left = Math.ceil(x + maxWidth) >= parent.absX;
-        status.bottom = Math.floor(y) <= parent.absY + parent.getHeight();
-        status.top = Math.ceil(y + maxHeight) >= parent.absY;
         
-        child.actualValues.isVisible = status.left && status.right && status.top && status.bottom;
-
-        return child.actualValues.isVisible;
+        const parentX = child.validateVisibilityInParent() ? parent.absX : 0;
+        const parentY = child.validateVisibilityInParent() ? parent.absY : 0;
+        const parentWidth = child.validateVisibilityInParent() ? parent.getWidth() : getScreenWidth();
+        const parentHeight =child.validateVisibilityInParent() ? parent.getHeight() : getScreenHeight();
+            
+        status.right = x <= parentX + parentWidth;
+        status.left = x + maxWidth >= parentX;
+        status.bottom = y - child.getTopMargin() <= parentY + parentHeight;
+        status.top = y + maxHeight + child.getBottomMargin() >= parentY;
+        
+        child.val('isVisible', status.left && status.right && status.top && status.bottom);
+        
+        return child.val('isVisible');
     }
 
     static initDoms(visibleList) {
-        const elements = $Dom.findByClass('tgt');
+        const elements = $Dom.getAllStamped();
         
         visibleList.forEach(tmodel => {
             tmodel.$dom = null;
@@ -48,7 +53,7 @@ class TUtil {
             }
         }
     }
-    
+              
     static contains(container, tmodel) {
         if (!container || !tmodel) {
             return false;
@@ -93,19 +98,25 @@ class TUtil {
         }
     }
 
-    static momentum(past, current, time = 1) {
+    static momentum(past, current, time = 1, deceleration = 0.002, maxDistance = 100) {
         const distance = current - past;
-        const speed = Math.abs(distance) / time;
-        const duration = Math.floor(speed * 5000);
-        const momentumDistance = 5 * duration;
+        
+        const speed = time < 10 ? Math.abs(distance) / 10 :  Math.abs(distance) / time;
+
+        const duration = Math.min(speed / deceleration, 300);
+        let momentumDistance = (speed ** 2) / (2 * deceleration);
+
+        if (momentumDistance > maxDistance) {
+            momentumDistance = maxDistance;
+        }
+
         const adjustedDistance = distance > 0 ? distance + momentumDistance : distance - momentumDistance;
 
         return {
-            distance: Math.round(adjustedDistance) / 50,
-            duration,
-            momentumDistance: time,
-            time: time * 5
-        };
+            distance: Math.round(adjustedDistance) / 20,
+            duration: Math.round(duration),     
+            momentumDistance 
+        };     
     }
 
     static isDefined(obj) {
@@ -163,15 +174,20 @@ class TUtil {
         }
     }
     
+    static isStringBooleanOrNumber(input) {
+        const inputType = typeof input;
+        return inputType === 'string' || inputType === 'boolean' || inputType === 'number';
+    }   
+  
     static logTree(tmodel = tRoot(), tab = '') {
         const list = getLocationManager().getChildren(tmodel);
         for (const g of list) {
             const gtab = g.isVisible() ? tab + '|  ': tab + 'x  ';
 
             if (g.type === 'BI') {
-                console.log(`${gtab}${g.oid} v:${g.isVisible()} x:${Math.floor(g.getX())} y:${Math.floor(g.getY())}, y:${Math.floor(g.absY)} w:${Math.floor(g.getWidth())} h:${Math.floor(g.getHeight())} hc:${Math.floor(g.getContentHeight())}`);
+                console.log(`${gtab}${g.oid} v:${g.isVisible()} x:${Math.floor(g.getX())} y:${Math.floor(g.getY())}, absY:${Math.floor(g.absY)} yy:${Math.floor(g.absY + g.getDomParent().absY)} w:${Math.floor(g.getWidth())} h:${Math.floor(g.getHeight())} hc:${Math.floor(g.getContentHeight())}`);
             } else {
-                console.log(`${gtab}${g.oid} v:${g.isVisible()} x:${Math.floor(g.getX())} y:${Math.floor(g.getY())} w:${Math.floor(g.getWidth())} h:${Math.floor(g.getHeight())} hc:${Math.floor(g.getContentHeight())}`);
+                console.log(`${gtab}${g.oid} v:${g.isVisible()} x:${Math.floor(g.getX())} y:${Math.floor(g.getY())} absY:${Math.floor(g.absY)} yy:${Math.floor(g.absY + g.getDomParent().absY)} w:${Math.floor(g.getWidth())} h:${Math.floor(g.getHeight())} hc:${Math.floor(g.getContentHeight())}`);
             }
 
             if (g.hasChildren()) {

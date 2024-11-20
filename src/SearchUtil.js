@@ -10,21 +10,51 @@ class SearchUtil {
     static foundTypeMap = {};
     static foundTargetMap = {};
     static foundOids = {};
+    static foundHandler = {};
+    
+    static clear() {
+        SearchUtil.foundParentWithType = {};
+        SearchUtil.foundParentWithTarget = {};
+        SearchUtil.foundTypeMap = {};
+        SearchUtil.foundTargetMap = {};
+        SearchUtil.foundOids = {};
+        SearchUtil.foundHandler = {};        
+    }
+
+    static findFirstHandler(tmodel, options) {
+        const { eventName, eventType } = options;
+        
+        const handlerKey = `${tmodel.oid} ${eventName} ${eventType}`;
+        
+        if (SearchUtil.foundHandler[handlerKey]) {
+            return SearchUtil.foundHandler[handlerKey];
+        }
+
+        const handler = eventName === 'scrollTop' || eventName === 'scrollLeft'
+            ? this.findScrollHandler(tmodel, eventType, eventName)
+            : this.findEventHandler(tmodel, eventName);
+            
+        if (handler) {
+            SearchUtil.foundHandler[handlerKey] = handler;
+        }
+       
+        return handler;
+    }
 
     static findFirstPinchHandler(tmodel) {
-        return SearchUtil.findEventHandler(tmodel, 'pinch');
+        return this.findFirstHandler(tmodel, { eventName: 'pinch' });
     }
 
     static findFirstScrollTopHandler(tmodel, eventType) {
-        return SearchUtil.findScrollHandler(tmodel, eventType, 'scrollTop');
+        return this.findFirstHandler(tmodel, { eventType, eventName: 'scrollTop' });
     }
 
     static findFirstScrollLeftHandler(tmodel, eventType) {
-        return SearchUtil.findScrollHandler(tmodel, eventType, 'scrollLeft');
+        return this.findFirstHandler(tmodel, { eventType, eventName: 'scrollLeft' });
     }
 
     static findFirstTouchHandler(tmodel) {
-        return SearchUtil.findEventHandler(tmodel, 'touch');
+        return this.findFirstHandler(tmodel, { eventName: 'touch' });
     }
 
     static findScrollHandler(tmodel, eventType, eventName) {

@@ -7,16 +7,27 @@ import { Viewport } from "./Viewport.js";
  */
 class Bracket extends TModel {
     constructor(parent) {
-        super("BI", {
-            canHaveDom: false,
-            itemOverflowMode: 'never'
-        });
-        
+        super("BI");
         this.parent = parent;
-        this.newFlag = true;
+    }
+    
+    canHaveDom() {
+        return false;
+    }
+    
+    getItemOverflowMode() {
+        return 'never';
     }
 
     shouldBeBracketed() {
+        return false;
+    }
+    
+    excludeDefaultStyling() {
+        return true;
+    }
+    
+    isIncluded() {
         return false;
     }
 
@@ -36,10 +47,10 @@ class Bracket extends TModel {
         return this.getRealParent().getContainerOverflowMode();
     }
     
-        getTopBaseHeight() {
+    getTopBaseHeight() {
         return this.topBaseHeight;
     }
-
+    
     isVisible() {
         return this.visibilityStatus.top && this.visibilityStatus.bottom;
     }
@@ -56,17 +67,19 @@ class Bracket extends TModel {
         this.viewport.xWest = this.x;
         
         this.viewport.absX = this.getRealParent().viewport.absX;
+        this.viewport.absY = this.getRealParent().viewport.absY;
+
+        this.viewport.scrollTop = this.getRealParent().viewport.scrollTop;
         this.viewport.scrollLeft = this.getRealParent().viewport.scrollLeft;
         this.viewport.xOverflowReset = this.getRealParent().viewport.xOverflowReset;        
         this.viewport.xOverflowLimit = this.getRealParent().viewport.xOverflowLimit;
-
 
         this.viewport.yNext = this.y;
         this.viewport.yNorth = this.y;
         this.viewport.yWest = this.y;
         this.viewport.yEast = this.y;
         this.viewport.ySouth = this.getRealParent().viewport.ySouth;
-
+                
         return this.viewport;   
     }
    
@@ -80,9 +93,13 @@ class Bracket extends TModel {
     }
 
     shouldCalculateChildren() {
-        const result = this.isVisible() || this.newFlag;
-        this.newFlag = false;
+        const result = this.isVisible() || this.currentStatus === 'new';
+        this.currentStatus = undefined;
         return result;
+    }
+    
+    validateVisibilityInParent() {
+        return this.getRealParent().validateVisibilityInParent();
     }
     
     getChildren() {

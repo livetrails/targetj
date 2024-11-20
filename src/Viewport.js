@@ -10,8 +10,10 @@ class Viewport {
         this.xEast = 0;
         this.xSouth = 0;
 
-        this.absX = 0;
         this.scrollLeft = 0;
+        this.scrollTop = 0;
+        
+        this.absX = 0;
         this.xOverflowReset = 0;
         this.xOverflowLimit = 0;
 
@@ -56,13 +58,13 @@ class Viewport {
         this.currentChild.getRealParent().viewport.ySouth = Math.max(this.currentChild.getRealParent().viewport.ySouth, this.ySouth);
     }
 
-    nextLocation() {     
+    nextLocation() {   
         const height = this.currentChild.getHeight() * this.currentChild.getMeasuringScale();
         
         const baseWidth = this.currentChild.getBaseWidth() * this.currentChild.getMeasuringScale();
         const topBaseHeight = this.currentChild.getTopBaseHeight() * this.currentChild.getMeasuringScale();
 
-        const ySouth = this.yNext + height + this.currentChild.getTopMargin() + this.currentChild.getBottomMargin();
+        const ySouth = this.yNext + height + this.currentChild.getTopMargin() + this.currentChild.getBottomMargin();      
         this.xNext += baseWidth + this.currentChild.getLeftMargin() + this.currentChild.getRightMargin();
         this.yNext += topBaseHeight;
 

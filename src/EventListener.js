@@ -1,6 +1,7 @@
 import { $Dom } from "./$Dom.js";
 import { SearchUtil } from "./SearchUtil.js";
 import { TUtil } from "./TUtil.js";
+import { TargetUtil } from "./TargetUtil.js";
 import { tApp, getRunScheduler, tRoot } from "./App.js";
 
 /**
@@ -8,6 +9,8 @@ import { tApp, getRunScheduler, tRoot } from "./App.js";
  */
 class EventListener {
     constructor() {
+         this.$document = new $Dom(document);
+
         this.currentTouch = {
             deltaY: 0,
             deltaX: 0,
@@ -18,8 +21,11 @@ class EventListener {
             dir: "",
             source: ""
         };
+        
+        this.lastEvent = undefined;
 
         this.touchTimeStamp = 0;
+        this.ignoreStartEvents = true;
 
         this.cursor = { x: 0, y: 0 };
         this.start0 = undefined;
@@ -29,8 +35,12 @@ class EventListener {
         this.touchCount = 0;
         this.canFindHandlers = true;
         
+        this.swipeStartX = 0;
+        this.swipeStartY = 0;
+        
         this.currentEventName = "";
         this.currentEventType = "";
+        this.currentEventTarget = undefined;
         this.currentHandlers = { 
             touch: null, 
             scrollLeft: null, 
@@ -42,97 +52,148 @@ class EventListener {
             justFocused: null,
             blur: null
         };
-
+        
         this.eventQueue = [];
-
-        this.eventMap = {
+        
+        this.attachedEventMap = {};
+        this.eventTargetMap = {};
+               
+        this.startEvents = {
             touchstart: { eventName: 'touchstart', inputType: 'touch', eventType: 'start', order: 1, windowEvent: false, queue: true },
-            touchmove: { eventName: 'touchmove', inputType: 'touch', eventType: 'move', order: 1, windowEvent: false, queue: true },
+            pointerdown: { eventName: 'mousedown', inputType: 'pointer', eventType: 'start', order: 2, windowEvent: false, queue: true },
+            mousedown: { eventName: 'mousedown', inputType: 'mouse', eventType: 'start', order: 3, windowEvent: false, queue: true },
+        };
+        
+        this.endEvents = {
             touchend: { eventName: 'touchend', inputType: 'touch', eventType: 'end', order: 1, windowEvent: false, queue: true },
-            touchcancel: { eventName: 'touchend', inputType: 'touch', eventType: 'cancel', order: 1, windowEvent: false, queue: true },
-
-            mousedown: { eventName: 'mousedown', inputType: 'mouse', eventType: 'start', order: 2, windowEvent: false, queue: true },
-            mousemove: { eventName: 'mousemove', inputType: 'mouse', eventType: 'move', order: 2, windowEvent: false, queue: true  },
-            mouseup: { eventName: 'mouseup', inputType: 'mouse', eventType: 'end', order: 2, windowEvent: false, queue: true },
-            mousecancel: { eventName: 'mouseup', inputType: 'mouse', eventType: 'cancel', order: 2, windowEvent: false, queue: true },
-            mouseleave: { eventName: 'mouseleave', inputType: 'mouse', eventType: 'cancel', order: 2, windowEvent: false, queue: true },
-
-            pointerdown: { eventName: 'mousedown', inputType: 'pointer', eventType: 'start', order: 3, windowEvent: false, queue: true },
-            pointermove: { eventName: 'mousemove', inputType: 'pointer', eventType: 'move', order: 3, windowEvent: false, queue: true },
-            pointerup: { eventName: 'mouseup', inputType: 'pointer', eventType: 'end', order: 3, windowEvent: false, queue: true },
-            pointercancel: { eventName: 'mousecancel', inputType: 'pointer', eventType: 'cancel', order: 3, windowEvent: false, queue: true },
-
-            wheel: { eventName: 'wheel', inputType: '', eventType: 'wheel', order: 1, windowEvent: false, queue: true },
-            DOMMouseScroll: { eventName: 'wheel', inputType: '', eventType: 'wheel', order: 1, windowEvent: false, queue: true },
-            mousewheel: { eventName: 'wheel', inputType: '', eventType: 'wheel', order: 1, windowEvent: false, queue: true },
-
-            blur: { eventName: 'blur', inputType: 'mouse', eventType: 'cancel', order: 2, windowEvent: true, queue: true },
+            pointerup: { eventName: 'mouseup', inputType: 'pointer', eventType: 'end', order: 1, windowEvent: false, queue: true },
+            mouseup: { eventName: 'mouseup', inputType: 'mouse', eventType: 'end', order: 3, windowEvent: false, queue: true },
+        };        
+        
+        this.cancelEvents = {
+            touchcancel: { eventName: 'touchend', inputType: 'touch', eventType: 'cancel', order: 1, windowEvent: false, queue: true },       
+            pointercancel: { eventName: 'mousecancel', inputType: 'pointer', eventType: 'cancel', order: 2, windowEvent: false, queue: true },
+            mousecancel: { eventName: 'mouseup', inputType: 'mouse', eventType: 'cancel', order: 3, windowEvent: false, queue: true },
+        };
+                
+        this.windowEvents = {
             keyup: { eventName: 'key', inputType: '', eventType: 'key', order: 1, windowEvent: true, queue: true },
             keydown: { eventName: 'key', inputType: '', eventType: 'key', order: 1, windowEvent: true, queue: true },
+            blur: { eventName: 'blur', inputType: 'mouse', eventType: 'cancel', order: 2, windowEvent: true, queue: true },
             resize: { eventName: 'resize', inputType: '', eventType: 'resize', order: 1, windowEvent: true, queue: false },
-            orientationchange: { eventName: 'resize', inputType: '', eventType: 'resize', order: 1, windowEvent: true, queue: false }          
+            orientationchange: { eventName: 'resize', inputType: '', eventType: 'resize', order: 1, windowEvent: true, queue: false },
         };
-
-        this.domEvents = Object.keys(this.eventMap).filter(key => !this.eventMap[key].windowEvent);
-        this.windowEvents = Object.keys(this.eventMap).filter(key => this.eventMap[key].windowEvent);
+        
+        this.windowScrollEvents = {
+            scroll: { eventName: 'scroll', inputType: '', eventType: 'windowScroll', order: 1, windowEvent: true, queue: true }            
+        }
+        
+        this.leaveEvents = {
+            mouseleave: { eventName: 'mouseleave', inputType: 'mouse', eventType: 'cancel', order: 3, windowEvent: false, queue: true },
+        }        
+        
+        this.moveEvents = {
+            touchmove: { eventName: 'touchmove', inputType: 'touch', eventType: 'move', order: 1, windowEvent: false, queue: true },            
+            pointermove: { eventName: 'mousemove', inputType: 'pointer', eventType: 'move', order: 2, windowEvent: false, queue: true },                   
+            mousemove: { eventName: 'mousemove', inputType: 'mouse', eventType: 'move', order: 3, windowEvent: false, queue: true  }
+        };
+        
+        this.wheelEvents = {
+            wheel: { eventName: 'wheel', inputType: '', eventType: 'wheel', order: 1, windowEvent: false, queue: true },
+            mousewheel: { eventName: 'wheel', inputType: '', eventType: 'wheel', order: 1, windowEvent: false, queue: true },                
+        };
+        
+        this.allEvents = {
+            ...this.startEvents,
+            ...this.endEvents,
+            ...this.cancelEvents,
+            ...this.leaveEvents,            
+            ...this.moveEvents,
+            ...this.wheelEvents,
+            ...this.windowEvents,
+            ...this.windowScrollEvents            
+        };        
 
         this.bindedHandleEvent = this.bindedHandleEvent || this.handleEvent.bind(this);
     }
 
-    removeHandlers($dom) {
-        this.domEvents.forEach(key => {
-            $dom.detachEvent(key, this.bindedHandleEvent);
-        });
-    }
-
-    addHandlers($dom) {
-        this.domEvents.forEach(key => {
+    attachEvents($dom, eventMap) {
+        Object.keys(eventMap).forEach(key => {
             $dom.addEvent(key, this.bindedHandleEvent);
         });
     }
-
-    removeWindowHandlers() {
-        this.windowEvents.forEach(key => {
+    
+    detachWindowEvents() {
+        Object.keys(this.windowEvents).forEach(key => {
             tApp.$window.detachEvent(key, this.bindedHandleEvent);
         });
     }
-
-    addWindowHandlers() {
-        this.windowEvents.forEach(key => {
-            tApp.$window.addEvent(key, this.bindedHandleEvent);
-        });
+    
+    attachWindowEvents() {
+        this.attachEvents(tApp.$window, this.windowEvents);
+    }
+    
+    attachTargetEvents(targetName) {
+        if (this.eventTargetMap[targetName]) {
+            return;
+        }
+        this.eventTargetMap[targetName] = true;
+        const events = TargetUtil.targetToEventsMapping[targetName];
+        events.forEach(event => {
+            if (targetName === 'onTouchStart') {
+                this.ignoreStartEvents = false;
+            }
+            if (!this.attachedEventMap[event]) {
+                this.attachedEventMap[event] = this.$document;
+                this.attachEvents(this.attachedEventMap[event], this[event]);
+            }
+        })
+    }
+    
+    detachAll() {
+        const events = Object.keys(this.attachedEventMap);
+        events.forEach(event => {
+            const $dom = this.attachedEventMap[event];
+            const eventMap = this[event];
+            Object.keys(eventMap).forEach(key => {
+                $dom.detachEvent(key, this.bindedHandleEvent);
+            });
+        });   
     }
     
     resetEventsOnTimeout() {
-        if (this.touchTimeStamp > 0) {
+        if (this.touchTimeStamp > 0 && this.touchCount === 0 && (this.currentTouch.deltaY || this.currentTouch.deltaX || this.currentTouch.pinchDelta)) {
             const diff = TUtil.now() - this.touchTimeStamp;
-            let runDelay = 0;
+                        
+            getRunScheduler().schedule(10, "scroll decay ");             
 
-            if (
-                Math.abs(this.currentTouch.deltaY) > 0.001 ||
-                Math.abs(this.currentTouch.deltaX) > 0.001 ||
-                Math.abs(this.currentTouch.pinchDelta) > 0.001
-            ) {
-                if (diff > 70) {
-                    this.clearTouch();
-                } else if (this.currentTouch.manualMomentumFlag) {
-                    this.currentTouch.deltaY *= 0.85;
-                    this.currentTouch.deltaX *= 0.85;
-                    runDelay = 10;
+            if (diff > 100) {
+
+                this.currentTouch.deltaY *= 0.9;
+                this.currentTouch.deltaX *= 0.9;
+                this.currentTouch.pinchDelta *= 0.9;
+                
+                if (Math.abs(this.currentTouch.deltaY) < 1) {
+                    this.currentTouch.deltaY = 0;
                 }
-            } else if (diff > 600) {
-                this.clearTouch();
-                this.touchTimeStamp = 0;
-            }
+                if (Math.abs(this.currentTouch.deltaX) < 1) {
+                    this.currentTouch.deltaX = 0;
+                }
+                if (Math.abs(this.currentTouch.pinchDelta) < 1) {
+                    this.currentTouch.pinchDelta = 0;
+                }                
 
-            getRunScheduler().schedule(runDelay, "scroll decay");
+                if (this.currentTouch.deltaX === 0 && this.currentTouch.deltaY === 0 && this.currentTouch.pinchDelta === 0) { 
+                    this.touchTimeStamp = 0;
+                }
+            }
         }
-    } 
+    }
     
     findEventHandlers({ tmodel, eventType }) {
         
         let touchHandler, scrollLeftHandler, scrollTopHandler, pinchHandler, focusHandler;
-       
+        
         if (tmodel) {
             touchHandler = SearchUtil.findFirstTouchHandler(tmodel);            
             scrollLeftHandler = SearchUtil.findFirstScrollLeftHandler(tmodel, eventType);
@@ -140,7 +201,7 @@ class EventListener {
             pinchHandler = SearchUtil.findFirstPinchHandler(tmodel);
             focusHandler = $Dom.hasFocus(tmodel) ? tmodel : this.currentHandlers.focus;
         }
-
+                
         if (this.currentHandlers.scrollLeft !== scrollLeftHandler || this.currentHandlers.scrollTop !== scrollTopHandler) {
             this.clearTouch();
         }
@@ -160,7 +221,7 @@ class EventListener {
         this.currentHandlers.scrollTop = scrollTopHandler;
         this.currentHandlers.pinch = pinchHandler;
         this.currentHandlers.focus = focusHandler;
-    }    
+    }
 
     captureEvents() {
         this.currentHandlers.enterEvent = undefined;
@@ -171,11 +232,13 @@ class EventListener {
         if (this.eventQueue.length === 0) {
             this.currentEventName = "";
             this.currentEventType = "";
+            this.currentEventTarget = undefined;
             this.currentKey = "";
             return;
         }
-        const lastEvent = this.eventQueue.shift();
         
+        const lastEvent = this.eventQueue.shift();
+                        
         if (this.canFindHandlers) {
             this.findEventHandlers(lastEvent);
         }
@@ -183,13 +246,12 @@ class EventListener {
         if (lastEvent.eventType === 'end' || lastEvent.eventType === 'click') {
             this.canFindHandlers = true;
         }
-
+        
         this.currentEventName = lastEvent.eventName;
         this.currentEventType = lastEvent.eventType;
+        this.currentEventTarget = lastEvent.eventTarget;
         this.currentKey = this.currentTouch.key;
-        this.currentTouch.key = "";
-        
-        getRunScheduler().schedule(10, `captureEvents-${lastEvent}`);
+        this.currentTouch.key = "";      
     }    
 
     handleEvent(event) {
@@ -197,24 +259,23 @@ class EventListener {
             return;
         }
 
-        const { type: originalName } = event;
-        const eventItem = this.eventMap[originalName];
-
+        const { type: originalName, target: eventTarget } = event;
+        const eventItem = this.allEvents[originalName];
+                        
         if (!eventItem) {
             return;
         }
-
-        const { eventName, inputType, eventType, order: eventOrder, queue } = eventItem;
+                
+        let { eventName, inputType, eventType, order: eventOrder, queue } = eventItem;
 
         const now = TUtil.now();
-        this.touchTimeStamp = Math.max(now, this.touchTimeStamp);
-
+                
         const tmodel = this.getTModelFromEvent(event);
+        
+        const newEvent = { eventName, eventItem, eventType, originalName, tmodel, eventTarget, timeStamp: now };
 
-        const lastEvent = this.eventQueue.length > 0 ? this.eventQueue[this.eventQueue.length - 1] : null;
-
-        if (lastEvent && lastEvent.eventItem) {
-            const { eventItem: lastEventItem, timeStamp: lastTimeStamp } = lastEvent;
+        if (this.lastEvent?.eventItem) {
+            const { eventItem: lastEventItem, timeStamp: lastTimeStamp } = this.lastEvent;
             const rate = now - lastTimeStamp;
 
             if (inputType && lastEventItem.inputType && lastEventItem.inputType !== inputType && eventOrder > lastEventItem.order) {
@@ -222,19 +283,19 @@ class EventListener {
             } else if (this.eventQueue.length > 10 && rate < 50) {
                 let capacity = 0;
                 for (let i = this.eventQueue.length - 1; i >= 0 && this.eventQueue[i].eventItem?.eventType === eventType; i--) {
-                    if (++capacity > 5) {
+                    if (++capacity > 2) {
                         return;
                     }
                 }
             }
         }
-
-        const newEvent = { eventName, eventItem, eventType, originalName, tmodel, timeStamp: now };
-
+                  
+        this.lastEvent = newEvent;
+                                
         if (queue) {
-            this.eventQueue.push(newEvent);
+            this.eventQueue.push(this.lastEvent);
         }
-        
+                       
         switch (eventName) {
             case 'mousedown':
             case 'touchstart':
@@ -249,14 +310,22 @@ class EventListener {
                 
                 this.start0 = this.getTouch(event);
                 this.start1 = this.getTouch(event, 1);
-
+                
                 this.cursor.x = this.start0.x;
                 this.cursor.y = this.start0.y;
                 
-                this.findEventHandlers(newEvent);                
-
+                this.findEventHandlers(this.lastEvent); 
+                
+                this.swipeStartX = this.start0.x - this.currentHandlers.touch?.getX();
+                this.swipeStartY = this.start0.y - this.currentHandlers.touch?.getY();
+                
                 event.stopPropagation();
-                break;
+                
+                if (this.ignoreStartEvents) {
+                    return;
+                } else {
+                    break;
+                }
 
             case 'mousemove':
             case 'touchmove': {
@@ -266,7 +335,9 @@ class EventListener {
                 if (this.preventDefault(tmodel, eventName)) {
                     event.preventDefault();
                 }
-                if (this.touchCount > 0) {                    
+                if (this.touchCount > 0) {
+                    this.touchTimeStamp = Math.max(now, this.touchTimeStamp);
+                    
                     this.move(event);
                     event.stopPropagation();
                 } else if (this.isCurrentSource('wheel')) {
@@ -287,8 +358,10 @@ class EventListener {
                     const period = this.end0 ? Math.abs(this.end0.timeStamp - this.start0.timeStamp) : 300;
 
                     if (deltaX <= 1 && deltaY <= 1 && period <= 300) {
-                        this.eventQueue.pop(); //remove the end event as it is not a swipe
-                        this.eventQueue.push({ eventName: 'click', eventItem, eventType: 'click', originalName, tmodel, timeStamp: now });
+                        this.eventQueue.length = 0; //remove the end event as it is not a swipe and all the others
+                        eventName = 'click';
+                        eventType = 'click';
+                        this.eventQueue.push({ eventName, eventItem, eventType, originalName, tmodel, eventTarget, timeStamp: now });
                     }
                 }
 
@@ -302,6 +375,7 @@ class EventListener {
                 if (this.preventDefault(tmodel, eventName)) {
                     event.preventDefault();
                 }
+                this.touchTimeStamp = Math.max(now, this.touchTimeStamp);
                 this.wheel(event);
                 break;
 
@@ -314,7 +388,7 @@ class EventListener {
                 tRoot().val('height', tRoot().targets.height());
                 break;              
         }
-
+        
         getRunScheduler().schedule(0, `${originalName}-${eventName}-${(event.target.tagName || "").toUpperCase()}`);
     }
 
@@ -326,12 +400,12 @@ class EventListener {
     }
 
     getTModelFromEvent(event) {
-        let oid = typeof event.target.getAttribute === 'function' ? event.target.getAttribute('id') : '';
-
+        let oid = event.target?.id;
+        
         if (!oid || !tApp.manager.visibleOidMap[oid]) {
             oid = $Dom.findNearestParentWithId(event.target);
         }
-
+        
         return tApp.manager.visibleOidMap[oid];
     }
 
@@ -362,6 +436,12 @@ class EventListener {
         this.touchTimeStamp = 0;
         this.touchCount = 0; 
         this.canFindHandlers = true;
+        this.lastEvent = undefined;
+        this.attachedEventMap = {};
+        this.eventTargetMap = {};
+        this.ignoreStartEvents = true;
+        this.swipeStartX = 0;
+        this.swipeStartY = 0;
     }
 
     deltaX() {
@@ -380,12 +460,12 @@ class EventListener {
         return this.cursor.y;
     }
     
-    swipeX(handler) {
-        return this.cursor.x - (this.start0.x - handler.getX());
+    swipeX() {
+        return this.cursor.x - this.swipeStartX;
     }
 
-    swipeY(handler) {
-        return this.cursor.y - (this.start0.y - handler.getY());
+    swipeY() {
+        return this.cursor.y - this.swipeStartY;
     }
     
     pinchDelta() {
@@ -419,6 +499,10 @@ class EventListener {
     getTouchHandlerOid() {
         return this.currentHandlers.touch ? this.currentHandlers.touch.oid : null;
     }
+    
+    getTouchCount() {
+        return this.touchCount;
+    }
 
     isClickEvent() {
         return this.getEventType() === 'click';
@@ -437,7 +521,7 @@ class EventListener {
     }
     
     hasDelta() {
-        return this.deltaX() !== 0 || this.deltaY() !== 0;
+        return Math.abs(this.deltaX()) >= 1 || Math.abs(this.deltaY()) >= 1;
     }
     isEndEvent() {
         return this.getEventType() === 'end' || this.getEventType() === 'click';
@@ -449,6 +533,10 @@ class EventListener {
 
     getEventName() {
         return this.currentEventName;
+    }
+    
+    getEventTarget() {
+        return this.currentEventTarget;
     }
     
     getEventType() {
@@ -559,7 +647,7 @@ class EventListener {
             this.start0.x = this.end0 ? this.end0.x : this.start0.x;
 
             this.end0 = this.getTouch(event);
-
+            
             if (TUtil.isDefined(this.end0)) {
                 const deltaX = this.start0.x - this.end0.x;
                 const deltaY = this.start0.y - this.end0.y;
@@ -580,18 +668,22 @@ class EventListener {
 
     end() {
         if (this.touchCount <= 1 && this.start0) {
-            const deltaX = this.end0 ? this.start0.x - this.end0.x : 0;
-            const deltaY = this.end0 ? this.start0.y - this.end0.y : 0;
-            const period = this.end0 ? this.end0.timeStamp - this.start0.timeStamp : 0;
-
+                        
+            let deltaX = 0, deltaY = 0, period = 1;
+            
+            if (TUtil.isDefined(this.end0)) {
+                deltaX = this.start0.originalX - this.end0.x;
+                deltaY = this.start0.originalY - this.end0.y;
+                period = this.end0.timeStamp - this.start0.timeStamp;
+            }
             let momentum;
-
-            if (this.currentTouch.orientation === "horizontal" && Math.abs(deltaX) > 1) {
+            
+            if (this.currentTouch.orientation === "horizontal" && Math.abs(deltaX) > 0) {
                 momentum = TUtil.momentum(0, deltaX, period);
                 this.currentTouch.deltaX = momentum.distance;
                 this.currentTouch.manualMomentumFlag = true;
                 this.touchTimeStamp = TUtil.now() + momentum.duration;
-            } else if (this.currentTouch.orientation === "vertical" && Math.abs(deltaY) > 1) {
+            } else if (this.currentTouch.orientation === "vertical" && Math.abs(deltaY) > 0) {
                 momentum = TUtil.momentum(0, deltaY, period);
                 this.currentTouch.deltaY = momentum.distance;
                 this.currentTouch.manualMomentumFlag = true;
@@ -604,20 +696,16 @@ class EventListener {
         const diff = Math.abs(deltaX) - Math.abs(deltaY);
 
         if (diff >= 1) {
-            if (
-                this.currentTouch.orientation === "none" ||
-                (this.currentTouch.orientation === "vertical" && diff > 3) ||
-                this.currentTouch.orientation === "horizontal"
-            ) {
+            if (this.currentTouch.orientation === "none" ||
+                    (this.currentTouch.orientation === "vertical" && diff > 3) ||
+                    this.currentTouch.orientation === "horizontal") {
                 this.currentTouch.orientation = "horizontal";
                 this.currentTouch.dir = deltaX <= -1 ? "left" : deltaX >= 1 ? "right" : this.currentTouch.dir;
                 this.currentTouch.source = source;
             }
-        } else if (
-            this.currentTouch.orientation === "none" ||
-            (this.currentTouch.orientation === "horizontal" && diff < -3) ||
-            this.currentTouch.orientation === "vertical"
-        ) {
+        } else if (this.currentTouch.orientation === "none" || 
+                (this.currentTouch.orientation === "horizontal" && diff < -3) || 
+                this.currentTouch.orientation === "vertical") {
             this.currentTouch.orientation = "vertical";
             this.currentTouch.dir = deltaY <= -1 ? "up" : deltaY >= 1 ? "down" : this.currentTouch.dir;
             this.currentTouch.source = source;
