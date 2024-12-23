@@ -49,7 +49,7 @@ class TargetExecutor {
 
         tmodel.updateTargetStatus(key);
         
-        if (tmodel.isTargetUpdating(key)) {
+        if (tmodel.isTargetUpdating(key) || tmodel.isTargetActive(key)) {
             TargetExecutor.needsRerun = true;
         }
     }

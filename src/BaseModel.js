@@ -478,13 +478,12 @@ class BaseModel {
 
     getTargetInterval(key) {
         const targetValue = this.targetValues[key];
-        const defaultInterval = 0;
 
         if (this.isStyleTarget(key) || this.useWindowFrame(key)) {
             return targetValue ? targetValue.interval : 0;
         }
 
-        return TUtil.isDefined(this.targets['interval']) ? this.targets['interval'] : targetValue?.interval || defaultInterval;
+        return TUtil.isDefined(this.targets['interval']) ? this.targets['interval'] : targetValue?.interval || 0;
     }
 
     getTargetEventFunctions(key) {

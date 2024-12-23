@@ -210,7 +210,23 @@ class TargetUtil {
     static internalEventMap = {
         onVisibleEvent: tmodel => tmodel.isNowVisible,
         onDomEvent: tmodel => tmodel.hasDomNow,
-        onResize: tmodel => getLocationManager().resizeLastUpdate > Math.max(tmodel.getActualValueLastUpdate('width'), tmodel.getActualValueLastUpdate('height')),
+        onResize: tmodel => {
+            const lastUpdateWidth = tmodel.getActualValueLastUpdate('width');
+            const lastUpdateHeight = tmodel.getActualValueLastUpdate('height');
+            const resizeLastUpdate = getLocationManager().resizeLastUpdate;
+
+            if (lastUpdateWidth && lastUpdateHeight) {
+                return resizeLastUpdate > Math.max(lastUpdateWidth, lastUpdateHeight);
+            }
+            if (lastUpdateWidth) {
+                return resizeLastUpdate > lastUpdateWidth;
+            }
+            if (lastUpdateHeight) {
+                return resizeLastUpdate > lastUpdateHeight;
+            }
+             
+            return getLocationManager().resizeFlag;
+        },
         onParentResize: tmodel => { return tmodel.getParent().getActualValueLastUpdate('width') > tmodel.getActualValueLastUpdate('width') ||
                     tmodel.getParent().getActualValueLastUpdate('height') > tmodel.getActualValueLastUpdate('height'); },        
     };

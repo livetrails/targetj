@@ -107,15 +107,15 @@ class RunScheduler {
         }
                         
         if (tApp.debugLevel === 1) {
-            TUtil.log(true)(`Request from: ${runId} delay: ${delay} ${this.domProcessing}`);
+            TUtil.log(true)(`Request from: ${runId} delay: ${delay} ${runningStep} ${this.domProcessing}`);
         }
                 
         if (this.domProcessing === 0) {
-            this.addToRerunQueue();
+            this.needsRerun();
         }
     }
     
-    addToRerunQueue() {
+    needsRerun() {
         this.runningFlag = false;
         
         if (this.rerunQueue.length > 0) {
@@ -124,10 +124,12 @@ class RunScheduler {
         
         if (this.rerunId) {
             this.rerunQueue.push(this.rerunId);
-        } else if (getEvents().eventQueue.length > 0) {
-            this.rerunQueue.push(`events-${getEvents().eventQueue.length}`);
-        } else if (TargetExecutor.needsRerun) {
-            this.rerunQueue.push(`targetExecutor-needsRerun}`);
+        } else if (!this.delayProcess || this.delayProcess.delay > 15) {
+            if (getEvents().eventQueue.length > 0) {
+                this.schedule(15, `events-${getEvents().eventQueue.length}`);                
+            } else if (TargetExecutor.needsRerun) {
+                this.schedule(15, 'targetExecutor-needsRerun');
+            }
         }
         
         if (this.rerunQueue.length > 0 && !this.isRunningRerun) {
@@ -158,7 +160,7 @@ class RunScheduler {
                     this.domFixStyles();            
                 } else {
                     this.domProcessing = 0;    
-                    this.addToRerunQueue();
+                    this.needsRerun();
                 }
             });            
         }
@@ -169,7 +171,7 @@ class RunScheduler {
         requestAnimationFrame(() => {            
             getManager().fixStyles();
             this.domProcessing = 0;
-            this.addToRerunQueue();
+            this.needsRerun();
         });          
     }
 
