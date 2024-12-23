@@ -320,39 +320,37 @@ This example demonstrates how to handle scroll events and develop a simple infin
 import { App, TModel, getEvents, getScreenHeight, getScreenWidth, } from "targetj";
 
 App(new TModel("scroller", {
-    canHandleEvents: "scrollTop",
+    domHolder: true,
+    overflow: 'hidden',
     containerOverflowMode: 'always',
-    children: {
-      value() {
+    children() { 
         const childrenCount = this.getChildren().length;
-        return Array.from({ length: 5 }, (_, i) =>
-            new TModel("scrollItem", {
-              width: 300,
-              background: "#B388FF",
-              height: 30,
-              color: "#fff",
-              textAlign: "center",
-              lineHeight: 30,
-              bottomMargin: 2,
-              x() { return this.getCenterX(); },
-              html: childrenCount + i,
+        return Array.from({ length: 10 }, (_, i) => 
+            new TModel('scrollItem', {                     
+                width: 300,
+                background: '#B388FF',                
+                height: 32,
+                color: '#C2FC61',
+                textAlign: 'center',
+                lineHeight: 32,               
+                bottomMargin: 2,
+                x() { return this.getCenterX(); },                
+                html: childrenCount + i
             })
-        );
-      },
-      enabledOn() {
-        return (this.visibleChildren.length - 1) * 32 < this.getHeight();
-      },
+        ); 
+    },          
+    width() { return getScreenWidth(); },
+    height() { return getScreenHeight(); },  
+    onResize: [ 'width', 'height' ],
+    onScrollEvent() {
+        this.setTarget('scrollTop', Math.max(0, this.getScrollTop() + getEvents().deltaY()));
     },
-    scrollTop(cycle, lastValue) {
-      return Math.max(0, lastValue + getEvents().deltaY());
-    },
-    width: getScreenWidth,
-    height: getScreenHeight,
-    onResize: [ "width", "height" ],
-    onScrollEvent: "scrollTop",
-    onVisibleChildrenChange: "children"
-  })
-);
+    onVisibleChildrenChange() { 
+        if (getEvents().dir() !== 'up' && this.visibleChildren.length * 34 < this.getHeight()) {
+            this.activateTarget('children');
+        }
+    }
+}));
 ```
 
 ## Simple Single Page App Example
