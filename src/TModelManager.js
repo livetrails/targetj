@@ -238,6 +238,7 @@ class TModelManager {
                 tmodel.$dom = new $Dom();
                 TModelUtil.createDom(tmodel);
                 tmodel.getDomHolder(tmodel).appendTModel$Dom(tmodel);
+                tmodel.hasDomNow = true;                
             }
         }
     }
