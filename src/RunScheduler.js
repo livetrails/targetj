@@ -137,6 +137,10 @@ class RunScheduler {
         }        
     }
     
+    doesExecuterNeedsRerun() {
+        return TargetExecutor.needsRerun;
+    }
+    
     processRerunQueue() {
         this.isRunningRerun = true;
 
@@ -212,12 +216,13 @@ class RunScheduler {
         }
     }
 
-    insertRun(runId, now, delay) {
+    insertRun(newRunId, newInsertTime, newDelay) {
         let low = 0, high = this.nextRuns.length;
         while (low < high) {
             const mid = Math.floor((low + high) / 2);
-            const nextRunDelay = this.nextRuns[mid].delay;
-            const diff = nextRunDelay - delay;
+            const delay = this.nextRuns[mid].delay;
+            const insertTime = this.nextRuns[mid].insertTime;
+            const diff = (insertTime + delay) - (newInsertTime + newDelay);
             if (diff > 0) {
                 high = mid;
             } else if (diff < 0) {
@@ -227,7 +232,7 @@ class RunScheduler {
             }
         }
              
-        this.nextRuns.splice(low, 0, { runId, insertTime: now, delay }); 
+        this.nextRuns.splice(low, 0, { runId: newRunId, insertTime: newInsertTime, delay: newDelay }); 
     }
 }
 

@@ -133,7 +133,7 @@ class TModelManager {
             if (tmodel.styleTargetList.length > 0) {
                 this.lists.restyle.push(tmodel);
                 tmodel.domHeight = undefined;
-                tmodel.domWidth = undefined;            
+                tmodel.domWidth = undefined;                   
             }
             if (tmodel.asyncStyleTargetList.length > 0) {
                 this.lists.reasyncStyle.push(tmodel);

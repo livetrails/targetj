@@ -158,7 +158,7 @@ class TModelUtil {
 
     static fixStyle(tmodel) {
         let transformUpdate = false;
-        tmodel.styleTargetList.forEach(key => {
+        tmodel.styleTargetList.forEach(key => {          
             if (TargetUtil.transformMap[key]) {
                 const value = TModelUtil.getTransformValue(tmodel, key);
                 if (tmodel.transformMap[key] !== value) {

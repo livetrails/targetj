@@ -180,25 +180,28 @@ class BaseModel {
                 this.asyncStyleTargetMap[key] = true;
             }
         } else if (this.isStyleTarget(key)) {
+            let styleFlag = true;
             if (TargetUtil.transformMap[key]) {
                 if (this.getParent()) {
                     this.calcAbsolutePosition(this.getX(), this.getY());
                 }
                 if (TModelUtil.getTransformValue(this, key) === this.transformMap[key]) {
-                    return;
+                    styleFlag = false;
                 }
             } else if (key === 'width' || key === 'height') {
                 const dimension = Math.floor(key === 'width' ? this.getWidth() : this.getHeight());
                 if (this.styleMap[key] === dimension) {
-                    return;
+                    styleFlag = false;
                 }
             } else if (TUtil.isDefined(this.val(key)) && this.styleMap[key] === this.val(key)) {
-                return;
+                styleFlag = false;
             }
 
-            this.styleTargetList.push(key);
-            this.styleTargetMap[key] = true;
-        } else if (this.useWindowFrame(key)) {
+            if (styleFlag && !this.styleTargetMap[key]) {
+                this.styleTargetList.push(key);
+                this.styleTargetMap[key] = true;                
+            }
+        } else if (this.useWindowFrame(key) && !this.styleTargetMap[key]) {
             this.styleTargetList.push(key);
             this.styleTargetMap[key] = true;            
         } else {
