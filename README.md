@@ -454,6 +454,8 @@ App(new TModel("simpleApp", {
 
 Here is an example that creates 1000 rows. The first argument, 'rows,' is used to find an element with the ID 'rows.' If no such element exists, it will be created at the top of the page. The OnDomEvent target activates the targets defined in its value when the DOM is found or created, eliminating the need for conditions to verify the DOM's availability before executing the target. Additionally, the parallel property creates subtasks, which improve browser performance."
 
+![animation api example](https://targetj.io/img/targetjAsLibrary.gif)
+
 ```bash
 import { App, TModel, $Dom } from "targetj";
 
