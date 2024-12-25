@@ -93,9 +93,13 @@ class TargetManager {
 
     setActualValues(tmodel, updatingList = tmodel.updatingTargetList.slice(0)) {
         let schedulePeriod = 0;
-
+        
         for (const key of updatingList) {
             if (tmodel.isScheduledPending(key)) {
+                continue;
+            }
+            
+            if (!tmodel.hasDom() && tmodel.allStyleTargetMap[key]) {
                 continue;
             }
             
