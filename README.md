@@ -1,6 +1,6 @@
-# TargetJ: JavaScript UI framework Redefining Front-End Development
+# TargetJ: JavaScript UI framework and library
 
-Welcome to TargetJ, a powerful JavaScript UI framework designed to simplify development and animation. (https://targetj.io)
+Welcome to TargetJ, a powerful JavaScript UI framework and library designed to simplify development and animation, and you might find that it redefines front-end development. (https://targetj.io)
 
 TargetJ distinguishes itself by introducing a novel concept known as 'targets', which forms its core. Targets are used as the main building blocks of components instead of direct variables and methods. Each component in TargetJ is a set of targets. Targets are employed across all aspects of the program. They are used in animation, controlling program flow, loading data from external APIs, handling user events, and more.
 
@@ -15,6 +15,9 @@ npm install targetj
 ## Why TargetJ?
 
 Imagine building a single-page web app using a unified approach for API integration, animations, event handling, and more—without having to manage asynchronous calls, loops, callbacks, promises, timeouts, state management, CSS, HTML attributes, tags, or HTML nesting. That’s exactly what TargetJ offers: it simplifies the entire development process with a new, simplified paradigm.
+
+## Can I integrate TargetJ as a library into my existing page?
+Yes, you can integrate TargetJ as a library into your existing page! TargetJ is designed to be flexible and works seamlessly with other libraries and frameworks, allowing you to enhance your page with minimal changes. You can find an example at the end of this page.
 
 ## What are targets?
 
@@ -444,6 +447,44 @@ App(new TModel("simpleApp", {
         }
     },
     onResize: ["width", "height"]
+}));
+```
+
+## Using TargetJ as a library into your page
+
+Here is an example that creates 1000 rows. The first argument, 'rows,' is used to find an element with the ID 'rows.' If no such element exists, it will be created at the top of the page. The OnDomEvent target activates the targets defined in its value when the DOM is found or created, eliminating the need for conditions to verify the DOM's availability before executing the target. Additionally, the parallel property creates subtasks, which improve browser performance."
+
+![animation api example](https://targetj.io/img/targetjAsLibrary.gif)
+
+```bash
+import { App, TModel, $Dom } from "targetj";
+
+App(new TModel("rows", {
+    isVisible: true,
+    containerOverflowMode: "always",
+    rectTop() { return this.$dom.getBoundingClientRect().top; },
+    absY() { return this.val("rectTop") - $Dom.getWindowScrollTop(); },
+    defaultStyling: false,
+    domHolder: true,
+    onDomEvent: ["rectTop", "absY"],
+    onWindowScrollEvent: "absY",
+    createRows: {
+        parallel: true,
+        cycles: 9,
+        value() {
+            const childrenLength = this.getChildren().length;
+            Array.from({length: 100}, (_, i) => {
+                this.addChild(new TModel("row", {
+                    keepEventDefault: true,
+                    height: 36,
+                    width: [{list: [100, 500, 200]}, 30],
+                    background: "#b388ff",
+                    canDeleteDom: false,
+                    html: `row ${i + childrenLength}`,
+                }));
+            });
+        }
+    }
 }));
 ```
 
