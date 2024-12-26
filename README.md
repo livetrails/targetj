@@ -1,4 +1,4 @@
-# TargetJ: JavaScript UI framework and library
+# TargetJ: JavaScript UI framework and library - Programming the Front-End with a New Paradigm
 
 Welcome to TargetJ, a powerful JavaScript UI framework and library designed to simplify development and animation, and you might find that it redefines front-end development. (https://targetj.io)
 
