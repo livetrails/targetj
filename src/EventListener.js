@@ -384,12 +384,16 @@ class EventListener {
                 break;
                 
             case 'resize':
-                tRoot().val('width', tRoot().targets.width());
-                tRoot().val('height', tRoot().targets.height());
+                this.resizeRoot();
                 break;              
         }
         
         getRunScheduler().schedule(0, `${originalName}-${eventName}-${(event.target.tagName || "").toUpperCase()}`);
+    }
+    
+    resizeRoot() {
+        tRoot().val('width', tRoot().targets.width());
+        tRoot().val('height', tRoot().targets.height());        
     }
 
     preventDefault(tmodel, eventName) {
@@ -541,8 +545,8 @@ class EventListener {
     
     getEventType() {
         return this.currentEventType;
-    }    
-
+    }  
+    
     isClickHandler(handler) {
         return this.getTouchHandler() === handler && this.isClickEvent();
     }

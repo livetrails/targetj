@@ -99,10 +99,6 @@ class TargetManager {
                 continue;
             }
             
-            if (!tmodel.hasDom() && tmodel.allStyleTargetMap[key]) {
-                continue;
-            }
-            
             schedulePeriod = TargetUtil.scheduleExecution(tmodel, key);
 
             if (schedulePeriod > 0) {

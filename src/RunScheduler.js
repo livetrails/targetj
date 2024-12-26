@@ -29,8 +29,6 @@ class RunScheduler {
         this.rerunId = '';
         this.delayProcess = undefined;
         this.resetting = false;
-        this.rerunQueue = [];
-        this.isRunningRerun = false;        
     }
    
     async resetRuns() { 
@@ -50,8 +48,6 @@ class RunScheduler {
         this.rerunId = '';
         this.delayProcess = undefined;
         this.resetting = false;
-        this.rerunQueue = [];
-        this.isRunningRerun = false;          
     }
     
     schedule(delay, runId) {
@@ -117,39 +113,20 @@ class RunScheduler {
     
     needsRerun() {
         this.runningFlag = false;
-        
-        if (this.rerunQueue.length > 0) {
-            return;
-        }
-        
+
         if (this.rerunId) {
-            this.rerunQueue.push(this.rerunId);
+            this.schedule(1, `rerun-${this.rerunId}`);               
         } else if (!this.delayProcess || this.delayProcess.delay > 15) {
             if (getEvents().eventQueue.length > 0) {
                 this.schedule(15, `events-${getEvents().eventQueue.length}`);                
             } else if (TargetExecutor.needsRerun) {
                 this.schedule(15, 'targetExecutor-needsRerun');
             }
-        }
-        
-        if (this.rerunQueue.length > 0 && !this.isRunningRerun) {
-            this.processRerunQueue();
-        }        
+        }     
     }
     
     doesExecuterNeedsRerun() {
         return TargetExecutor.needsRerun;
-    }
-    
-    processRerunQueue() {
-        this.isRunningRerun = true;
-
-        while (this.rerunQueue.length > 0) {
-            const nextRunId = this.rerunQueue.shift();
-            this.run(0, nextRunId);
-        }
-
-        this.isRunningRerun = false;
     }
     
     domOperations(runningStep) {

@@ -1,5 +1,5 @@
 import { TUtil } from "./TUtil.js";
-import { tApp, getRunScheduler, getLocationManager } from "./App.js";
+import { tApp, getRunScheduler, getLocationManager, getEvents } from "./App.js";
 
 /**
  * It enables opening new pages and managing history. It alo provide page caching.
@@ -46,6 +46,8 @@ class PageManager {
     }
     
     onPageClose(visibles) {
+        getLocationManager().resizeLastUpdate = TUtil.now();
+        getEvents().resizeRoot();
         visibles.forEach(tmodel => {
             getLocationManager().runEventTargets(tmodel, ['onPageClose', 'onResize']);             
         });          

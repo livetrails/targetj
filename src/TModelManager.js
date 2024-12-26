@@ -131,9 +131,7 @@ class TModelManager {
     needsRestyle(tmodel) {
         if (tmodel.hasDom()) {  
             if (tmodel.styleTargetList.length > 0) {
-                this.lists.restyle.push(tmodel);
-                tmodel.domHeight = undefined;
-                tmodel.domWidth = undefined;                   
+                this.lists.restyle.push(tmodel);                  
             }
             if (tmodel.asyncStyleTargetList.length > 0) {
                 this.lists.reasyncStyle.push(tmodel);
