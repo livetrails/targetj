@@ -11,17 +11,15 @@ To install TargetJ, run the following command in your terminal:
 ```bash
 npm install targetj
 ```
-
-## Why TargetJ?
-
-Imagine building a single-page web app using a unified approach for API integration, animations, event handling, and more—without having to manage asynchronous calls, loops, callbacks, promises, timeouts, state management, CSS, HTML attributes, tags, or HTML nesting. That’s exactly what TargetJ offers: it simplifies the entire development process with a new, simplified paradigm.
-
-
 ## What are targets?
 
 Targets are used as the main building blocks of components instead of direct variables and methods. Each component in TargetJ is a set of targets. Targets are employed across all aspects of the program. They are used in animation, controlling program flow, loading data from external APIs, handling user events, and more.
 
 Targets provide a unified interface for variable assignments and methods, enabling them to operate autonomously. For example, targets give variables the ability to iterate in steps until reaching a specified value, rather than being immediately assigned. Targets can include pauses between these steps, track the progress of other variables, and manage their life cycles dynamically. Methods can execute themselves under specific conditions, control the number of executions, and more.
+
+## Why TargetJ?
+
+Imagine building a single-page web app using a unified approach for API integration, animations, event handling, and more—without having to manage asynchronous calls, loops, callbacks, promises, timeouts, state management, CSS, HTML attributes, tags, or HTML nesting. That’s exactly what TargetJ offers: it simplifies the entire development process with a new, simplified paradigm.
 
 ## Do I still need HTML and CSS files?
 
