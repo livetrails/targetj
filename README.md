@@ -1,8 +1,8 @@
 # TargetJ: JavaScript UI framework and library - Programming the Front-End with a New Paradigm
 
-Welcome to TargetJ, a powerful JavaScript UI framework and library designed to simplify development and animation, and you might find that it redefines front-end development. (https://targetj.io)
+Welcome to TargetJ, a powerful JavaScript UI framework and library that you might find redefines front-end development. (https://targetj.io)
 
-TargetJ distinguishes itself by introducing a novel concept known as 'targets', which forms its core. Targets are used as the main building blocks of components instead of direct variables and methods. Each component in TargetJ is a set of targets. Targets are employed across all aspects of the program. They are used in animation, controlling program flow, loading data from external APIs, handling user events, and more.
+TargetJ distinguishes itself by introducing a novel concept known as 'targets,' which forms its core. Targets give methods and variable assignments life cycles and the autonomy to operate independently, with various callbacks to adapt to changes, mimicking the behavior of living cells. This opens a new paradigm in programming.
 
 ### Installation
 
@@ -11,23 +11,23 @@ To install TargetJ, run the following command in your terminal:
 ```bash
 npm install targetj
 ```
+## What are targets?
+
+Targets are used as the main building blocks of components instead of direct variables and methods. Each component in TargetJ is a set of targets. Targets are employed across all aspects of the program. They are used in animation, controlling program flow, loading data from external APIs, handling user events, and more.
+
+Targets provide a unified interface for variable assignments and methods, enabling them to operate autonomously. For example, targets give variables the ability to iterate in steps until reaching a specified value, rather than being immediately assigned. Targets can include pauses between these steps, track the progress of other variables, and manage their life cycles dynamically. Methods can execute themselves under specific conditions, control the number of executions, and more.
 
 ## Why TargetJ?
 
-Imagine building a single-page web app using a unified approach for API integration, animations, event handling, and more—without having to manage asynchronous calls, loops, callbacks, promises, timeouts, state management, CSS, HTML attributes, tags, or HTML nesting. That’s exactly what TargetJ offers: it simplifies the entire development process with a new, simplified paradigm.
-
-## Can I integrate TargetJ as a library into my existing page?
-Yes, you can integrate TargetJ as a library into your existing page! TargetJ is designed to be flexible and works seamlessly with other libraries and frameworks, allowing you to enhance your page with minimal changes. You can find an example at the end of this page.
-
-## What are targets?
-
-Targets provide a unified interface for variable assignments and methods, giving them life cycles and the autonomy to operate independently, with various callbacks to adapt to changes, mimicking the behavior of living cells.
-
-For variable assignments, targets enhance functionality by giving them the ability to iterate in steps until they reach the specified value, rather than being immediately assigned their values. They can introduce pauses between iterations and offer callbacks to monitor progress, track the progress of other variables, and manage their life cycles accordingly. Similarly, targets enhance methods by allowing them to manage their own life cycles. They can execute themselves under specific conditions, control the number of executions, and offer the same capabilities as those provided to variables.
+Imagine building a single-page web app using a unified approach for API integration, animations, event handling, and more—without having to manage asynchronous calls, loops, callbacks, promises, timeouts, state management, CSS, HTML attributes, tags, or HTML nesting. That’s exactly what TargetJ offers: it simplifies the entire development process with a new, simplified approach.
 
 ## Do I still need HTML and CSS files?
 
 No, static HTML or CSS files are not necessary. We believe they introduce complexity, brittleness, and act as an intermediary that diverts focus from the end application. It's better to reduce the gap between the application and the user experience. In TargetJ, HTML elements, styles, and attributes are written as targets, enabling them to function independently while at the same time being well integrated with the other logic targets of the application. This provides a flexible and fluid medium for creating new user experiences that would otherwise be difficult to achieve.
+
+## Can I integrate TargetJ as a library into my existing page?
+
+Yes, you can integrate TargetJ as a library into your existing page! TargetJ is designed to work as either a library or a framework. It was developed to be flexible and compatible with other libraries and frameworks, allowing you to enhance your page with minimal changes. You can find an example at the end of this page.
 
 ## What does a target consist of?
 
