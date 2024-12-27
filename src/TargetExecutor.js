@@ -7,6 +7,7 @@ import { getEvents } from "./App.js";
  * It is responsible for executing both declarative and imperative targets.
  */
 class TargetExecutor {
+    static needsRerun = false;
     
     static executeDeclarativeTarget(tmodel, key) {  
         TargetExecutor.resolveTargetValue(tmodel, key);
@@ -47,6 +48,10 @@ class TargetExecutor {
         tmodel.setTargetMethodName(key, 'value');        
 
         tmodel.updateTargetStatus(key);
+        
+        if (tmodel.isTargetUpdating(key) || tmodel.isTargetActive(key)) {
+            TargetExecutor.needsRerun = true;
+        }
     }
 
     static assignListTarget(targetValue, valueList, initialValue, steps, interval, easing) {
@@ -109,7 +114,6 @@ class TargetExecutor {
         const newCycles = valueArray[3] || 0;
                 
         const targetValue = tmodel.targetValues[key] || TargetUtil.emptyValue();
-        const theValue = targetValue.value;
 
         tmodel.targetValues[key] = targetValue;
         const easing = TUtil.isDefined(tmodel.targets[key].easing) ? tmodel.targets[key].easing : undefined;
@@ -125,10 +129,10 @@ class TargetExecutor {
         } else if (TargetUtil.isListTarget(newValue)) {
             TargetExecutor.assignListTarget(targetValue, newValue.list, newValue.list[0], newSteps, newInterval, easing);
         } else {
-            TargetExecutor.assignSingleTarget(targetValue, newValue, targetInitial, newSteps, newCycles, newInterval, easing);
-            if (newSteps > 0 && TUtil.areEqual(theValue, newValue, tmodel.targets[key]?.deepEquality ?? false) && newValue !== tmodel.val(key)) {
+            if (newSteps > 0 && !TUtil.areEqual(tmodel.val(key), newValue, tmodel.targets[key]?.deepEquality ?? false)) {
                 tmodel.resetTargetStep(key);
             }
+            TargetExecutor.assignSingleTarget(targetValue, newValue, targetInitial, newSteps, newCycles, newInterval, easing);            
         }
     }
 }

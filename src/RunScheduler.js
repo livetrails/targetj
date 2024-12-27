@@ -1,5 +1,6 @@
 import { TUtil } from "./TUtil.js";
 import { tApp, getEvents, getManager, getLocationManager } from "./App.js";
+import { TargetExecutor } from "./TargetExecutor.js";
 
 /**
  *  It is responsible for scheduling and managing the execution of TargetJ process cycle. 
@@ -117,8 +118,14 @@ class RunScheduler {
         } else if (!this.delayProcess || this.delayProcess.delay > 15) {
             if (getEvents().eventQueue.length > 0) {
                 this.schedule(15, `events-${getEvents().eventQueue.length}`);                
+            } else if (TargetExecutor.needsRerun) {
+                this.schedule(15, 'targetExecutor-needsRerun');
             }
         }     
+    }
+    
+    doesExecuterNeedsRerun() {
+        return TargetExecutor.needsRerun;
     }
     
     domOperations(runningStep) {

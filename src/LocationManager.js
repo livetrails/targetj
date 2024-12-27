@@ -144,10 +144,10 @@ class LocationManager {
                 };
             });
             
-            if (!TUtil.isDefined(child.targetValues.x)) {
+            if ((!child.isTargetImperative('x') && !child.targets['x']) || !TUtil.isDefined(child.targetValues.x)) {
                 child.val('x', child.x);
             }
-            if (!TUtil.isDefined(child.targetValues.y)) {
+            if ((!child.isTargetImperative('y') && !child.targets['y']) || !TUtil.isDefined(child.targetValues.y)) {
                 child.val('y', child.y);
             }
                 
