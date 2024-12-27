@@ -200,11 +200,11 @@ class TargetUtil {
         onClickEvent: tmodel => getEvents().getEventType() === 'click' && getEvents().isClickHandler(tmodel),
         onTouchStart: tmodel => getEvents().isStartEvent() && getEvents().containsTouchHandler(tmodel),
         onTouchEnd: tmodel => getEvents().isEndEvent() && getEvents().containsTouchHandler(tmodel),
+        onEnterEvent: tmodel => getEvents().isEnterEventHandler(tmodel),
+        onLeaveEvent: tmodel => getEvents().isLeaveEventHandler(tmodel),        
         onSwipeEvent: tmodel => getEvents().containsTouchHandler(tmodel) && getEvents().isSwipeEvent(),        
         onAnySwipeEvent: () => getEvents().isSwipeEvent(),
         onTouchEvent: tmodel => getEvents().isTouchHandler(tmodel),
-        onEnterEvent: tmodel => getEvents().isEnterEventHandler(tmodel),
-        onLeaveEvent: tmodel => getEvents().isLeaveEventHandler(tmodel),
     };
     
     static internalEventMap = {

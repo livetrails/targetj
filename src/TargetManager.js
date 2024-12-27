@@ -39,7 +39,7 @@ class TargetManager {
         }
 
         if (tmodel.isExecuted(key) && tmodel.getTargetStep(key) === tmodel.getTargetSteps(key)) {
-            if (tmodel.isScheduledPending(key)) {
+            if (tmodel.isScheduledPending(key) && getRunScheduler().nextRuns.length > 0) {
                 return;
             }
             const schedulePeriod = TargetUtil.scheduleExecution(tmodel, key);
@@ -95,7 +95,7 @@ class TargetManager {
         let schedulePeriod = 0;
         
         for (const key of updatingList) {
-            if (tmodel.isScheduledPending(key)) {
+            if (tmodel.isScheduledPending(key) && getRunScheduler().nextRuns.length > 0) {
                 continue;
             }
             

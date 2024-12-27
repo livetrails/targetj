@@ -1,6 +1,5 @@
 import { TUtil } from "./TUtil.js";
 import { tApp, getEvents, getManager, getLocationManager } from "./App.js";
-import { TargetExecutor } from "./TargetExecutor.js";
 
 /**
  *  It is responsible for scheduling and managing the execution of TargetJ process cycle. 
@@ -79,7 +78,6 @@ class RunScheduler {
         this.runningFlag = true;
         this.runStartTime = TUtil.now();
         
-        TargetExecutor.needsRerun = false;
         getEvents().captureEvents();
         
         if (getManager().doneTargets.length > 0) {
@@ -103,7 +101,7 @@ class RunScheduler {
         }
                         
         if (tApp.debugLevel === 1) {
-            TUtil.log(true)(`Request from: ${runId} delay: ${delay} ${runningStep} ${this.domProcessing}`);
+            TUtil.log(true)(`Request from: ${runId} dly: ${delay} step:${runningStep} dom:${this.domProcessing} runs:${this.nextRuns.length} D:${this.delayProcess?.delay}`);
         }
                 
         if (this.domProcessing === 0) {
@@ -119,14 +117,8 @@ class RunScheduler {
         } else if (!this.delayProcess || this.delayProcess.delay > 15) {
             if (getEvents().eventQueue.length > 0) {
                 this.schedule(15, `events-${getEvents().eventQueue.length}`);                
-            } else if (TargetExecutor.needsRerun) {
-                this.schedule(15, 'targetExecutor-needsRerun');
             }
         }     
-    }
-    
-    doesExecuterNeedsRerun() {
-        return TargetExecutor.needsRerun;
     }
     
     domOperations(runningStep) {
@@ -157,23 +149,39 @@ class RunScheduler {
     }
 
     setDelayProcess(runId, insertTime, runTime, delay) {
-        this.delayProcess = {
-            runId,
-            insertTime,
-            runTime: runTime,
-            delay,
-            timeoutId: setTimeout(() => {
-                this.run(delay, runId);
-                const nextRun = this.nextRuns.length > 0 ? this.nextRuns.shift() : undefined;
-                if (nextRun) {
-                    const now = TUtil.now();
-                    const newDelay = Math.max(0, nextRun.delay - (now - nextRun.insertTime));
-                    this.setDelayProcess(nextRun.runId, nextRun.insertTime, now + newDelay, newDelay);
-                } else {
-                    this.delayProcess = undefined;
-                }
-            }, delay)
-        };
+        if (delay > 0) {
+            this.delayProcess = {
+                runId,
+                insertTime,
+                runTime: runTime,
+                delay,
+                timeoutId: setTimeout(() => {
+                    this.run(delay, runId);
+                    this.executeNextRun();
+                }, delay)
+            };
+        } else {
+            this.delayProcess = {
+                runId,
+                insertTime,
+                runTime: runTime,
+                delay: 0
+            };
+            
+            this.run(delay, runId);
+            this.executeNextRun();            
+        }
+    }
+    
+    executeNextRun() {
+        const nextRun = this.nextRuns.length > 0 ? this.nextRuns.shift() : undefined;
+        if (nextRun) {
+            const now = TUtil.now();
+            const newDelay = nextRun.delay - (now - nextRun.insertTime);
+            this.setDelayProcess(nextRun.runId, nextRun.insertTime, now + newDelay, newDelay);
+        } else {
+            this.delayProcess = undefined;
+        }        
     }
 
     delayRun(delay, runId) {
@@ -186,7 +194,7 @@ class RunScheduler {
             clearTimeout(this.delayProcess.timeoutId);
 
             this.insertRun(this.delayProcess.runId, this.delayProcess.insertTime, this.delayProcess.delay);
-
+            
             this.setDelayProcess(runId, insertTime, runTime,  delay);
         } else {
             this.insertRun(runId, insertTime, delay);

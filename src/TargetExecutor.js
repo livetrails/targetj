@@ -7,7 +7,6 @@ import { getEvents } from "./App.js";
  * It is responsible for executing both declarative and imperative targets.
  */
 class TargetExecutor {
-    static needsRerun = false;
     
     static executeDeclarativeTarget(tmodel, key) {  
         TargetExecutor.resolveTargetValue(tmodel, key);
@@ -48,10 +47,6 @@ class TargetExecutor {
         tmodel.setTargetMethodName(key, 'value');        
 
         tmodel.updateTargetStatus(key);
-        
-        if (tmodel.isTargetUpdating(key) || tmodel.isTargetActive(key)) {
-            TargetExecutor.needsRerun = true;
-        }
     }
 
     static assignListTarget(targetValue, valueList, initialValue, steps, interval, easing) {

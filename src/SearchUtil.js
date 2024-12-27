@@ -52,6 +52,10 @@ class SearchUtil {
     static findFirstScrollLeftHandler(tmodel, eventType) {
         return this.findFirstHandler(tmodel, { eventType, eventName: 'scrollLeft' });
     }
+    
+    static findFirstSwipeHandler(tmodel) {
+        return this.findFirstHandler(tmodel, { eventName: 'swipe' });
+    }
 
     static findFirstTouchHandler(tmodel) {
         return this.findFirstHandler(tmodel, { eventName: 'touch' });

@@ -44,7 +44,8 @@ class EventListener {
         this.currentHandlers = { 
             touch: null, 
             scrollLeft: null, 
-            scrollTop: null, 
+            scrollTop: null,
+            swipe: null,
             pinch: null,
             enterEvent: null,
             leaveEvent: null,
@@ -192,10 +193,11 @@ class EventListener {
     
     findEventHandlers({ tmodel, eventType }) {
         
-        let touchHandler, scrollLeftHandler, scrollTopHandler, pinchHandler, focusHandler;
+        let touchHandler, swipeHandler, scrollLeftHandler, scrollTopHandler, pinchHandler, focusHandler;
         
         if (tmodel) {
-            touchHandler = SearchUtil.findFirstTouchHandler(tmodel);            
+            touchHandler = SearchUtil.findFirstTouchHandler(tmodel);
+            swipeHandler = SearchUtil.findFirstSwipeHandler(tmodel);
             scrollLeftHandler = SearchUtil.findFirstScrollLeftHandler(tmodel, eventType);
             scrollTopHandler = SearchUtil.findFirstScrollTopHandler(tmodel, eventType);
             pinchHandler = SearchUtil.findFirstPinchHandler(tmodel);
@@ -217,6 +219,7 @@ class EventListener {
         }
        
         this.currentHandlers.touch = touchHandler;
+        this.currentHandlers.swipe = swipeHandler;
         this.currentHandlers.scrollLeft = scrollLeftHandler;
         this.currentHandlers.scrollTop = scrollTopHandler;
         this.currentHandlers.pinch = pinchHandler;
@@ -316,8 +319,8 @@ class EventListener {
                 
                 this.findEventHandlers(this.lastEvent); 
                 
-                this.swipeStartX = this.start0.x - this.currentHandlers.touch?.getX();
-                this.swipeStartY = this.start0.y - this.currentHandlers.touch?.getY();
+                this.swipeStartX = this.start0.x - this.currentHandlers.swipe?.getX();
+                this.swipeStartY = this.start0.y - this.currentHandlers.swipe?.getY();
                 
                 event.stopPropagation();
                 
@@ -525,7 +528,7 @@ class EventListener {
     }
     
     hasDelta() {
-        return Math.abs(this.deltaX()) >= 1 || Math.abs(this.deltaY()) >= 1;
+        return Math.abs(this.deltaX()) >= 0 || Math.abs(this.deltaY()) >= 0;
     }
     isEndEvent() {
         return this.getEventType() === 'end' || this.getEventType() === 'click';
