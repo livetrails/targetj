@@ -19,6 +19,7 @@ class TModelManager {
             restyle: [],
             reasyncStyle: [],
             reattach: [],
+            relocation: [],            
             invisibleDom: [],
             noDom: [],
             updatingTModels: [],
@@ -39,6 +40,7 @@ class TModelManager {
         this.lists.restyle.length = 0;
         this.lists.reasyncStyle.length = 0;
         this.lists.reattach.length = 0;
+        this.lists.relocation.length = 0;        
         this.lists.noDom.length = 0;
         this.lists.updatingTModels.length = 0;
         this.lists.updatingTargets.length = 0;
@@ -71,12 +73,13 @@ class TModelManager {
                 }
                 
                 this.visibleTypeMap[tmodel.type].push(tmodel);                
-            }
+            }   
             
             if (visible || tmodel.isActivated()) {
                 this.needsRerender(tmodel);
                 this.needsRestyle(tmodel);
                 this.needsReattach(tmodel);
+                this.needsRelocation(tmodel);
 
                 if (tmodel.updatingTargetList.length > 0) {
                     this.lists.updatingTModels.push(tmodel);
@@ -112,10 +115,20 @@ class TModelManager {
 
         return this.lists.noDom.length > 0 ? 0 : 
             this.lists.reattach.length > 0 ? 1 : 
-            this.lists.rerender.length > 0 ? 2 : 
-            this.lists.reasyncStyle.length > 0 ? 3 :
-            this.lists.invisibleDom.length > 0 ? 4 :
-            this.lists.restyle.length > 0 ? 5 : -1;    
+            this.lists.relocation.length > 0 ? 2 :                        
+            this.lists.rerender.length > 0 ? 3 : 
+            this.lists.reasyncStyle.length > 0 ? 4 :
+            this.lists.invisibleDom.length > 0 ? 5 :
+            this.lists.restyle.length > 0 ? 10 : -1;    
+    }
+
+    needsRelocation(tmodel) {
+        if (tmodel.hasDom() && TUtil.isDefined(tmodel.domOrderIndex)) {
+            this.lists.relocation.push(tmodel);  
+            return true;
+        }
+        
+        return false;
     }
 
     needsRerender(tmodel) {
@@ -168,6 +181,15 @@ class TModelManager {
                 tmodel.getDomHolder(tmodel).appendTModel$Dom(tmodel);
             }
         }
+    }
+    
+    relocateTModels() {
+        this.lists.relocation.sort((a, b) => b.domOrderIndex - a.domOrderIndex);
+        
+        for (const tmodel of this.lists.relocation) { 
+            tmodel.getDomParent().$dom.relocate(tmodel, tmodel.domOrderIndex);
+            tmodel.domOrderIndex = undefined;
+        }           
     }
     
     deleteDoms() {

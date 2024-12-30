@@ -11,6 +11,7 @@ class RunScheduler {
     static steps = [
         () => getManager().createDoms(),
         () => getManager().reattachTModels(),
+        () => getManager().relocateTModels(),
         () => getManager().renderTModels(),
         () => getManager().fixAsyncStyles(),
         () => {
@@ -131,7 +132,7 @@ class RunScheduler {
     domOperations(runningStep) {
         this.domProcessing = 1;
                 
-        if (runningStep === 5) {
+        if (runningStep === 10) {
             this.domFixStyles();
         } else {
             Promise.all(RunScheduler.steps.filter((_, index) => index >= runningStep).map(step => Promise.resolve().then(step)))

@@ -240,7 +240,7 @@ class BaseModel {
             this.processNewTarget(key);
         });
 
-        getRunScheduler().schedule(10, 'addTargets-' + this.oid);
+        getRunScheduler().schedule(1, 'addTargets-' + this.oid);
     }
         
     getTargetStepPercent(key, step) {
@@ -622,7 +622,7 @@ class BaseModel {
         this.addToActiveTargets(key);
         this.removeFromUpdatingTargets(key);
 
-        getRunScheduler().schedule(10, 'deleteTargetValue-' + this.oid + "-" + key);
+        getRunScheduler().schedule(1, 'deleteTargetValue-' + this.oid + "-" + key);
     }    
  
     resetImperative(key) {

@@ -90,6 +90,9 @@ class LocationManager {
     getChildren(container) {
         if (container.shouldBeBracketed()) {
             return BracketGenerator.generate(container);
+        } else {
+            container.lastChildrenUpdate.additions.length = 0;
+            container.lastChildrenUpdate.deletions.length = 0;                
         }
         
         if (BracketGenerator.bracketMap[container.oid]) {

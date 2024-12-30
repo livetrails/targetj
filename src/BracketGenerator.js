@@ -16,17 +16,21 @@ class BracketGenerator {
         let brackets = BracketGenerator.bracketMap[page.oid];
 
         if (!brackets || brackets.allChildren !== page.allChildren || regenerate) {
-            BracketGenerator.bracketMap[page.oid] = { 
+            BracketGenerator.bracketMap[page.oid] = {
                 brackets: BracketGenerator.buildTreeBottomUp(page, page.getChildren()), 
                 updateCount: 0, 
                 allChildren: page.allChildren 
             };
-        } else if (page.lastChildrenUpdate.deletions.length > 0) {
-            BracketGenerator.updateTreeOnDeletions(page.lastChildrenUpdate.deletions);            
-        } else if (page.lastChildrenUpdate.additions.length > 0) {
-            BracketGenerator.updateTreeOnAdditions(page, page.lastChildrenUpdate.additions);
+        } else {
+            if (page.lastChildrenUpdate.deletions.length > 0) {
+                BracketGenerator.updateTreeOnDeletions(page.lastChildrenUpdate.deletions);
+            }
+            
+            if (page.lastChildrenUpdate.additions.length > 0) {
+                BracketGenerator.updateTreeOnAdditions(page, page.lastChildrenUpdate.additions);
+            }
         }
-       
+              
         page.lastChildrenUpdate.additions.length = 0;
         page.lastChildrenUpdate.deletions.length = 0;
 
@@ -45,9 +49,9 @@ class BracketGenerator {
                 }
             }
         }
-        
+   
         deletions.forEach(child => deleteChildRecursively(child.bracket, child));
-    }
+    }    
         
     static updateTreeOnAdditions(page, additions = []) {
         const list = page.getChildren();
@@ -61,14 +65,14 @@ class BracketGenerator {
         }); 
 
         const sortedIndices = Array.from(affectedIndices).sort((a, b) => a - b);
-
+        
         let start = null;
         let end = null;
         
         sortedIndices.forEach(index => {
             const bracketStart = Math.floor(index / bracketSize) * bracketSize;
             const bracketEnd = Math.min(list.length, bracketStart + bracketSize);
-
+            
             if (start === null) {
                 start = bracketStart;
                 end = bracketEnd;
@@ -120,12 +124,11 @@ class BracketGenerator {
         }
 
         let replaceCount = 0;
-        while (mergeIndex + replaceCount < currentLevel.length && currentLevel[mergeIndex + replaceCount].startIndex <= end) {
+        while (mergeIndex + replaceCount < currentLevel.length && currentLevel[mergeIndex + replaceCount].startIndex < end) {
             replaceCount++;
         }
-                
-        let indexOffset = currentLevel.length > mergeIndex ? currentLevel[mergeIndex].startIndex : currentLevel.length > 0 ? currentLevel[currentLevel.length - 1].endIndex : 0;
 
+        const indexOffset = mergeIndex > 0 ? currentLevel[mergeIndex - 1].endIndex : 0;
         currentLevel.splice(mergeIndex, replaceCount, ...updatedSegment);
         
         if (segmentParent) {
@@ -191,7 +194,7 @@ class BracketGenerator {
     static reindexSegment(segment, indexOffset) {
         
         let queue = segment.slice(0); // Start with the root node in the queue
-        const last = queue[queue.length - 1];
+        const lastBracket = queue[queue.length - 1];
 
         while (queue.length > 0) {
             let bracket = queue.shift(); // Dequeue the first node
@@ -208,9 +211,10 @@ class BracketGenerator {
             }
         }
                 
-        var parent = last.getParent();
+        var parent = lastBracket.getParent();
         while (parent) {
-            parent.endIndex = Math.max(parent.endIndex, last.endIndex);
+            parent.startIndex = Math.min(parent.startIndex, segment[0].startIndex);
+            parent.endIndex = Math.max(parent.endIndex, lastBracket.endIndex);
             parent = parent.getParent();
         }
     }

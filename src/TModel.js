@@ -114,8 +114,7 @@ class TModel extends BaseModel {
         return this;
     }
     
-    moveChild(child, newIndex) {
-        
+    moveChild(child, newIndex) {        
         const currentIndex = this.allChildren.indexOf(child);
 
         if (currentIndex === newIndex) {
@@ -127,16 +126,21 @@ class TModel extends BaseModel {
         this.addedChildren.count++;
         const segment = [{ index: newIndex, segment: [child] }];
         this.addedChildren.list.push(...segment);
-
+        
         this.addedChildren.list.sort((a, b) => a.index - b.index);
         
-        getRunScheduler().schedule(1, 'removeChild-' + this.oid + "-" + child.oid);
+        if (child.hasDom() && ((!TUtil.isDefined(child.transformMap.x) && !TUtil.isDefined(child.transformMap.y)) || child.val('requiresDomRelocation'))) {  
+            child.domOrderIndex = newIndex;
+            child.activate();
+        }
+                
+        getRunScheduler().schedule(1, 'moveChild-' + this.oid + "-" + child.oid);
         
         return this;
     }
     
     
-    getChildren() {
+    getChildren() { 
         if (this.deletedChildren.length > 0) {
             this.deletedChildren.forEach(child => {
                 const index = this.allChildren.indexOf(child);
@@ -144,18 +148,18 @@ class TModel extends BaseModel {
                 if (index >= 0) {
                     this.allChildren.splice(index, 1);
                 }
-            });
+            });                     
                                     
             this.deletedChildren.length = 0;
         }        
         
         if (this.addedChildren.count > 0) {
             this.addedChildren.list.forEach(({ index, segment }) => {
-                                                
-                segment.forEach(t => {
-                    t.parent = this;
-                    if (!TUtil.isDefined(t.val('canDeleteDom')) && this.val('canDeleteDom') === false) {
-                        t.val('canDeleteDom', false);
+                
+                segment.forEach(child => {
+                    child.parent = this;
+                    if (!TUtil.isDefined(child.val('canDeleteDom')) && this.val('canDeleteDom') === false) {
+                        child.val('canDeleteDom', false);
                     }
                 });
                 
@@ -165,7 +169,7 @@ class TModel extends BaseModel {
                     this.allChildren.splice(index, 0, ...segment);
                 }
             });
-            
+                        
             this.lastChildrenUpdate.additions = this.lastChildrenUpdate.additions.concat(this.addedChildren.list);
             
             this.addedChildren.list.length = 0;
@@ -446,6 +450,10 @@ class TModel extends BaseModel {
 
     canHaveDom() {
         return this.val('canHaveDom');
+    }
+    
+    requiresDomRelocation() {
+        return this.val('requiresDomRelocation');
     }
     
     getBaseElement() {

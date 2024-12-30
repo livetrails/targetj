@@ -172,6 +172,10 @@ class $Dom {
             this.append$Dom($dom);
         }
     }
+    
+    relocate(tmodel, orderIndex) {
+        this.element.insertBefore(tmodel.$dom.element, this.element.children[orderIndex])
+    }
 
     appendTModel$Dom(tmodel) {
         if (this.childrenCount === 0 && this.element.children.length > 1 && tmodel.getDomParent() &&
