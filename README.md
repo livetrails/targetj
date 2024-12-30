@@ -1,3 +1,5 @@
+⭐ We appreciate your star, it helps!
+
 # TargetJ: JavaScript UI framework and library - Programming the Front-End with a New Paradigm
 
 Welcome to TargetJ, a powerful JavaScript UI framework and library that you might find redefines front-end development. (https://targetj.io)
