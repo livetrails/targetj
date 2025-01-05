@@ -88,6 +88,8 @@ class LocationManager {
     }
 
     getChildren(container) {
+        container.getChildren();
+        
         if (container.shouldBeBracketed()) {
             return BracketGenerator.generate(container);
         } else {

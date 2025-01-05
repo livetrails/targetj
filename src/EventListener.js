@@ -163,31 +163,39 @@ class EventListener {
     }
     
     resetEventsOnTimeout() {
-        if (this.touchTimeStamp > 0 && this.touchCount === 0 && (this.currentTouch.deltaY || this.currentTouch.deltaX || this.currentTouch.pinchDelta)) {
-            const diff = TUtil.now() - this.touchTimeStamp;
-                        
-            getRunScheduler().schedule(10, "scroll decay ");             
-
+        if (this.currentTouch.deltaY || this.currentTouch.deltaX || this.currentTouch.pinchDelta) {
+            const diff = this.touchTimeStamp - TUtil.now();
+                                                
             if (diff > 100) {
-
-                this.currentTouch.deltaY *= 0.9;
-                this.currentTouch.deltaX *= 0.9;
-                this.currentTouch.pinchDelta *= 0.9;
+                                                
+                this.currentTouch.deltaY *= 0.95;
+                this.currentTouch.deltaX *= 0.95;
+                this.currentTouch.pinchDelta *= 0.95;
                 
-                if (Math.abs(this.currentTouch.deltaY) < 1) {
+                if (Math.abs(this.currentTouch.deltaY) < 0.1) {
                     this.currentTouch.deltaY = 0;
                 }
-                if (Math.abs(this.currentTouch.deltaX) < 1) {
+                if (Math.abs(this.currentTouch.deltaX) < 0.1) {
                     this.currentTouch.deltaX = 0;
                 }
-                if (Math.abs(this.currentTouch.pinchDelta) < 1) {
+                if (Math.abs(this.currentTouch.pinchDelta) < 0.1) {
                     this.currentTouch.pinchDelta = 0;
                 }                
 
                 if (this.currentTouch.deltaX === 0 && this.currentTouch.deltaY === 0 && this.currentTouch.pinchDelta === 0) { 
                     this.touchTimeStamp = 0;
                 }
+                                
             }
+            
+            if (diff <= 0 || this.touchTimeStamp === 0) {
+                this.currentTouch.deltaY = 0;
+                this.currentTouch.deltaX = 0;
+                this.currentTouch.pinchDelta = 0;
+                this.touchTimeStamp = 0;
+            }
+            
+            getRunScheduler().schedule(10, "scroll decay");      
         }
     }
     
@@ -270,7 +278,7 @@ class EventListener {
         }
                 
         let { eventName, inputType, eventType, order: eventOrder, queue } = eventItem;
-
+        
         const now = TUtil.now();
                 
         const tmodel = this.getTModelFromEvent(event);
@@ -292,7 +300,7 @@ class EventListener {
                 }
             }
         }
-                  
+              
         this.lastEvent = newEvent;
                                 
         if (queue) {
@@ -339,7 +347,7 @@ class EventListener {
                     event.preventDefault();
                 }
                 if (this.touchCount > 0) {
-                    this.touchTimeStamp = Math.max(now, this.touchTimeStamp);
+                    this.touchTimeStamp = now + 10;
                     
                     this.move(event);
                     event.stopPropagation();
@@ -378,7 +386,7 @@ class EventListener {
                 if (this.preventDefault(tmodel, eventName)) {
                     event.preventDefault();
                 }
-                this.touchTimeStamp = Math.max(now, this.touchTimeStamp);
+                this.touchTimeStamp = now + 500;
                 this.wheel(event);
                 break;
 
@@ -676,26 +684,31 @@ class EventListener {
     end() {
         if (this.touchCount <= 1 && this.start0) {
                         
-            let deltaX = 0, deltaY = 0, period = 1;
+            let deltaX = 0, deltaY = 0, period = 0, startPeriod = 0;
             
             if (TUtil.isDefined(this.end0)) {
                 deltaX = this.start0.originalX - this.end0.x;
                 deltaY = this.start0.originalY - this.end0.y;
-                period = this.end0.timeStamp - this.start0.timeStamp;
+                startPeriod = TUtil.now() - this.start0.timeStamp;
+                period = startPeriod < 250 ? TUtil.now() - this.start0.timeStamp : 0;
             }
             let momentum;
-            
-            if (this.currentTouch.orientation === "horizontal" && Math.abs(deltaX) > 0) {
+                        
+            if (this.currentTouch.orientation === "horizontal" && Math.abs(deltaX) > 0 && period > 0) {
                 momentum = TUtil.momentum(0, deltaX, period);
-                this.currentTouch.deltaX = momentum.distance;
-                this.currentTouch.manualMomentumFlag = true;
-                this.touchTimeStamp = TUtil.now() + momentum.duration;
-            } else if (this.currentTouch.orientation === "vertical" && Math.abs(deltaY) > 0) {
+                this.touchTimeStamp = this.end0.timeStamp + momentum.duration;
+                if ((this.touchTimeStamp - TUtil.now()) > 0) {                
+                    this.currentTouch.deltaX = momentum.distance;
+                    this.currentTouch.manualMomentumFlag = true;
+                }
+            } else if (this.currentTouch.orientation === "vertical" && Math.abs(deltaY) > 0 && period > 0) {
                 momentum = TUtil.momentum(0, deltaY, period);
-                this.currentTouch.deltaY = momentum.distance;
-                this.currentTouch.manualMomentumFlag = true;
-                this.touchTimeStamp = TUtil.now() + momentum.duration;
-            }
+                this.touchTimeStamp = this.end0.timeStamp + momentum.duration;
+                if ((this.touchTimeStamp - TUtil.now()) > 0) {                    
+                    this.currentTouch.deltaY = momentum.distance;
+                    this.currentTouch.manualMomentumFlag = true;
+                }
+            } 
         }
     }
 

@@ -115,14 +115,18 @@ class RunScheduler {
         this.runningFlag = false;
 
         if (this.rerunId) {
-            this.schedule(1, `rerun-${this.rerunId}`);               
-        } else if (!this.delayProcess || this.delayProcess.delay > 15) {
-            if (getEvents().eventQueue.length > 0) {
-                this.schedule(15, `events-${getEvents().eventQueue.length}`);                
-            } else if (TargetExecutor.needsRerun) {
-                this.schedule(15, 'targetExecutor-needsRerun');
+            this.schedule(1, `rerun-${this.rerunId}`); 
+        } else {
+            const newDelay = this.nextRuns.length > 0 ? this.nextRuns[0].delay - (TUtil.now() - this.nextRuns[0].insertTime) : 15;
+
+            if (newDelay >= 15) {
+                if (getEvents().eventQueue.length > 0) {
+                    this.schedule(15, `events-${getEvents().eventQueue.length}`);                
+                } else if (TargetExecutor.needsRerun) {
+                    this.schedule(15, 'targetExecutor-needsRerun');
+                }
             }
-        }     
+        }   
     }
     
     doesExecuterNeedsRerun() {
@@ -175,7 +179,7 @@ class RunScheduler {
                 runTime: runTime,
                 delay: 0
             };
-            
+                               
             this.run(delay, runId);
             this.executeNextRun();            
         }
@@ -193,7 +197,7 @@ class RunScheduler {
     }
 
     delayRun(delay, runId) {
-        const insertTime = TUtil.now();
+        const insertTime = this.runStartTime;        
         const runTime = insertTime + delay;
 
         if (!this.delayProcess) {

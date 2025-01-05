@@ -3,7 +3,6 @@ import { getRunScheduler } from "./App.js";
 import { Viewport } from "./Viewport.js";
 import { TUtil } from "./TUtil.js";
 import { SearchUtil } from "./SearchUtil.js";
-import { TModelUtil } from "./TModelUtil.js";
 import { TargetUtil } from "./TargetUtil.js";
 
 /**
@@ -14,7 +13,7 @@ class TModel extends BaseModel {
     constructor(type, targets) {
         super(type, targets);
 
-        this.addedChildren = { count: 0, list: [] };
+        this.addedChildren = [];
         this.deletedChildren = [];
         this.lastChildrenUpdate = { additions: [], deletions: [] };
         this.allChildren = [];
@@ -95,9 +94,8 @@ class TModel extends BaseModel {
         this.absY = TUtil.isDefined(this.val('absY')) ? this.val('absY') : this.getParent().absY + y;
     }
     
-    addChild(child, index = this.addedChildren.count + this.allChildren.length) {
-        this.addedChildren.count++;
-        TModelUtil.addItem(this.addedChildren.list, child, index);
+    addChild(child, index = this.addedChildren.length + this.allChildren.length) {    
+        this.addedChildren.push({ index, child });
         
         getRunScheduler().schedule(1, 'addChild-' + this.oid + "-" + child.oid);
 
@@ -114,28 +112,24 @@ class TModel extends BaseModel {
         return this;
     }
     
-    moveChild(child, newIndex) {        
+    moveChild(child, index) {        
         const currentIndex = this.allChildren.indexOf(child);
 
-        if (currentIndex === newIndex) {
+        if (currentIndex === index) {
             return this;
         }
 
         this.deletedChildren.push(child);
-
-        this.addedChildren.count++;
-        const segment = [{ index: newIndex, segment: [child] }];
-        this.addedChildren.list.push(...segment);
-        
-        this.addedChildren.list.sort((a, b) => a.index - b.index);
-        
-        if (child.hasDom() && ((!TUtil.isDefined(child.transformMap.x) && !TUtil.isDefined(child.transformMap.y)) || child.val('requiresDomRelocation'))) {  
-            child.domOrderIndex = newIndex;
+                
+        this.addedChildren.push({ index, child });
+                
+        if (child.hasDom() && child.requiresDomRelocation()) {  
+            child.domOrderIndex = index;
             child.activate();
         }
                 
         getRunScheduler().schedule(1, 'moveChild-' + this.oid + "-" + child.oid);
-        
+                           
         return this;
     }
     
@@ -153,32 +147,31 @@ class TModel extends BaseModel {
             this.deletedChildren.length = 0;
         }        
         
-        if (this.addedChildren.count > 0) {
-            this.addedChildren.list.forEach(({ index, segment }) => {
+        if (this.addedChildren.length > 0) {
+            this.addedChildren.sort((a, b) => a.index - b.index);
+
+            this.addedChildren.forEach(({ index, child }) => {
                 
-                segment.forEach(child => {
-                    child.parent = this;
-                    if (!TUtil.isDefined(child.val('canDeleteDom')) && this.val('canDeleteDom') === false) {
-                        child.val('canDeleteDom', false);
-                    }
-                });
-                
+                child.parent = this;
+                if (!TUtil.isDefined(child.val('canDeleteDom')) && this.val('canDeleteDom') === false) {
+                    child.val('canDeleteDom', false);
+                }
+
                 if (index >= this.allChildren.length) {
-                    this.allChildren.push(...segment);
+                    this.allChildren.push(child);
                 } else {
-                    this.allChildren.splice(index, 0, ...segment);
+                    this.allChildren.splice(index, 0, child);
                 }
             });
                         
-            this.lastChildrenUpdate.additions = this.lastChildrenUpdate.additions.concat(this.addedChildren.list);
+            this.lastChildrenUpdate.additions = this.lastChildrenUpdate.additions.concat(this.addedChildren);
             
-            this.addedChildren.list.length = 0;
-            this.addedChildren.count = 0;
+            this.addedChildren.length = 0;
         }
         
         return this.allChildren;
     }
-   
+
     removeAll() {
         this.allChildren = [];
         this.updatingChildrenList.length = 0;
@@ -201,7 +194,7 @@ class TModel extends BaseModel {
         }
         const result = this.isIncluded() && 
                 (this.isVisible() || this.currentStatus === 'new')  && 
-                (this.hasChildren() || this.addedChildren.count > 0 || this.getContentHeight() > 0);
+                (this.hasChildren() || this.addedChildren.length > 0 || this.getContentHeight() > 0);
 
         this.currentStatus = undefined;
         return result;
@@ -453,7 +446,7 @@ class TModel extends BaseModel {
     }
     
     requiresDomRelocation() {
-        return this.val('requiresDomRelocation');
+        return TUtil.isDefined(this.val('requiresDomRelocation')) ? this.val('requiresDomRelocation') : !TUtil.isDefined(this.transformMap.x) && !TUtil.isDefined(this.transformMap.y);
     }
     
     getBaseElement() {

@@ -671,7 +671,7 @@ class BaseModel {
         return shouldCalculateChildTargets
                 || this.shouldCalculateChildTargets()
                 || child.hasChildren() 
-                || child.addedChildren.count > 0 
+                || child.addedChildren.length > 0 
                 || child.targetExecutionCount === 0;
     }
     

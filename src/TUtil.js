@@ -21,14 +21,14 @@ class TUtil {
         const parentX = child.validateVisibilityInParent() ? parent.absX : 0;
         const parentY = child.validateVisibilityInParent() ? parent.absY : 0;
         const parentWidth = child.validateVisibilityInParent() ? parent.getWidth() : getScreenWidth();
-        const parentHeight =child.validateVisibilityInParent() ? parent.getHeight() : getScreenHeight();
-            
+        const parentHeight = child.validateVisibilityInParent() ? parent.getHeight() : getScreenHeight();
+        
         status.right = x <= parentX + parentWidth;
         status.left = x + maxWidth >= parentX;
         status.bottom = y - child.getTopMargin() <= parentY + parentHeight;
         status.top = y + maxHeight + child.getBottomMargin() >= parentY;
         
-        child.val('isVisible', status.left && status.right && status.top && status.bottom);
+        child.val('isVisible', status.left && status.right && status.top && status.bottom);    
         
         return child.val('isVisible');
     }
@@ -102,8 +102,8 @@ class TUtil {
         const distance = current - past;
         
         const speed = time < 10 ? Math.abs(distance) / 10 :  Math.abs(distance) / time;
-
-        const duration = Math.min(speed / deceleration, 300);
+        
+        const duration = speed / deceleration;
         let momentumDistance = (speed ** 2) / (2 * deceleration);
 
         if (momentumDistance > maxDistance) {
@@ -113,7 +113,7 @@ class TUtil {
         const adjustedDistance = distance > 0 ? distance + momentumDistance : distance - momentumDistance;
 
         return {
-            distance: Math.round(adjustedDistance) / 20,
+            distance: Math.round(adjustedDistance) / 5,
             duration: Math.round(duration),     
             momentumDistance 
         };     
@@ -185,7 +185,8 @@ class TUtil {
             const gtab = g.isVisible() ? tab + '|  ': tab + 'x  ';
 
             if (g.type === 'BI') {
-                console.log(`${gtab}${g.oid} v:${g.isVisible()} x:${Math.floor(g.getX())} y:${Math.floor(g.getY())}, absY:${Math.floor(g.absY)} yy:${Math.floor(g.absY + g.getDomParent().absY)} w:${Math.floor(g.getWidth())} h:${Math.floor(g.getHeight())} hc:${Math.floor(g.getContentHeight())}`);
+                console.log(`${gtab}${g.oid} ${g.startIndex}-${g.endIndex}`);                
+                //console.log(`${gtab}${g.oid} v:${g.isVisible()} x:${Math.floor(g.getX())} y:${Math.floor(g.getY())}, absY:${Math.floor(g.absY)} yy:${Math.floor(g.absY + g.getDomParent().absY)} w:${Math.floor(g.getWidth())} h:${Math.floor(g.getHeight())} hc:${Math.floor(g.getContentHeight())}`);
             } else {
                 console.log(`${gtab}${g.oid} v:${g.isVisible()} x:${Math.floor(g.getX())} y:${Math.floor(g.getY())} absY:${Math.floor(g.absY)} yy:${Math.floor(g.absY + g.getDomParent().absY)} w:${Math.floor(g.getWidth())} h:${Math.floor(g.getHeight())} hc:${Math.floor(g.getContentHeight())}`);
             }

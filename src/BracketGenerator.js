@@ -1,6 +1,4 @@
 import { Bracket } from "./Bracket.js";
-import { TUtil } from "./TUtil.js";
-
 /**
  * Generates a bottom-up tree from the children of a TModel. When the number of children
  * exceeds a defined threshold (bracketThreshold), a tree is generated to limit the process loop to only
@@ -11,214 +9,184 @@ class BracketGenerator {
 
     static bracketMap = {};
     static all = {}
-    
+
     static generate(page, regenerate = false) {
         let brackets = BracketGenerator.bracketMap[page.oid];
 
-        if (!brackets || brackets.allChildren !== page.allChildren || regenerate) {
-            BracketGenerator.bracketMap[page.oid] = {
-                brackets: BracketGenerator.buildTreeBottomUp(page, page.getChildren()), 
-                updateCount: 0, 
-                allChildren: page.allChildren 
-            };
+        if (!brackets || regenerate) {
+            BracketGenerator.bracketMap[page.oid] = BracketGenerator.buildTreeBottomUp(page, page.getChildren());
         } else {
             if (page.lastChildrenUpdate.deletions.length > 0) {
-                BracketGenerator.updateTreeOnDeletions(page.lastChildrenUpdate.deletions);
+                //BracketGenerator.updateTreeOnDeletions(page.lastChildrenUpdate.deletions);
             }
-            
+
             if (page.lastChildrenUpdate.additions.length > 0) {
                 BracketGenerator.updateTreeOnAdditions(page, page.lastChildrenUpdate.additions);
             }
         }
-              
+
         page.lastChildrenUpdate.additions.length = 0;
         page.lastChildrenUpdate.deletions.length = 0;
 
-        return BracketGenerator.bracketMap[page.oid].brackets;
+        return BracketGenerator.bracketMap[page.oid];
     }
-    
+
     static updateTreeOnDeletions(deletions) {
-        function deleteChildRecursively(parent, child) {
-            if (parent) {
-                const index = parent.allChildren.indexOf(child);
+        deletions.forEach(child => {
+            const parentBracket = child.bracket;
+            if (parentBracket) {
+                const index = parentBracket.allChildren.indexOf(child);
                 if (index >= 0) {
-                    parent.allChildren.splice(index, 1);
-                    if (parent.allChildren.length === 0) {
-                        deleteChildRecursively(parent.parent, parent);
+                    parentBracket.allChildren.splice(index, 1);
+                }
+
+                // Remove the parent bracket if it becomes empty
+                if (parentBracket.allChildren.length === 0) {
+                    const grandParent = parentBracket.parent;
+                    if (grandParent) {
+                        const bracketIndex = grandParent.allChildren.indexOf(parentBracket);
+                        if (bracketIndex >= 0) {
+                            grandParent.allChildren.splice(bracketIndex, 1);
+                        }
                     }
                 }
             }
-        }
-   
-        deletions.forEach(child => deleteChildRecursively(child.bracket, child));
-    }    
-        
-    static updateTreeOnAdditions(page, additions = []) {
-        const list = page.getChildren();
+        });
+    }
 
-        const affectedIndices = new Set();
+    static updateTreeOnAdditions(page, additions) {
         const bracketSize = page.getBracketThreshold();
 
+        additions.forEach(({ index, child }) => {
+            const targetBracket = BracketGenerator.findOrCreateBracket(page, index);
+            targetBracket.allChildren.push(child);
+            child.bracket = targetBracket;
 
-        additions.forEach(({ index, segment }) => {
-            segment.forEach((_, i) => affectedIndices.add(index + i)); // eslint-disable-line no-unused-vars
-        }); 
+            let bracket = targetBracket;
+            while (bracket instanceof Bracket) {
+                bracket.startIndex = Math.min(bracket.startIndex, index);
+                bracket.endIndex = Math.max(bracket.endIndex, index + 1);
+                bracket = bracket.getParent();
+            }
 
-        const sortedIndices = Array.from(affectedIndices).sort((a, b) => a - b);
-        
-        let start = null;
-        let end = null;
-        
-        sortedIndices.forEach(index => {
-            const bracketStart = Math.floor(index / bracketSize) * bracketSize;
-            const bracketEnd = Math.min(list.length, bracketStart + bracketSize);
-            
-            if (start === null) {
-                start = bracketStart;
-                end = bracketEnd;
-            } else if (bracketStart <= end + 1) {
-                end = Math.max(end, bracketEnd);
-            } else {
-                BracketGenerator.updateSegmentInTree(page, list, start, end);
-                start = bracketStart;
-                end = bracketEnd;
+            if (targetBracket.allChildren.length > bracketSize) {
+                BracketGenerator.splitBracket(page, targetBracket);
             }
         });
+    }
 
-        if (start !== null && end !== null) {
-            BracketGenerator.updateSegmentInTree(page, list, start, end);
+    static splitBracket(page, bracket) {
+        const list = bracket.allChildren;
+        const bracketSize = page.getBracketThreshold();
+
+        const chunks = [];
+        let startIndex = bracket.startIndex;
+
+        for (let i = 0; i < list.length; i += bracketSize) {
+            const chunk = list.slice(i, i + bracketSize);
+            const endIndex = startIndex + chunk.length;
+            const newBracket = BracketGenerator.createBracket(page, startIndex, endIndex, chunk);
+            newBracket.parent = bracket.parent;
+
+            startIndex = newBracket.endIndex;
+            chunks.push(newBracket);
+        }
+
+        if (bracket.parent !== bracket.realParent) {
+            const index = bracket.parent.allChildren.indexOf(bracket);
+            if (index >= 0) {
+                bracket.parent.allChildren.splice(index, 1, ...chunks);
+            }
+            
+            if (bracket.parent.allChildren.length >= bracketSize) {
+                const rebuiltChildren = BracketGenerator.buildTreeBottomUp(page, bracket.parent.allChildren);
+                bracket.parent.allChildren = rebuiltChildren;
+
+                // Update grandparent relationships
+                if (bracket.parent.parent) {
+                    const parentIndex = bracket.parent.parent.allChildren.indexOf(bracket.parent);
+                    if (parentIndex >= 0) {
+                        bracket.parent.parent.allChildren.splice(parentIndex, 1, ...rebuiltChildren);
+                    }
+                }
+            }           
+        } else {
+            const topBrackets = BracketGenerator.bracketMap[page.oid];
+            const index = topBrackets.indexOf(bracket);
+            if (index >= 0) {
+                topBrackets.splice(index, 1, ...chunks);
+            }
+
+            if (topBrackets.length > page.getBracketThreshold()) {
+                BracketGenerator.bracketMap[page.oid] = BracketGenerator.buildTreeBottomUp(page, topBrackets);
+            }
         }
     }
 
-    static updateSegmentInTree(page, list, start, end) {
-        const topBrackets = BracketGenerator.bracketMap[page.oid].brackets;
-        const updatedSegment = BracketGenerator.buildTreeBottomUp(page, list.slice(start, end));
-        const bracketSize = page.getBracketThreshold();
-
-        let currentLevel = topBrackets;
-        let segmentParent = undefined;
-        while (true) {
-            let nextLevel = null;
-            for (const bracket of currentLevel) {
-                if (!(bracket.getFirstChild() instanceof Bracket)) {
-                    break;
+    static findOrCreateBracket(page, index, brackets = BracketGenerator.bracketMap[page.oid]) {
+        for (const bracket of brackets) {
+            if (bracket.startIndex <= index && bracket.endIndex >= index) {
+                if (bracket.getFirstChild() instanceof Bracket) {
+                    return BracketGenerator.findOrCreateBracket(page, index, bracket.allChildren);
                 }
-                const startIndex = bracket.startIndex;
-                const endIndex = Math.ceil(bracket.endIndex / bracketSize) * bracketSize;
-                                
-                if (startIndex <= start && endIndex >= end) {
-                    nextLevel = bracket.getChildren();
-                    segmentParent = bracket;
-                    break;
-                }
+                return bracket;
             }
-            if (!nextLevel) {
-                break;
-            }
-            currentLevel = nextLevel;
         }
 
-        let mergeIndex = 0;
-        while (mergeIndex < currentLevel.length && currentLevel[mergeIndex].endIndex <= start) {
-            mergeIndex++;
+        const newBracket = BracketGenerator.createBracket(page, index, index);
+        brackets.push(newBracket);
+
+        if (brackets.length > page.getBracketThreshold()) {
+            const topBrackets = BracketGenerator.buildTreeBottomUp(page, brackets);
+            BracketGenerator.bracketMap[page.oid].brackets = topBrackets;
         }
 
-        let replaceCount = 0;
-        while (mergeIndex + replaceCount < currentLevel.length && currentLevel[mergeIndex + replaceCount].startIndex < end) {
-            replaceCount++;
-        }
-
-        const indexOffset = mergeIndex > 0 ? currentLevel[mergeIndex - 1].endIndex : 0;
-        currentLevel.splice(mergeIndex, replaceCount, ...updatedSegment);
-        
-        if (segmentParent) {
-            for (const bracket of updatedSegment) {
-                bracket.parent = segmentParent;
-            }            
-        }
-         
-        BracketGenerator.reindexSegment(updatedSegment, indexOffset);
-        
-        BracketGenerator.bracketMap[page.oid].updateCount++;
-
-        if (currentLevel.length > bracketSize) {
-            BracketGenerator.bracketMap[page.oid].brackets = BracketGenerator.buildTreeBottomUp(page, currentLevel);
-        }
-    }    
+        return newBracket;
+    }
 
     static buildTreeBottomUp(page, list) {
-
         const length = list.length;
-        const bracketSize = page.getBracketThreshold() - 1;
-
+        const bracketSize = page.getBracketThreshold();
         const brackets = [];
 
-        let from = 0;
-
-        for (let i = 0; i < length; i++) {
-            const size = i - from;
-
-            if (size === bracketSize || i === length - 1) {
-                brackets.push(BracketGenerator.createBracket(page, list, from, i + 1));
-                from = i + 1;
-            }
+        for (let i = 0; i < length; i += bracketSize) {
+            const chunk = list.slice(i, i + bracketSize);
+            const containsBrackets = chunk[0] instanceof Bracket;
+            const startIndex = containsBrackets ? chunk[0].startIndex : i;
+            const endIndex = containsBrackets ? chunk[chunk.length - 1].endIndex : (i + chunk.length);
+            const bracket = BracketGenerator.createBracket(page, startIndex, endIndex, chunk);
+            if (containsBrackets) {
+                chunk.forEach(child => {
+                    child.parent = bracket;
+                });
+            }            
+            brackets.push(bracket);
         }
 
         return brackets.length > bracketSize ? BracketGenerator.buildTreeBottomUp(page, brackets) : brackets;
     }
 
-    static createBracket(page, list, startIndex, endIndex) {
-
+    static createBracket(page, startIndex, endIndex, list) {
         const bracket = new Bracket(page);
+        bracket.realParent = page;
 
-        bracket.allChildren = list.slice(startIndex, endIndex);
-        bracket.startIndex = bracket.allChildren[0] instanceof Bracket ? bracket.allChildren[0].startIndex : startIndex;
-        bracket.endIndex = bracket.allChildren[bracket.allChildren.length - 1] instanceof Bracket ? bracket.allChildren[bracket.allChildren.length - 1].endIndex : endIndex;
+        bracket.allChildren = list || bracket.allChildren;
+        bracket.startIndex = startIndex;
+        bracket.endIndex = endIndex;
 
-        bracket.allChildren.forEach(t => {
-            if (t instanceof Bracket) {
-                t.realParent = page;
-                t.parent = bracket;
+        bracket.allChildren.forEach(child => {
+            if (child instanceof Bracket) {
+                child.realParent = page;
+                child.parent = bracket;
             } else {
-                t.bracket = bracket;
+                child.bracket = bracket;
             }
         });
 
-        bracket.realParent = page;
-        
         BracketGenerator.all[bracket.oid] = bracket;
 
         return bracket;
     }
-
-    static reindexSegment(segment, indexOffset) {
-        
-        let queue = segment.slice(0); // Start with the root node in the queue
-        const lastBracket = queue[queue.length - 1];
-
-        while (queue.length > 0) {
-            let bracket = queue.shift(); // Dequeue the first node
-
-            bracket.startIndex += indexOffset;
-            bracket.endIndex += indexOffset;
-
-            if (bracket instanceof Bracket) {
-                bracket.getChildren().forEach(child => {
-                    if (TUtil.isDefined(child.startIndex) && TUtil.isDefined(child.endIndex)) {
-                        queue.push(child);
-                    }
-                });
-            }
-        }
-                
-        var parent = lastBracket.getParent();
-        while (parent) {
-            parent.startIndex = Math.min(parent.startIndex, segment[0].startIndex);
-            parent.endIndex = Math.max(parent.endIndex, lastBracket.endIndex);
-            parent = parent.getParent();
-        }
-    }
-
 }
 
 export { BracketGenerator };
