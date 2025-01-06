@@ -123,6 +123,7 @@ class RunScheduler {
                 if (getEvents().eventQueue.length > 0) {
                     this.schedule(15, `events-${getEvents().eventQueue.length}`);                
                 } else if (TargetExecutor.needsRerun) {
+                    TargetExecutor.needsRerun = false;
                     this.schedule(15, 'targetExecutor-needsRerun');
                 }
             }

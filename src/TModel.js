@@ -95,7 +95,7 @@ class TModel extends BaseModel {
     }
     
     addChild(child, index = this.addedChildren.length + this.allChildren.length) {    
-        this.addedChildren.push({ index, child });
+        this.addedChildren.push({ index, originalIndex: index, child });
         
         getRunScheduler().schedule(1, 'addChild-' + this.oid + "-" + child.oid);
 
@@ -112,16 +112,12 @@ class TModel extends BaseModel {
         return this;
     }
     
-    moveChild(child, index) {        
+    moveChild(child, index) {           
         const currentIndex = this.allChildren.indexOf(child);
-
-        if (currentIndex === index) {
-            return this;
-        }
-
+       
         this.deletedChildren.push(child);
                 
-        this.addedChildren.push({ index, child });
+        this.addedChildren.push({index: currentIndex < index ? index - 1 : index, originalIndex: index, child });
                 
         if (child.hasDom() && child.requiresDomRelocation()) {  
             child.domOrderIndex = index;
@@ -133,10 +129,9 @@ class TModel extends BaseModel {
         return this;
     }
     
-    
     getChildren() { 
-        if (this.deletedChildren.length > 0) {
-            this.deletedChildren.forEach(child => {
+        if (this.deletedChildren.length > 0) {            
+            this.deletedChildren.forEach(child => {                
                 const index = this.allChildren.indexOf(child);
                 this.lastChildrenUpdate.deletions.push(child);
                 if (index >= 0) {
@@ -146,11 +141,11 @@ class TModel extends BaseModel {
                                     
             this.deletedChildren.length = 0;
         }        
-        
+
         if (this.addedChildren.length > 0) {
             this.addedChildren.sort((a, b) => a.index - b.index);
 
-            this.addedChildren.forEach(({ index, child }) => {
+            this.addedChildren.forEach(({ index, originalIndex, child }) => {
                 
                 child.parent = this;
                 if (!TUtil.isDefined(child.val('canDeleteDom')) && this.val('canDeleteDom') === false) {
@@ -162,10 +157,11 @@ class TModel extends BaseModel {
                 } else {
                     this.allChildren.splice(index, 0, child);
                 }
+                
+                this.lastChildrenUpdate.additions.push({ index: originalIndex, child })
+                
             });
-                        
-            this.lastChildrenUpdate.additions = this.lastChildrenUpdate.additions.concat(this.addedChildren);
-            
+                                    
             this.addedChildren.length = 0;
         }
         
@@ -201,39 +197,39 @@ class TModel extends BaseModel {
     }
          
     getFirstChild() {
-        return this.hasChildren() ? this.getChildren()[0] : undefined;
+        return this.allChildren[0] ;
     }
     
     hasChildren() {
-        return this.getChildren().length > 0;
+        return this.allChildren.length > 0;
     }
     
     findChildren(type) {
-        return this.getChildren().filter(child => child.type === type);
+        return this.allChildren.filter(child => child.type === type);
     }
 
     getLastChild() {
-        return this.hasChildren() ? this.getChildren()[this.getChildren().length - 1] : undefined;
+        return this.allChildren[this.allChildren.length - 1];
     }
     
     getChild(index) {
-        return this.hasChildren() ? this.getChildren()[index] : undefined;
+        return this.allChildren[index];
     }
 
     getChildIndex(child) {
-        return this.getChildren().indexOf(child);
+        return this.allChildren.indexOf(child);
     }
 
     getChildrenOids() {
-        return this.getChildren().map(o => o.oid).join(" ");
+        return this.allChildren.map(o => o.oid).join(" ");
     }
 
     findChild(type) {
-        return this.getChildren().find(child => child.type === type);
+        return this.allChildren.find(child => child.type === type);
     }
 
     findLastChild(type) {
-        return this.getChildren().findLast(child => child.type === type);
+        return this.allChildren.findLast(child => child.type === type);
     }
 
     getParentValue(targetName) {
