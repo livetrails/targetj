@@ -32,7 +32,7 @@ class BracketGenerator {
 
         page.lastChildrenUpdate.additions.length = 0;
         page.lastChildrenUpdate.deletions.length = 0;
-
+        
         return BracketGenerator.bracketMap[page.oid];
     }
 
@@ -68,7 +68,6 @@ class BracketGenerator {
 
         function reindexBracket(bracket, currentIndex) {
             if (bracket.allChildren.length === 0) {
-                // Empty bracket; startIndex and endIndex remain as is
                 return currentIndex;
             }
 
@@ -100,18 +99,24 @@ class BracketGenerator {
 
         additions.forEach(({ index, child }) => {
             const targetBracket = BracketGenerator.findOrCreateBracket(page, index);
-            if (targetBracket.allChildren.length) {
-                const newIndex = index - targetBracket.startIndex;
+            const newIndex = index - targetBracket.startIndex;
+            if (newIndex < targetBracket.allChildren.length) {
                 targetBracket.allChildren.splice(newIndex, 0, child);
             } else {
                 targetBracket.allChildren.push(child);
             }
             child.bracket = targetBracket;
+            
+            let bracket = targetBracket;            
+            bracket.startIndex = Math.min(bracket.startIndex, index);
+            bracket.endIndex = bracket.startIndex + bracket.allChildren.length;  
+            bracket.currentStatus = 'new';
 
-            let bracket = targetBracket;
+            bracket = targetBracket.getParent();
             while (bracket instanceof Bracket) {
                 bracket.startIndex = Math.min(bracket.startIndex, index);
                 bracket.endIndex = Math.max(bracket.endIndex, index + 1);
+                bracket.currentStatus = 'new';                
                 bracket = bracket.getParent();
             }
 

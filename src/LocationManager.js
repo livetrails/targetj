@@ -58,7 +58,7 @@ class LocationManager {
             const { tmodel, length } = this.visibleChildrenLengthMap[key];
             if ((length !== tmodel.visibleChildren.length || tmodel.visibleChildren.length === 0)) {
                 this.runEventTargets(tmodel, 'onVisibleChildrenChange');
-                this.visibleChildrenLengthMap[key].length = length;                
+                delete this.visibleChildrenLengthMap[key];                
             }
         });
         
@@ -66,7 +66,7 @@ class LocationManager {
             const { tmodel, length } = this.childrenLengthMap[key];            
             if ((length !== tmodel.getChildren().length)) {
                 this.runEventTargets(tmodel, 'onChildrenChange');
-                this.childrenLengthMap[key].length = length;                
+                delete this.childrenLengthMap[key];                
             }
         }); 
     }
@@ -125,7 +125,7 @@ class LocationManager {
             if (!child) {
                 continue;
             }
-                        
+            
             this.locationListStats.push(child.oid);
             
             viewport.setCurrentChild(child);
