@@ -15,6 +15,7 @@ class TModel extends BaseModel {
 
         this.addedChildren = [];
         this.deletedChildren = [];
+        this.movedChildren = [];
         this.lastChildrenUpdate = { additions: [], deletions: [] };
         this.allChildren = [];
 
@@ -95,13 +96,13 @@ class TModel extends BaseModel {
     }
     
     addChild(child, index = this.addedChildren.length + this.allChildren.length) {    
-        this.addedChildren.push({ index, originalIndex: index, child });
+        this.addedChildren.push({ index, child });
         
         getRunScheduler().schedule(1, 'addChild-' + this.oid + "-" + child.oid);
 
         return this;
     }
-    
+  
     removeChild(child) {
         child.val('canDeleteDom', true);
         this.deletedChildren.push(child);   
@@ -112,12 +113,8 @@ class TModel extends BaseModel {
         return this;
     }
     
-    moveChild(child, index) {           
-        const currentIndex = this.allChildren.indexOf(child);
-       
-        this.deletedChildren.push(child);
-                
-        this.addedChildren.push({index: currentIndex < index ? index - 1 : index, originalIndex: index, child });
+    moveChild(child, index) {
+        this.movedChildren.push({ index, child });
                 
         if (child.hasDom() && child.requiresDomRelocation()) {  
             child.domOrderIndex = index;
@@ -133,19 +130,19 @@ class TModel extends BaseModel {
         if (this.deletedChildren.length > 0) {            
             this.deletedChildren.forEach(child => {                
                 const index = this.allChildren.indexOf(child);
-                this.lastChildrenUpdate.deletions.push(child);
                 if (index >= 0) {
+                    this.lastChildrenUpdate.deletions.push(child);
                     this.allChildren.splice(index, 1);
                 }
             });                     
                                     
             this.deletedChildren.length = 0;
-        }        
-
+        } 
+        
         if (this.addedChildren.length > 0) {
             this.addedChildren.sort((a, b) => a.index - b.index);
 
-            this.addedChildren.forEach(({ index, originalIndex, child }) => {
+            this.addedChildren.forEach(({ index, child }) => {
                 
                 child.parent = this;
                 if (!TUtil.isDefined(child.val('canDeleteDom')) && this.val('canDeleteDom') === false) {
@@ -158,11 +155,54 @@ class TModel extends BaseModel {
                     this.allChildren.splice(index, 0, child);
                 }
                 
-                this.lastChildrenUpdate.additions.push({ index: originalIndex, child })
-                
+                this.lastChildrenUpdate.additions.push({ index, child });
             });
                                     
             this.addedChildren.length = 0;
+        }
+        
+        if (this.movedChildren.length > 0) {
+            this.movedChildren.sort((a, b) => a.index - b.index);
+            
+            const deletionMap = {};
+            const additionMap = {};
+            this.movedChildren.forEach(({ index, child }) => {
+                this.lastChildrenUpdate.deletions.push(child);
+                this.lastChildrenUpdate.additions.push({ index, child });
+                
+                const currentIndex = this.allChildren.indexOf(child);
+                
+                if (index === currentIndex) {
+                    return;
+                }
+                
+                if (additionMap[child.oid]) {
+                    delete additionMap[child.oid];
+                }
+
+                const deleted = this.allChildren.splice(index, 1, child);
+                
+                if (!deletionMap[index] && deleted.length > 0) {
+                    additionMap[deleted[0].oid] = { child: deleted[0], index: index + 1 };
+                }
+                if (currentIndex >= 0) {
+                    deletionMap[currentIndex] = { fromIndex: currentIndex < index ? currentIndex : index, child };
+                }                
+                
+                if (deletionMap[index]) {
+                    delete deletionMap[index];
+                }
+            });
+            Object.values(additionMap).forEach(({ index, child }) => {
+                this.allChildren.splice(index, 0, child);
+            });
+                        
+            Object.values(deletionMap).forEach(({ fromIndex, child }) => {
+                const deleteIndex = this.allChildren.indexOf(child, fromIndex);
+                this.allChildren.splice(deleteIndex, 1);
+            });
+            
+            this.movedChildren.length = 0;
         }
         
         return this.allChildren;
@@ -308,6 +348,9 @@ class TModel extends BaseModel {
     }
     
     isVisible() {
+        if (this.targets['isVisible']) {
+            return typeof this.targets['isVisible'] === 'function' ? this.targets['isVisible'].call(this) : this.targets['isVisible'];
+        }
         return this.val('isVisible')
     }
     
@@ -391,7 +434,7 @@ class TModel extends BaseModel {
     }
 
     isInFlow() {
-        return this.isInFlow;
+        return TUtil.isDefined(this.val('isInFlow')) ? this.val('isInFlow') : true;
     }
 
     canHandleEvents(eventName) {

@@ -116,7 +116,7 @@ class BaseModel {
 
         if (TargetUtil.otherTargetEventsMap[key]) {
             return;
-        }
+        }     
 
         if (TUtil.isDefined(target.initialValue)) {
             this.val(key, target.initialValue);
@@ -130,7 +130,7 @@ class BaseModel {
             this.coreTargets.push(key);
         }
 
-        if (!TargetUtil.mustExecuteTargets[key] && TUtil.isStringBooleanOrNumber(target)) {
+        if (!TargetUtil.mustExecuteTargets[key] && TUtil.isStringBooleanOrNumber(target)) {          
             this.val(key, target);
             return;
         }
@@ -638,6 +638,8 @@ class BaseModel {
             targetValue.cycles = 0;
             targetValue.interval = 0;
         }
+
+        getRunScheduler().schedule(1, 'resetImperative-' + this.oid + "-" + key);
 
         return this;
     }

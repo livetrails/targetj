@@ -101,7 +101,7 @@ class RunScheduler {
                 this.rerunId = `domrun ${runId}`; 
             }
         }
-                        
+
         if (tApp.debugLevel === 1) {
             TUtil.log(true)(`Request from: ${runId} dly: ${delay} step:${runningStep} dom:${this.domProcessing} runs:${this.nextRuns.length} D:${this.delayProcess?.delay}`);
         }

@@ -180,7 +180,7 @@ class TargetUtil {
         onChildrenChange: true,
         onVisibleChildrenChange: true,
         onPageClose: true,
-        isVisible: true
+        onVisible: true
     };
     
     static targetToEventsMapping = {
@@ -193,7 +193,18 @@ class TargetUtil {
         onEnterEvent: [ 'moveEvents', 'leaveEvents' ],
         onLeaveEvent: [ 'moveEvents', 'leaveEvents' ],
         onScrollEvent: [ 'startEvents', 'endEvents', 'cancelEvents', 'moveEvents', 'wheelEvents' ],
-        onWindowScrollEvent: [ 'windowScrollEvents' ]
+        onWindowScrollEvent: [ 'windowScrollEvents' ],
+        
+        onClick: [ 'startEvents', 'endEvents', 'cancelEvents' ],
+        onSwipe: [ 'startEvents', 'endEvents', 'cancelEvents', 'moveEvents' ],
+        onAnySwipe: [ 'startEvents', 'endEvents', 'cancelEvents', 'moveEvents' ],
+        onTouch: [ 'startEvents', 'endEvents', 'cancelEvents' ],
+        onEnter: [ 'moveEvents', 'leaveEvents' ],
+        onLeave: [ 'moveEvents', 'leaveEvents' ],
+        onScroll: [ 'startEvents', 'endEvents', 'cancelEvents', 'moveEvents', 'wheelEvents' ],
+        onScrollLeft: [ 'startEvents', 'endEvents', 'cancelEvents', 'moveEvents', 'wheelEvents' ],
+        onScrollTop: [ 'startEvents', 'endEvents', 'cancelEvents', 'moveEvents', 'wheelEvents' ],
+        onWindowScroll: [ 'windowScrollEvents' ],
     };
     
     static touchEventMap = {
@@ -205,11 +216,20 @@ class TargetUtil {
         onSwipeEvent: tmodel => getEvents().containsTouchHandler(tmodel) && getEvents().isSwipeEvent(),        
         onAnySwipeEvent: () => getEvents().isSwipeEvent(),
         onTouchEvent: tmodel => getEvents().isTouchHandler(tmodel),
+        
+        onClick: tmodel => getEvents().getEventType() === 'click' && getEvents().isClickHandler(tmodel),
+        onEnter: tmodel => getEvents().isEnterEventHandler(tmodel),
+        onLeave: tmodel => getEvents().isLeaveEventHandler(tmodel),        
+        onSwipe: tmodel => getEvents().containsTouchHandler(tmodel) && getEvents().isSwipeEvent(),        
+        onAnySwipe: () => getEvents().isSwipeEvent(),
+        onTouch: tmodel => getEvents().isTouchHandler(tmodel)
     };
     
     static internalEventMap = {
         onVisibleEvent: tmodel => tmodel.isNowVisible,
         onDomEvent: tmodel => tmodel.hasDomNow,
+        onVisible: tmodel => tmodel.isNowVisible,
+        onDom: tmodel => tmodel.hasDomNow,        
         onResize: tmodel => {
             const lastUpdateWidth = tmodel.getActualValueLastUpdate('width');
             const lastUpdateHeight = tmodel.getActualValueLastUpdate('height');
@@ -238,7 +258,16 @@ class TargetUtil {
         onKeyEvent: () => getEvents().getEventType() === 'key' && getEvents().currentKey, 
         onScrollEvent: tmodel => (getEvents().isScrollLeftHandler(tmodel) && getEvents().deltaX()) || 
               (getEvents().isScrollTopHandler(tmodel) && getEvents().deltaY()),    
-        onWindowScrollEvent: () => getEvents().getEventType() === 'windowScroll'
+        onWindowScrollEvent: () => getEvents().getEventType() === 'windowScroll',
+        
+        onFocus: tmodel => getEvents().onFocus(tmodel),
+        onBlur: tmodel => getEvents().onBlur(tmodel),
+        onKey: () => getEvents().getEventType() === 'key' && getEvents().currentKey, 
+        onScroll: tmodel => (getEvents().isScrollLeftHandler(tmodel) && getEvents().deltaX()) || 
+              (getEvents().isScrollTopHandler(tmodel) && getEvents().deltaY()),
+        onScrollTop: tmodel => getEvents().getOrientation() !== 'horizontal' && getEvents().isScrollTopHandler(tmodel) && getEvents().deltaY(), 
+        onScrollLeft: tmodel => getEvents().getOrientation() !== 'vertical' && getEvents().isScrollLeftHandler(tmodel) && getEvents().deltaX(),
+        onWindowScroll: () => getEvents().getEventType() === 'windowScroll'        
     };
     
     static getAutoHandleEvents(tmodel) {
@@ -249,10 +278,19 @@ class TargetUtil {
             autoHandleEvents.push('touch');
         }
 
-        if (tmodel.eventTargetMap['onScrollEvent']) {
+        if (tmodel.eventTargetMap['onScrollEvent'] || tmodel.eventTargetMap['onScroll']) {
             autoHandleEvents.push('scrollTop', 'scrollLeft');
         }
-        if (tmodel.eventTargetMap['onSwipeEvent']) {
+
+        if (tmodel.eventTargetMap['onScrollTop'] && autoHandleEvents.indexOf('scrollTop') === -1) {
+            autoHandleEvents.push('scrollTop');
+        }
+        
+        if (tmodel.eventTargetMap['onScrollLeft'] && autoHandleEvents.indexOf('scrollLeft') === -1) {
+            autoHandleEvents.push('scrollLeft');
+        }        
+        
+        if (tmodel.eventTargetMap['onSwipeEvent'] || tmodel.eventTargetMap['onSwipe']) {
             autoHandleEvents.push('swipe');
         }
 

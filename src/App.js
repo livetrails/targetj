@@ -129,9 +129,7 @@ const AppFn = (firstChild) => {
             });             
         });
         my.manager.clear();
-        my.locationManager.hasLocationList.length = 0;
-        my.locationManager.screenWidth = 0;
-        my.locationManager.screenHeight = 0;
+        my.locationManager.clear();
         SearchUtil.clear();
     };
 

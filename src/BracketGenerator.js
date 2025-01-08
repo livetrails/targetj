@@ -36,7 +36,7 @@ class BracketGenerator {
         return BracketGenerator.bracketMap[page.oid];
     }
 
-    static updateTreeOnDeletions(page, deletions) {        
+    static updateTreeOnDeletions(page, deletions) {           
         function deleteChildRecursively(parent, child) {
             if (!parent) {
                 return;

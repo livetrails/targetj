@@ -146,7 +146,7 @@ class TargetManager {
             }
 
             tmodel.val(key, TargetUtil.morph(tmodel, key, initialValue, theValue, step, steps));
-             tmodel.addToStyleTargetList(key);
+            tmodel.addToStyleTargetList(key);
 
             tmodel.setActualValueLastUpdate(key);
 

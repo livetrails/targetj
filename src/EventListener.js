@@ -8,6 +8,9 @@ import { tApp, getRunScheduler, tRoot } from "./App.js";
  * It provides a central place to manage all events. 
  */
 class EventListener {
+    static MAX_EVENT_QUEUE_SIZE = 10;
+    static MAX_EVENT_TYPE_CAPACITY = 2;
+
     constructor() {
          this.$document = new $Dom(document);
 
@@ -60,48 +63,48 @@ class EventListener {
         this.eventTargetMap = {};
                
         this.startEvents = {
-            touchstart: { eventName: 'touchstart', inputType: 'touch', eventType: 'start', order: 1, windowEvent: false, queue: true },
-            pointerdown: { eventName: 'mousedown', inputType: 'pointer', eventType: 'start', order: 2, windowEvent: false, queue: true },
-            mousedown: { eventName: 'mousedown', inputType: 'mouse', eventType: 'start', order: 3, windowEvent: false, queue: true },
+            touchstart: { eventName: 'touchstart', inputType: 'touch', eventType: 'start', order: 1, windowEvent: false, queue: true, rateLimit: 0 },
+            pointerdown: { eventName: 'mousedown', inputType: 'pointer', eventType: 'start', order: 2, windowEvent: false, queue: true, rateLimit: 0 },
+            mousedown: { eventName: 'mousedown', inputType: 'mouse', eventType: 'start', order: 3, windowEvent: false, queue: true, rateLimit: 0 },
         };
         
         this.endEvents = {
-            touchend: { eventName: 'touchend', inputType: 'touch', eventType: 'end', order: 1, windowEvent: false, queue: true },
-            pointerup: { eventName: 'mouseup', inputType: 'pointer', eventType: 'end', order: 1, windowEvent: false, queue: true },
-            mouseup: { eventName: 'mouseup', inputType: 'mouse', eventType: 'end', order: 3, windowEvent: false, queue: true },
+            touchend: { eventName: 'touchend', inputType: 'touch', eventType: 'end', order: 1, windowEvent: false, queue: true, rateLimit: 0 },
+            pointerup: { eventName: 'mouseup', inputType: 'pointer', eventType: 'end', order: 1, windowEvent: false, queue: true, rateLimit: 0 },
+            mouseup: { eventName: 'mouseup', inputType: 'mouse', eventType: 'end', order: 3, windowEvent: false, queue: true, rateLimit: 0 },
         };        
         
         this.cancelEvents = {
-            touchcancel: { eventName: 'touchend', inputType: 'touch', eventType: 'cancel', order: 1, windowEvent: false, queue: true },       
-            pointercancel: { eventName: 'mousecancel', inputType: 'pointer', eventType: 'cancel', order: 2, windowEvent: false, queue: true },
-            mousecancel: { eventName: 'mouseup', inputType: 'mouse', eventType: 'cancel', order: 3, windowEvent: false, queue: true },
+            touchcancel: { eventName: 'touchend', inputType: 'touch', eventType: 'cancel', order: 1, windowEvent: false, queue: true, rateLimit: 0 },       
+            pointercancel: { eventName: 'mousecancel', inputType: 'pointer', eventType: 'cancel', order: 2, windowEvent: false, queue: true, rateLimit: 0 },
+            mousecancel: { eventName: 'mouseup', inputType: 'mouse', eventType: 'cancel', order: 3, windowEvent: false, queue: true, rateLimit: 0 },
         };
                 
         this.windowEvents = {
-            keyup: { eventName: 'key', inputType: '', eventType: 'key', order: 1, windowEvent: true, queue: true },
-            keydown: { eventName: 'key', inputType: '', eventType: 'key', order: 1, windowEvent: true, queue: true },
-            blur: { eventName: 'blur', inputType: 'mouse', eventType: 'cancel', order: 2, windowEvent: true, queue: true },
-            resize: { eventName: 'resize', inputType: '', eventType: 'resize', order: 1, windowEvent: true, queue: false },
-            orientationchange: { eventName: 'resize', inputType: '', eventType: 'resize', order: 1, windowEvent: true, queue: false },
+            keyup: { eventName: 'key', inputType: '', eventType: 'key', order: 1, windowEvent: true, queue: true, rateLimit: 50 },
+            keydown: { eventName: 'key', inputType: '', eventType: 'key', order: 1, windowEvent: true, queue: true, rateLimit: 50 },
+            blur: { eventName: 'blur', inputType: 'mouse', eventType: 'cancel', order: 2, windowEvent: true, queue: true, rateLimit: 0 },
+            resize: { eventName: 'resize', inputType: '', eventType: 'resize', order: 1, windowEvent: true, queue: false, rateLimit: 50 },
+            orientationchange: { eventName: 'resize', inputType: '', eventType: 'resize', order: 1, windowEvent: true, queue: false, rateLimit: 50 },
         };
         
         this.windowScrollEvents = {
-            scroll: { eventName: 'scroll', inputType: '', eventType: 'windowScroll', order: 1, windowEvent: true, queue: true }            
+            scroll: { eventName: 'scroll', inputType: '', eventType: 'windowScroll', order: 1, windowEvent: true, queue: true, rateLimit: 50 }            
         }
         
         this.leaveEvents = {
-            mouseleave: { eventName: 'mouseleave', inputType: 'mouse', eventType: 'cancel', order: 3, windowEvent: false, queue: true },
+            mouseleave: { eventName: 'mouseleave', inputType: 'mouse', eventType: 'cancel', order: 3, windowEvent: false, queue: true, rateLimit: 0 },
         }        
         
         this.moveEvents = {
-            touchmove: { eventName: 'touchmove', inputType: 'touch', eventType: 'move', order: 1, windowEvent: false, queue: true },            
-            pointermove: { eventName: 'mousemove', inputType: 'pointer', eventType: 'move', order: 2, windowEvent: false, queue: true },                   
-            mousemove: { eventName: 'mousemove', inputType: 'mouse', eventType: 'move', order: 3, windowEvent: false, queue: true  }
+            touchmove: { eventName: 'touchmove', inputType: 'touch', eventType: 'move', order: 1, windowEvent: false, queue: true, rateLimit: 50 },            
+            pointermove: { eventName: 'mousemove', inputType: 'pointer', eventType: 'move', order: 2, windowEvent: false, queue: true, rateLimit: 50 },                   
+            mousemove: { eventName: 'mousemove', inputType: 'mouse', eventType: 'move', order: 3, windowEvent: false, queue: true, rateLimit: 50  }
         };
         
         this.wheelEvents = {
-            wheel: { eventName: 'wheel', inputType: '', eventType: 'wheel', order: 1, windowEvent: false, queue: true },
-            mousewheel: { eventName: 'wheel', inputType: '', eventType: 'wheel', order: 1, windowEvent: false, queue: true },                
+            wheel: { eventName: 'wheel', inputType: '', eventType: 'wheel', order: 1, windowEvent: false, queue: true, rateLimit: 50 },
+            mousewheel: { eventName: 'wheel', inputType: '', eventType: 'wheel', order: 1, windowEvent: false, queue: true, rateLimit: 50 },                
         };
         
         this.allEvents = {
@@ -277,7 +280,7 @@ class EventListener {
             return;
         }
                 
-        let { eventName, inputType, eventType, order: eventOrder, queue } = eventItem;
+        let { eventName, inputType, eventType, order: eventOrder, queue, rateLimit } = eventItem;
         
         const now = TUtil.now();
                 
@@ -288,14 +291,21 @@ class EventListener {
         if (this.lastEvent?.eventItem) {
             const { eventItem: lastEventItem, timeStamp: lastTimeStamp } = this.lastEvent;
             const rate = now - lastTimeStamp;
-
+           
             if (inputType && lastEventItem.inputType && lastEventItem.inputType !== inputType && eventOrder > lastEventItem.order) {
                 return;
-            } else if (this.eventQueue.length > 10 && rate < 50) {
+            }                  
+
+            if (this.eventQueue.length > EventListener.MAX_EVENT_QUEUE_SIZE && rateLimit > 0 && rate < rateLimit) {
                 let capacity = 0;
-                for (let i = this.eventQueue.length - 1; i >= 0 && this.eventQueue[i].eventItem?.eventType === eventType; i--) {
-                    if (++capacity > 2) {
-                        return;
+                for (let i = this.eventQueue.length - 1; i >= 0; i--) {
+                    const queuedEvent = this.eventQueue[i];
+                    if (queuedEvent.eventItem?.eventType === eventType) {
+                        if (++capacity > EventListener.MAX_EVENT_TYPE_CAPACITY) {
+                            return;
+                        }
+                    } else {
+                        break;
                     }
                 }
             }
@@ -357,7 +367,7 @@ class EventListener {
                 break;
             }
             case 'mouseup':
-            case 'touchend':
+            case 'touchend':                
                 if (this.preventDefault(tmodel, eventName)) {
                     event.preventDefault();
                 }
@@ -536,7 +546,7 @@ class EventListener {
     }
     
     hasDelta() {
-        return Math.abs(this.deltaX()) >= 0 || Math.abs(this.deltaY()) >= 0;
+        return this.deltaX() !== 0 && this.deltaY() !== 0;
     }
     isEndEvent() {
         return this.getEventType() === 'end' || this.getEventType() === 'click';
@@ -609,7 +619,11 @@ class EventListener {
     isCurrentSource(source) {
         return this.currentTouch.source === source;
     }
-
+    
+    getOrientation() {
+        return this.currentTouch.orientation;
+    }
+    
     isTouchHandlerOrAncestor(target) {
         const handler = this.getTouchHandler();
 
@@ -714,17 +728,17 @@ class EventListener {
 
     setDeltaXDeltaY(deltaX, deltaY, source) {
         const diff = Math.abs(deltaX) - Math.abs(deltaY);
-
+        
         if (diff >= 1) {
             if (this.currentTouch.orientation === "none" ||
-                    (this.currentTouch.orientation === "vertical" && diff > 3) ||
+                    (this.currentTouch.orientation === "vertical" && diff >= 2) ||
                     this.currentTouch.orientation === "horizontal") {
                 this.currentTouch.orientation = "horizontal";
                 this.currentTouch.dir = deltaX <= -1 ? "left" : deltaX >= 1 ? "right" : this.currentTouch.dir;
                 this.currentTouch.source = source;
             }
         } else if (this.currentTouch.orientation === "none" || 
-                (this.currentTouch.orientation === "horizontal" && diff < -3) || 
+                (this.currentTouch.orientation === "horizontal" && diff <= -2) || 
                 this.currentTouch.orientation === "vertical") {
             this.currentTouch.orientation = "vertical";
             this.currentTouch.dir = deltaY <= -1 ? "up" : deltaY >= 1 ? "down" : this.currentTouch.dir;
