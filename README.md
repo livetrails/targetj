@@ -388,7 +388,7 @@ App(new TModel("scroller", {
     width() { return getScreenWidth(); },
     height() { return getScreenHeight(); },  
     onResize: [ 'width', 'height' ],
-    onScrollEvent() {
+    onScroll() {
         this.setTarget('scrollTop', Math.max(0, this.getScrollTop() + getEvents().deltaY()));
     },
     onVisibleChildrenChange() { 
@@ -427,13 +427,13 @@ App(new TModel("simpleApp", {
                         opacity: 0.5,
                         cursor: "pointer",
                         html: menu,
-                        onEnterEvent() {
+                        onEnter() {
                           this.setTarget("opacity", 1, 20);
                         },
-                        onLeaveEvent() {
+                        onLeave() {
                           this.setTarget("opacity", 0.5, 20);
                         },
-                        onClickEvent() {
+                        onClick() {
                           this.setTarget("opacity", 0.5);
                           getPager().openLink(menu);
                         }
@@ -453,7 +453,7 @@ App(new TModel("simpleApp", {
             keepEventDefault: [ 'touchstart', 'touchend', 'mousedown', 'mouseup' ],
             boxSizing: 'border-box',
             html: "main page",
-            onKeyEvent() { this.setTarget('html', this.$dom.value()); },
+            onKey() { this.setTarget('html', this.$dom.value()); },
             onResize: [ "width", "height" ]
         });        
     },
@@ -510,7 +510,7 @@ App(new TModel("rows", {
     defaultStyling: false,
     domHolder: true,
     onDomEvent: ["rectTop", "absY"],
-    onWindowScrollEvent: "absY",
+    onWindowScroll: "absY",
     createRows: {
         parallel: true,
         cycles: 9,
@@ -577,17 +577,17 @@ onResize() {
 Here are all the event targets:
 1. **onResize**: Triggered on screen resize events.
 2. **onParentResize**: Activated when the parent’s width or height is updated.
-3. **onFocusEvent**: Triggered on focus events.
-4. **onBlurEvent**: Triggered on blur events.
-5. **onClickEvent**: Activated on click events.
-6. **onTouchEvent**: Generic handler for all touch events.
+3. **onFocus**: Triggered on focus events.
+4. **onBlur**: Triggered on blur events.
+5. **onClick**: Activated on click events.
+6. **onTouch**: Generic handler for all touch events.
 7. **onTouchEnd**: Called when `touchend` or `mouseup` events occur.
-8. **onSwipeEvent**: Activated on swipe events.
-9. **onEnterEvent**: Triggered when the mouse cursor enters the object’s DOM.
-10. **onLeaveEvent**: Triggered when the mouse cursor leaves the object’s DOM.
-11. **onScrollEvent**: Called on scroll events.
-12. **onKeyEvent**: Triggered by key events.
-13. **onInvisibleEvent**: Activated when the object becomes invisible.
+8. **onSwipe**: Activated on swipe events.
+9. **onEnter**: Triggered when the mouse cursor enters the object’s DOM.
+10. **onLeave**: Triggered when the mouse cursor leaves the object’s DOM.
+11. **onScroll**: Called on scroll events.
+12. **onKey**: Triggered by key events.
+13. **onInvisible**: Activated when the object becomes invisible.
 14. **onChildrenChange**: Triggered when the children count changes.
 15. **onVisibleChildrenChange**: Triggered when the count of visible children changes.
 
