@@ -95,7 +95,7 @@ class BracketGenerator {
 
 
     static updateTreeOnAdditions(page, additions) {
-        const bracketSize = page.getBracketThreshold();
+        const bracketSize = page.getBracketSize();
 
         additions.forEach(({ index, child }) => {
             const targetBracket = BracketGenerator.findOrCreateBracket(page, index);
@@ -128,7 +128,7 @@ class BracketGenerator {
 
     static splitBracket(page, bracket) {
         const list = bracket.allChildren;
-        const bracketSize = page.getBracketThreshold();
+        const bracketSize = page.getBracketSize();
 
         const chunks = [];
         let startIndex = bracket.startIndex;
@@ -168,7 +168,7 @@ class BracketGenerator {
                 topBrackets.splice(index, 1, ...chunks);
             }
 
-            if (topBrackets.length > page.getBracketThreshold()) {
+            if (topBrackets.length > page.getBracketSize()) {
                 BracketGenerator.bracketMap[page.oid] = BracketGenerator.buildTreeBottomUp(page, topBrackets);
             }
         }
@@ -187,7 +187,7 @@ class BracketGenerator {
         const newBracket = BracketGenerator.createBracket(page, index, index);
         brackets.push(newBracket);
 
-        if (brackets.length > page.getBracketThreshold()) {
+        if (brackets.length > page.getBracketSize()) {
             const topBrackets = BracketGenerator.buildTreeBottomUp(page, brackets);
             BracketGenerator.bracketMap[page.oid].brackets = topBrackets;
         }
@@ -197,7 +197,7 @@ class BracketGenerator {
 
     static buildTreeBottomUp(page, list) {
         const length = list.length;
-        const bracketSize = page.getBracketThreshold();
+        const bracketSize = page.getBracketSize();
         const brackets = [];
 
         for (let i = 0; i < length; i += bracketSize) {

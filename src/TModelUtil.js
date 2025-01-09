@@ -54,7 +54,8 @@ class TModelUtil {
             widthFromDom: false,
             heightFromDom: false,
             isIncluded: true,
-            bracketThreshold: 5,
+            bracketThreshold: 15,
+            bracketSize: 5,
             keepEventDefault: undefined,            
             canDeleteDom: undefined
         };

@@ -469,6 +469,10 @@ class TModel extends BaseModel {
         return this.val('bracketThreshold');
     }
     
+    getBracketSize() {
+        return this.val('bracketSize');
+    }
+    
     shouldBeBracketed() {
         if (TUtil.isDefined(this.val('shouldBeBracketed'))) {
             return this.val('shouldBeBracketed');

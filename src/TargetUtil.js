@@ -229,7 +229,6 @@ class TargetUtil {
         onVisibleEvent: tmodel => tmodel.isNowVisible,
         onDomEvent: tmodel => tmodel.hasDomNow,
         onVisible: tmodel => tmodel.isNowVisible,
-        onDom: tmodel => tmodel.hasDomNow,        
         onResize: tmodel => {
             const lastUpdateWidth = tmodel.getActualValueLastUpdate('width');
             const lastUpdateHeight = tmodel.getActualValueLastUpdate('height');
