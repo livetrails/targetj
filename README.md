@@ -19,13 +19,52 @@ Targets are used as the main building blocks of components instead of direct var
 
 Targets provide a unified interface for variable assignments and methods, enabling them to operate autonomously. For example, targets give variables the ability to iterate in steps until reaching a specified value, rather than being immediately assigned. Targets can include pauses between these steps, track the progress of other variables, and manage their life cycles dynamically. Methods can execute themselves under specific conditions, control the number of executions, and more.
 
+### Quick example
+
+In our first example, `color`, `html`, `textAlign`, `moves`, and `animate` are all targets. These targets are completed in the same order they appear in the program. The main target `animate` remains active with an indefinite lifecycle specified by the `loop` property. After each animation cycle, there is a one-second pause, defined by the `interval` property in the `animate` target. Both `loop` and `interval` can also be defined as methods, which will be explained further below. The `setTarget` method defines an imperative target, which is also explained in more detail below, executes the assigment in 30 steps. The `animate` target starts a new cycle after all the imperative targets have been completed.
+
+You'll also find `quickStart`, the first argument in the `TModel` constructor. If an HTML element with the same ID already exists on the page, it will be used in the new instance of `TModel`, and the animation will be applied to it. If no such element exists, TargetJ will create one.
+
+You can view the live example at [https://targetj.io/examples/quick.html](https://targetj.io/examples/quick.html). Click on "Show Code" to see how the code is executed.
+
+![first example](https://targetj.io/img/quickExample2.gif)
+
+```bash
+import { App, TModel, getEvents } from "targetj";
+
+App(new TModel('quickStart', {
+    color: '#fff',
+    html: 'Drag me',
+    textAlign: 'center',
+    moves: [
+        { scale: 1, width: 200, height: 200, lineHeight: 200, background: 'blue', borderRadius: 0 },
+        { scale: 1.5, width: 150, height: 150,lineHeight: 150, background: 'red', borderRadius: 75 },
+        { scale: 1, width: 100, height: 100, lineHeight: 100, background: 'orange', borderRadius: 50 }
+    ],
+    animate: {
+        loop: true,
+        cycles: 2,
+        interval: 1000,
+        value() {
+            const move = this.val('moves')[this.getTargetCycle(this.key)];
+            const x = (this.getParentValue('width') - move.width) / 2;
+            const y = (this.getParentValue('height') - move.height) / 2;
+            this.setTarget({ ...move, x, y }, 30);
+        },
+        enabledOn() {
+            return getEvents().getTouchCount() === 0;
+        }
+    },
+    onSwipe() { 
+        this.setTarget({ x: getEvents().swipeX(this), y: getEvents().swipeY(this) });
+    }
+}));
+```
+
+
 ## Why TargetJ?
 
 Imagine building a single-page web app using a unified approach for API integration, animations, event handling, and more—without having to manage asynchronous calls, loops, callbacks, promises, timeouts, state management, CSS, HTML attributes, tags, or HTML nesting. That’s exactly what TargetJ offers: it simplifies the entire development process with a new, simplified approach.
-
-## Do I still need HTML and CSS files?
-
-No, static HTML or CSS files are not necessary. We believe they introduce complexity, brittleness, and act as an intermediary that diverts focus from the end application. It's better to reduce the gap between the application and the user experience. In TargetJ, HTML elements, styles, and attributes are written as targets, enabling them to function independently while at the same time being well integrated with the other logic targets of the application. This provides a flexible and fluid medium for creating new user experiences that would otherwise be difficult to achieve.
 
 ## Can I integrate TargetJ as a library into my existing page?
 
@@ -347,7 +386,7 @@ App(new TModel("scroller", {
     width() { return getScreenWidth(); },
     height() { return getScreenHeight(); },  
     onResize: [ 'width', 'height' ],
-    onScrollEvent() {
+    onScroll() {
         this.setTarget('scrollTop', Math.max(0, this.getScrollTop() + getEvents().deltaY()));
     },
     onVisibleChildrenChange() { 
@@ -386,13 +425,13 @@ App(new TModel("simpleApp", {
                         opacity: 0.5,
                         cursor: "pointer",
                         html: menu,
-                        onEnterEvent() {
+                        onEnter() {
                           this.setTarget("opacity", 1, 20);
                         },
-                        onLeaveEvent() {
+                        onLeave() {
                           this.setTarget("opacity", 0.5, 20);
                         },
-                        onClickEvent() {
+                        onClick() {
                           this.setTarget("opacity", 0.5);
                           getPager().openLink(menu);
                         }
@@ -412,7 +451,7 @@ App(new TModel("simpleApp", {
             keepEventDefault: [ 'touchstart', 'touchend', 'mousedown', 'mouseup' ],
             boxSizing: 'border-box',
             html: "main page",
-            onKeyEvent() { this.setTarget('html', this.$dom.value()); },
+            onKey() { this.setTarget('html', this.$dom.value()); },
             onResize: [ "width", "height" ]
         });        
     },
@@ -454,7 +493,9 @@ App(new TModel("simpleApp", {
 
 ## Using TargetJ as a library into your page
 
-Here is an example that creates 1000 rows. The first argument, 'rows,' is used to find an element with the ID 'rows.' If no such element exists, it will be created at the top of the page. The OnDomEvent target activates the targets defined in its value when the DOM is found or created, eliminating the need for conditions to verify the DOM's availability before executing the target. Additionally, the parallel property creates subtasks, which improve browser performance."
+Here is an example that creates 1000 rows. The first argument, 'rows,' is used to find an element with the ID 'rows.' If no such element exists, it will be created at the top of the page. The OnDomEvent target activates the targets defined in its value when the DOM is found or created, eliminating the need for conditions to verify the DOM's availability before executing the target. Additionally, the parallel property creates subtasks, which improve browser performance.
+
+The `rectTop`, `absY`, and `onWindowScroll` targets are used to track the visible rows during scrolling. TargetJ automatically divides a long list into a tree structure, efficiently managing only the visible branch. The `onWindowScroll` target updates the `absY` of the table, enabling TargetJ to identify the branch visible to the user. You can opt out of this algorithm by setting the `shouldBeBracketed` target to `false`.
 
 ![animation api example](https://targetj.io/img/targetjAsLibrary.gif)
 
@@ -469,7 +510,7 @@ App(new TModel("rows", {
     defaultStyling: false,
     domHolder: true,
     onDomEvent: ["rectTop", "absY"],
-    onWindowScrollEvent: "absY",
+    onWindowScroll: "absY",
     createRows: {
         parallel: true,
         cycles: 9,
@@ -536,17 +577,17 @@ onResize() {
 Here are all the event targets:
 1. **onResize**: Triggered on screen resize events.
 2. **onParentResize**: Activated when the parent’s width or height is updated.
-3. **onFocusEvent**: Triggered on focus events.
-4. **onBlurEvent**: Triggered on blur events.
-5. **onClickEvent**: Activated on click events.
-6. **onTouchEvent**: Generic handler for all touch events.
+3. **onFocus**: Triggered on focus events.
+4. **onBlur**: Triggered on blur events.
+5. **onClick**: Activated on click events.
+6. **onTouch**: Generic handler for all touch events.
 7. **onTouchEnd**: Called when `touchend` or `mouseup` events occur.
-8. **onSwipeEvent**: Activated on swipe events.
-9. **onEnterEvent**: Triggered when the mouse cursor enters the object’s DOM.
-10. **onLeaveEvent**: Triggered when the mouse cursor leaves the object’s DOM.
-11. **onScrollEvent**: Called on scroll events.
-12. **onKeyEvent**: Triggered by key events.
-13. **onInvisibleEvent**: Activated when the object becomes invisible.
+8. **onSwipe**: Activated on swipe events.
+9. **onEnter**: Triggered when the mouse cursor enters the object’s DOM.
+10. **onLeave**: Triggered when the mouse cursor leaves the object’s DOM.
+11. **onScroll**: Called on scroll events.
+12. **onKey**: Triggered by key events.
+13. **onInvisible**: Activated when the object becomes invisible.
 14. **onChildrenChange**: Triggered when the children count changes.
 15. **onVisibleChildrenChange**: Triggered when the count of visible children changes.
 
@@ -554,7 +595,8 @@ Here are all the event targets:
 
 As a result of using targets, we can develop web sites or apps with the following features:
 
-- **No HTML required**: HTML tags are seldom necessary except for images.
+- **No HTML required**: HTML tags are seldom necessary.
+- **No CSS required**: Most popular styles are incorporated directly into targets.
 - **No HTML nesting**: HTML nesting is seldom required in TargetJ. If it is required, nesting is done at runtime. Elements can be dynamically detached and incorporated into other elements, facilitating the easy reuse of components regardless of their location or attachment. It also opens the door for a new user experiences.
 - **Next-level animation**: Users can program objects to move at varying speeds, pause at certain intervals, and repeat sequences based on various conditions. It allows the creation of complicated animations.
 - **Control the flow of execution with time**: TargetJ simplifies the execution of various program segments at specific times, making it easy to sequence or parallelize numerous actions.
@@ -568,7 +610,7 @@ As a result of using targets, we can develop web sites or apps with the followin
 1. TargetJ.tApp.stop(): Stops the application.
 2. TargetJ.tApp.start(): Restarts the application
 3. TargetJ.tApp.throttle: Slows down the application. This represents the pause in milliseconds before starting another TargetJ task cycle. It is zero by default.
-4. TargetJ.tApp.debugLevel: Logs information about the TargetJ task cycle and its efficiency. It is zero by default. Set it to 1 to log any cycle that takes more than 10ms and 2 to log the name of the caller of each cycle.
+4. TargetJ.tApp.debugLevel: Logs information about the TargetJ task cycle and its efficiency. It is zero by default. Set it to 1 to log the name of the caller of each cycle.
 5. Use `t()` to find an object from the browser console using its `oid`.
 6. Inspect all the vital properities using `t(oid).bug()`.
    
