@@ -21,7 +21,7 @@ Targets provide a unified interface for variable assignments and methods, enabli
 
 ### Quick example
 
-In our first example, `animate` is the main target. It has an indefinite lifecycle, specified by the `loop` property. After each animation cycle, a one-second pause is defined by the `interval` property. Both `loop` and `interval` can also be defined as methods (explained further below).
+In our first example, `color`, `html`, `textAlign`, `moves`, and `animate` are all targets. `animate` is the main target, as it has an indefinite lifecycle specified by the `loop` property. After each animation cycle, a one-second pause occurs, defined by the `interval` property in the `animate` target. Both `loop` and `interval` can also be defined as methods (explained further below).
 
 You'll also find `quickStart`, the first argument in the `TModel` constructor. If an HTML element with the same ID already exists on the page, it will be used in the new instance of `TModel`, and the animation will be applied to it. If no such element exists, TargetJ will create one.
 
