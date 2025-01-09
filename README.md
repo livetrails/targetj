@@ -64,10 +64,6 @@ App(new TModel('quickStart', {
 
 Imagine building a single-page web app using a unified approach for API integration, animations, event handling, and more—without having to manage asynchronous calls, loops, callbacks, promises, timeouts, state management, CSS, HTML attributes, tags, or HTML nesting. That’s exactly what TargetJ offers: it simplifies the entire development process with a new, simplified approach.
 
-## Do I still need HTML and CSS files?
-
-No, static HTML or CSS files are not necessary. We believe they introduce complexity, brittleness, and act as an intermediary that diverts focus from the end application. It's better to reduce the gap between the application and the user experience. In TargetJ, HTML elements, styles, and attributes are written as targets, enabling them to function independently while at the same time being well integrated with the other logic targets of the application. This provides a flexible and fluid medium for creating new user experiences that would otherwise be difficult to achieve.
-
 ## Can I integrate TargetJ as a library into my existing page?
 
 Yes, you can integrate TargetJ as a library into your existing page! TargetJ is designed to work as either a library or a framework. It was developed to be flexible and compatible with other libraries and frameworks, allowing you to enhance your page with minimal changes. You can find an example at the end of this page.
@@ -135,7 +131,7 @@ This is only property. It indicates that the target is in an inactive state and 
 This is only property. It defines the initial value of the actual value.
 
 
-### Simpler example
+### Simple example
 
 In the example below, we incrementally increase the values of width, height, and opacity in 30 steps, with a 50-millisecond pause between each step. You can view a live example here: https://targetj.io/examples/overview.html.
 
@@ -495,7 +491,9 @@ App(new TModel("simpleApp", {
 
 ## Using TargetJ as a library into your page
 
-Here is an example that creates 1000 rows. The first argument, 'rows,' is used to find an element with the ID 'rows.' If no such element exists, it will be created at the top of the page. The OnDomEvent target activates the targets defined in its value when the DOM is found or created, eliminating the need for conditions to verify the DOM's availability before executing the target. Additionally, the parallel property creates subtasks, which improve browser performance."
+Here is an example that creates 1000 rows. The first argument, 'rows,' is used to find an element with the ID 'rows.' If no such element exists, it will be created at the top of the page. The OnDomEvent target activates the targets defined in its value when the DOM is found or created, eliminating the need for conditions to verify the DOM's availability before executing the target. Additionally, the parallel property creates subtasks, which improve browser performance.
+
+The `rectTop`, `absY`, and `onWindowScroll` targets are used to track the visible rows during scrolling. TargetJ automatically divides a long list into a tree structure, efficiently managing only the visible branch. The `onWindowScroll` target updates the `absY` of the table, enabling TargetJ to identify the branch visible to the user. You can opt out of this algorithm by setting the `shouldBeBracketed` target to `false`.
 
 ![animation api example](https://targetj.io/img/targetjAsLibrary.gif)
 
@@ -595,7 +593,8 @@ Here are all the event targets:
 
 As a result of using targets, we can develop web sites or apps with the following features:
 
-- **No HTML required**: HTML tags are seldom necessary except for images.
+- **No HTML required**: HTML tags are seldom necessary.
+- **No CSS required**: Most popular styles are incorporated directly into targets.
 - **No HTML nesting**: HTML nesting is seldom required in TargetJ. If it is required, nesting is done at runtime. Elements can be dynamically detached and incorporated into other elements, facilitating the easy reuse of components regardless of their location or attachment. It also opens the door for a new user experiences.
 - **Next-level animation**: Users can program objects to move at varying speeds, pause at certain intervals, and repeat sequences based on various conditions. It allows the creation of complicated animations.
 - **Control the flow of execution with time**: TargetJ simplifies the execution of various program segments at specific times, making it easy to sequence or parallelize numerous actions.
