@@ -19,6 +19,47 @@ Targets are used as the main building blocks of components instead of direct var
 
 Targets provide a unified interface for variable assignments and methods, enabling them to operate autonomously. For example, targets give variables the ability to iterate in steps until reaching a specified value, rather than being immediately assigned. Targets can include pauses between these steps, track the progress of other variables, and manage their life cycles dynamically. Methods can execute themselves under specific conditions, control the number of executions, and more.
 
+### Quick example
+
+In our first example, `animate` is the main target. It has an indefinite lifecycle, specified by the `loop` property. After each animation cycle, a one-second pause is defined by the `interval` property. Both `loop` and `interval` can also be defined as methods (explained further below).
+
+You'll also find `quickStart`, the first argument in the `TModel` constructor. If an HTML element with the same ID already exists on the page, it will be used in the new instance of `TModel`, and the animation will be applied to it. If no such element exists, TargetJ will create one.
+
+![first example](https://targetj.io/img/quickExample2.gif)
+
+```bash
+import { App, TModel, getEvents } from "targetj";
+
+App(new TModel('quickStart', {
+    color: '#fff',
+    html: 'Drag me',
+    textAlign: 'center',
+    moves: [
+        { scale: 1, width: 200, height: 200, lineHeight: 200, background: 'blue', borderRadius: 0 },
+        { scale: 1.5, width: 150, height: 150,lineHeight: 150, background: 'red', borderRadius: 75 },
+        { scale: 1, width: 100, height: 100, lineHeight: 100, background: 'orange', borderRadius: 50 }
+    ],
+    animate: {
+        loop: true,
+        cycles: 2,
+        interval: 1000,
+        value() {
+            const move = this.val('moves')[this.getTargetCycle(this.key)];
+            const x = (this.getParentValue('width') - move.width) / 2;
+            const y = (this.getParentValue('height') - move.height) / 2;
+            this.setTarget({ ...move, x, y }, 30);
+        },
+        enabledOn() {
+            return getEvents().getTouchCount() === 0;
+        }
+    },
+    onSwipe() { 
+        this.setTarget({ x: getEvents().swipeX(this), y: getEvents().swipeY(this) });
+    }
+}));
+```
+
+
 ## Why TargetJ?
 
 Imagine building a single-page web app using a unified approach for API integration, animations, event handling, and more—without having to manage asynchronous calls, loops, callbacks, promises, timeouts, state management, CSS, HTML attributes, tags, or HTML nesting. That’s exactly what TargetJ offers: it simplifies the entire development process with a new, simplified approach.
@@ -94,7 +135,7 @@ This is only property. It indicates that the target is in an inactive state and 
 This is only property. It defines the initial value of the actual value.
 
 
-### Simple example
+### Simpler example
 
 In the example below, we incrementally increase the values of width, height, and opacity in 30 steps, with a 50-millisecond pause between each step. You can view a live example here: https://targetj.io/examples/overview.html.
 
