@@ -25,6 +25,8 @@ In our first example, `color`, `html`, `textAlign`, `moves`, and `animate` are a
 
 You'll also find `quickStart`, the first argument in the `TModel` constructor. If an HTML element with the same ID already exists on the page, it will be used in the new instance of `TModel`, and the animation will be applied to it. If no such element exists, TargetJ will create one.
 
+You can view the live example at [https://targetj.io/examples/quick.html](https://targetj.io/examples/quick.html). Click on "Show Code" to see how the code is executed.
+
 ![first example](https://targetj.io/img/quickExample2.gif)
 
 ```bash
