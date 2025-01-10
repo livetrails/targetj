@@ -27,7 +27,7 @@ You'll also find `quickStart`, the first argument in the `TModel` constructor. I
 
 You can view the live example at [https://targetj.io/examples/quick.html](https://targetj.io/examples/quick.html). Click on "Show Code" to see how the code is executed.
 
-![first example](https://targetj.io/img/quickExample2.gif)
+![first example](https://targetj.io/img/quickExample3.gif)
 
 ```bash
 import { App, TModel, getEvents } from "targetj";
