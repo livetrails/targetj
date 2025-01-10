@@ -191,7 +191,12 @@ class RunScheduler {
         if (nextRun) {
             const now = TUtil.now();
             const newDelay = nextRun.delay - (now - nextRun.insertTime);
-            this.setDelayProcess(nextRun.runId, nextRun.insertTime, now + newDelay, newDelay);
+            if (newDelay >= 0 || this.nextRuns.length === 0) {
+                this.setDelayProcess(nextRun.runId, nextRun.insertTime, now + newDelay, newDelay);
+            } else {
+                this.delayProcess = undefined;                
+                this.executeNextRun();
+            }
         } else {
             this.delayProcess = undefined;
         }        

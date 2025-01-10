@@ -546,7 +546,7 @@ class EventListener {
     }
     
     hasDelta() {
-        return this.deltaX() !== 0 && this.deltaY() !== 0;
+        return this.deltaX() !== 0 || this.deltaY() !== 0;
     }
     isEndEvent() {
         return this.getEventType() === 'end' || this.getEventType() === 'click';
