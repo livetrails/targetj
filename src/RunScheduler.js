@@ -187,21 +187,21 @@ class RunScheduler {
     }
     
     executeNextRun() {
-        const nextRun = this.nextRuns.length > 0 ? this.nextRuns.shift() : undefined;
-        if (nextRun) {
+        
+        while (this.nextRuns.length > 0) {
+            const nextRun = this.nextRuns.shift();
             const now = TUtil.now();
             const newDelay = nextRun.delay - (now - nextRun.insertTime);
+            
             if (newDelay >= 0 || this.nextRuns.length === 0) {
-                this.setDelayProcess(nextRun.runId, nextRun.insertTime, now + newDelay, newDelay);
-            } else {
-                this.delayProcess = undefined;                
-                this.executeNextRun();
+                this.setDelayProcess(nextRun.runId, nextRun.insertTime, now + newDelay, Math.max(newDelay, 0));
+                return;
             }
-        } else {
-            this.delayProcess = undefined;
-        }        
-    }
+        }
 
+        this.delayProcess = undefined;
+    }
+    
     delayRun(delay, runId) {
         const insertTime = this.runStartTime;        
         const runTime = insertTime + delay;

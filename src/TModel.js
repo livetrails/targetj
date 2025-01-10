@@ -115,12 +115,12 @@ class TModel extends BaseModel {
     
     moveChild(child, index) {
         this.movedChildren.push({ index, child });
-                
+        
         if (child.hasDom() && child.requiresDomRelocation()) {  
             child.domOrderIndex = index;
             child.activate();
         }
-                
+         
         getRunScheduler().schedule(1, 'moveChild-' + this.oid + "-" + child.oid);
                            
         return this;

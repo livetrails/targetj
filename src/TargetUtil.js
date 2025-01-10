@@ -235,19 +235,31 @@ class TargetUtil {
             const resizeLastUpdate = getLocationManager().resizeLastUpdate;
 
             if (lastUpdateWidth && lastUpdateHeight) {
+                tmodel.setActualValueLastUpdate('width');
+                tmodel.setActualValueLastUpdate('height');
                 return resizeLastUpdate > Math.max(lastUpdateWidth, lastUpdateHeight);
             }
-            if (lastUpdateWidth) {
+            if (lastUpdateWidth) {  
+                tmodel.setActualValueLastUpdate('width');
                 return resizeLastUpdate > lastUpdateWidth;
             }
             if (lastUpdateHeight) {
+                tmodel.setActualValueLastUpdate('height');                
                 return resizeLastUpdate > lastUpdateHeight;
             }
              
             return getLocationManager().resizeFlag;
         },
-        onParentResize: tmodel => { return tmodel.getParent().getActualValueLastUpdate('width') > tmodel.getActualValueLastUpdate('width') ||
-                    tmodel.getParent().getActualValueLastUpdate('height') > tmodel.getActualValueLastUpdate('height'); },        
+        onParentResize: tmodel => { 
+            if (tmodel.getParent().getActualValueLastUpdate('width') > tmodel.getActualValueLastUpdate('width')) {
+                tmodel.setActualValueLastUpdate('width');
+                return true;
+            }
+            if (tmodel.getParent().getActualValueLastUpdate('height') > tmodel.getActualValueLastUpdate('height')) {
+                tmodel.setActualValueLastUpdate('height');
+                return true;
+            }            
+        }       
     };
  
     static allEventMap = {

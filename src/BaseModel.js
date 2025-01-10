@@ -618,15 +618,23 @@ class BaseModel {
     }    
 
     deleteTargetValue(key) {
+        const targetValue = this.targetValues[key];
+        
         delete this.targetValues[key];
         this.addToActiveTargets(key);
         this.removeFromUpdatingTargets(key);
-
-        getRunScheduler().schedule(1, 'deleteTargetValue-' + this.oid + "-" + key);
+        
+        if (targetValue) {
+            getRunScheduler().schedule(1, 'deleteTargetValue-' + this.oid + "-" + key);
+        }
+        
+        return this;
     }    
  
     resetImperative(key) {
         const targetValue = this.targetValues[key];
+        
+        const isImperative = targetValue.isImperative;
 
         if (targetValue) {
             targetValue.isImperative = false;
@@ -639,7 +647,9 @@ class BaseModel {
             targetValue.interval = 0;
         }
 
-        getRunScheduler().schedule(1, 'resetImperative-' + this.oid + "-" + key);
+        if (isImperative) {
+            getRunScheduler().schedule(1, 'resetImperative-' + this.oid + "-" + key);
+        }
 
         return this;
     }
