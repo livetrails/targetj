@@ -6,22 +6,55 @@ TargetJ distinguishes itself by introducing a novel concept known as 'targets,' 
 
 ⭐ We appreciate your star, it helps!
 
-### Installation
+---
+
+## Table of Contents
+
+1. [Installation](#installation)
+2. [What are Targets?](#what-are-targets)
+3. [Quick Example](#quick-example)
+4. [Why TargetJ?](#why-targetj)
+5. [Integration with Existing Pages](#integration-with-existing-pages)
+6. [Anatomy of a Target](#anatomy-of-a-target)
+7. [How TargetJ Operates](#how-targetj-operates)
+8. [Target Methods](#target-methods)
+9. [Simple Example](#simple-example)
+10. [Declarative and Imperative Targets](#declarative-and-imperative-targets)
+11. [Declarative and Imperative Example](#declarative-and-imperative-example)
+12. [Loading Data Example](#loading-data-example)
+13. [Animation API Comparison](#animation-api-comparison)
+14. [Infinite Scrolling Example](#infinite-scrolling-example)
+15. [Simple Single Page App Example](#simple-single-page-app-example)
+16. [Using TargetJ as a Library](#using-targetj-as-a-library)
+17. [Special Target Names](#special-target-names)
+18. [Features](#features)
+19. [How to Debug in TargetJ](#how-to-debug-in-targetj)
+20. [Documentation](#documentation)
+21. [License](#license)
+22. [Contact](#contact)
+
+---
+
+## Installation
 
 To install TargetJ, run the following command in your terminal:
 
 ```bash
 npm install targetj
 ```
+---
+
 ## What are targets?
 
 Targets are used as the main building blocks of components instead of direct variables and methods. Each component in TargetJ is a set of targets. Targets are employed across all aspects of the program. They are used in animation, controlling program flow, loading data from external APIs, handling user events, and more.
 
 Targets provide a unified interface for variable assignments and methods, enabling them to operate autonomously. For example, targets give variables the ability to iterate in steps until reaching a specified value, rather than being immediately assigned. Targets can include pauses between these steps, track the progress of other variables, and manage their life cycles dynamically. Methods can execute themselves under specific conditions, control the number of executions, and more.
 
-### Quick example
+---
 
-In our first example, `color`, `html`, `textAlign`, `moves`, and `animate` are all targets. These targets are completed in the same order they appear in the program. The main target `animate` remains active with an indefinite lifecycle specified by the `loop` property. After each animation cycle, there is a one-second pause, defined by the `interval` property in the `animate` target. Both `loop` and `interval` can also be defined as methods, which will be explained further below. The `setTarget` method defines an imperative target, which is also explained in more detail below, executes the assigment in 30 steps. The `animate` target starts a new cycle after all the imperative targets have been completed.
+## Quick example
+
+In our first example, `color`, `html`, `textAlign`, `moves`, and `animate` are all targets. These targets are executed in the same order they appear in the program. `color`, `html`, `textAlign`, `moves` get competed and their life cycle end. The main target `animate` remains active with an indefinite lifecycle specified by the `loop` property. After each animation cycle, there is a one-second pause, defined by the `interval` property in the `animate` target. Both `loop` and `interval` can also be defined as methods, which will be explained further below. The `setTarget` method defines an imperative target, which is also explained in more detail below, executes the assigment in 30 steps. The `animate` target starts a new cycle after all the imperative targets have been completed or at least one second pass specified in the interval value given that the imperative targets get executed less than 1 second.
 
 You'll also find `quickStart`, the first argument in the `TModel` constructor. If an HTML element with the same ID already exists on the page, it will be used in the new instance of `TModel`, and the animation will be applied to it. If no such element exists, TargetJ will create one.
 
@@ -61,14 +94,19 @@ App(new TModel('quickStart', {
 }));
 ```
 
+---
 
 ## Why TargetJ?
 
 Imagine building a single-page web app using a unified approach for API integration, animations, event handling, and more—without having to manage asynchronous calls, loops, callbacks, promises, timeouts, state management, CSS, HTML attributes, tags, or HTML nesting. That’s exactly what TargetJ offers: it simplifies the entire development process with a new, simplified approach.
 
+---
+
 ## Can I integrate TargetJ as a library into my existing page?
 
 Yes, you can integrate TargetJ as a library into your existing page! TargetJ is designed to work as either a library or a framework. It was developed to be flexible and compatible with other libraries and frameworks, allowing you to enhance your page with minimal changes. You can find an example at the end of this page.
+
+---
 
 ## What does a target consist of?
 
@@ -79,6 +117,8 @@ Each target consists of the following:
 
 3. Target Methods: All methods are optional. They are used to control the lifecycle of targets or serve as callbacks to reflect changes. The controlling methods are: enabledOn, loop, steps, cycles. The callbacks are: onValueChange, onStepsEnd, onImperativeStep, onImperativeEnd. More details in the method section.
 
+---
+
 ## Brief overview of how it operates
 
 All targets are in the active state by default and ready to be executed. They can include an enabledOn function that delays their execution until the specified conditions are met. Targets can also be set to inactive and activated externally when needed. 
@@ -88,6 +128,8 @@ The target task monitors all active targets, and if a target is enabled, it will
 If the target has loop or cycle methods defined, its value method will be re-executed after a pause specified by the interval. The number of executions will be determined by the cycles or will continue as long as the loop condition returns true. If the target has steps defined, its state changes to updating, and the actual value is updated iteratively until it reaches the target value, according to the number of steps and pauses specified by steps and intervals.
 
 A target can reactivate itself in the `onStepsEnd` callback once all steps are completed, or in the `onImperativeEnd` callback when all imperative targets initiated by that target are finished, allowing it to re-execute. It can also be reactivated externally, either directly or through an event.
+
+---
 
 ## Target methods
 
@@ -132,8 +174,9 @@ This is only property. It indicates that the target is in an inactive state and 
 13. **initialValue**
 This is only property. It defines the initial value of the actual value.
 
+---
 
-### Simple example
+## Simple example
 
 In the example below, we incrementally increase the values of width, height, and opacity in 30 steps, with a 50-millisecond pause between each step. You can view a live example here: https://targetj.io/examples/overview.html.
 
@@ -175,6 +218,8 @@ App(new TModel({
     opacity: [ 0.15, 30, 50]
  }));
 ```
+
+---
 
 ## Declarative and imperative targets
 
@@ -220,6 +265,8 @@ App(
 );
 ```
 
+---
+
 ## Loading data example
 
 Calling backend APIs is simplified through the use of targets in TargetJ. Additionally, TargetJ provides a Loader class, accessible via getLoader(), which streamlines API integration.
@@ -262,6 +309,7 @@ App(new TModel("apiCall", {
   }
 }));
 ```
+---
 
 ## Animation API example
 
@@ -354,6 +402,8 @@ App(new TModel('TargetJ vs Animation Api', {
 }));
 ```
 
+---
+
 ## Infinite scrolling
 
 This example demonstrates how to handle scroll events and develop a simple infinite scrolling application.
@@ -396,6 +446,8 @@ App(new TModel("scroller", {
     }
 }));
 ```
+
+---
 
 ## Simple Single Page App Example
 
@@ -490,6 +542,7 @@ App(new TModel("simpleApp", {
     onResize: ["width", "height"]
 }));
 ```
+---
 
 ## Using TargetJ as a library into your page
 
@@ -530,6 +583,7 @@ App(new TModel("rows", {
     }
 }));
 ```
+---
 
 ## Special target names
 
@@ -591,6 +645,8 @@ Here are all the event targets:
 14. **onChildrenChange**: Triggered when the children count changes.
 15. **onVisibleChildrenChange**: Triggered when the count of visible children changes.
 
+---
+
 ## Features
 
 As a result of using targets, we can develop web sites or apps with the following features:
@@ -605,6 +661,7 @@ As a result of using targets, we can develop web sites or apps with the followin
 - **Handle 100,000s of items**: TargetJ efficiently manages large collections of objects on a single page. This is done by its data structure and optimization algorithm. It divides a long list into a tree structure, monitoring only the branches that are visible to the user at any given time.
 - **AI friendly**: With a unified concept of targets for all development, the ability to add and remove targets at runtime, and the capability to inspect various statuses of running objects, TargetJ is a strong candidate for AI-powered UI development.
 
+---
 
 ## How to debug in TargetJ
 1. TargetJ.tApp.stop(): Stops the application.
@@ -613,12 +670,18 @@ As a result of using targets, we can develop web sites or apps with the followin
 4. TargetJ.tApp.debugLevel: Logs information about the TargetJ task cycle and its efficiency. It is zero by default. Set it to 1 to log the name of the caller of each cycle.
 5. Use `t()` to find an object from the browser console using its `oid`.
 6. Inspect all the vital properities using `t(oid).bug()`.
+
+---
    
 ## Documentation
 Explore the full potential of TargetJ and dive into our interactive documentation at www.targetj.io.
 
+---
+
 ## License
 Distributed under the MIT License. See LICENSE for more information.
+
+---
 
 ## Contact
 Ahmad Wasfi - wasfi2@gmail.com
