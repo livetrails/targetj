@@ -12,26 +12,27 @@ TargetJ distinguishes itself by introducing a novel concept known as 'targets,' 
 
 1. [Installation](#installation)
 2. [What are Targets?](#what-are-targets)
-3. [Quick Example](#quick-example)
+3. Quick Examples:
+   - [Draggable Animation Example](#draggable-animation-example)
+   - [Infinite Scrolling Example](#infinite-scrolling-example)
 4. [Why TargetJ?](#why-targetj)
 5. [Integration with Existing Pages](#integration-with-existing-pages)
 6. [Anatomy of a Target](#anatomy-of-a-target)
 7. [How TargetJ Operates](#how-targetj-operates)
 8. [Target Methods](#target-methods)
-9. [Simple Example](#simple-example)
-10. [Declarative and Imperative Targets](#declarative-and-imperative-targets)
-11. [Declarative and Imperative Example](#declarative-and-imperative-example)
-12. [Loading Data Example](#loading-data-example)
-13. [Animation API Comparison](#animation-api-comparison)
-14. [Infinite Scrolling Example](#infinite-scrolling-example)
-15. [Simple Single Page App Example](#simple-single-page-app-example)
-16. [Using TargetJ as a Library](#using-targetj-as-a-library)
-17. [Special Target Names](#special-target-names)
-18. [Features](#features)
-19. [How to Debug in TargetJ](#how-to-debug-in-targetj)
-20. [Documentation](#documentation)
-21. [License](#license)
-22. [Contact](#contact)
+9. Examples:
+   - [Simple Example](#simple-example)
+   - [Declarative and Imperative Targets Example](#declarative-and-imperative-targets-example)
+   - [Loading Data Example](#loading-data-example)
+   - [Animation API Comparison Example](#animation-api-comparison-example)
+   - [Simple Single Page App Example](#simple-single-page-app-example)
+   - [Using TargetJ as a Library Example](#using-targetj-as-a-library-example)
+10. [Special Target Names](#special-target-names)
+11. [TargetJ Features](#features)
+12. [How to Debug in TargetJ](#how-to-debug-in-targetj)
+13. [Documentation](#documentation)
+14. [License](#license)
+15. [Contact](#contact)
 
 ---
 
@@ -52,7 +53,11 @@ Targets provide a unified interface for variable assignments and methods, enabli
 
 ---
 
-## Quick example
+## Quick examples
+
+This section provides a few quick demonstrations of what TargetJ can do.
+
+## Draggable Animation Example 
 
 In our first example, `color`, `html`, `textAlign`, `moves`, and `animate` are all targets. These targets are executed in the same order they appear in the program. `color`, `html`, `textAlign`, `moves` get competed and their life cycle end. The main target `animate` remains active with an indefinite lifecycle specified by the `loop` property. After each animation cycle, there is a one-second pause, defined by the `interval` property in the `animate` target. Both `loop` and `interval` can also be defined as methods, which will be explained further below. The `setTarget` method defines an imperative target, which is also explained in more detail below, executes the assigment in 30 steps. The `animate` target starts a new cycle after all the imperative targets have been completed or at least one second pass specified in the interval value given that the imperative targets get executed less than 1 second.
 
@@ -94,6 +99,51 @@ App(new TModel('quickStart', {
 }));
 ```
 
+## Infinite Scrolling Example
+
+This example demonstrates how to handle scroll events and implement a simple infinite scrolling application. The `containerOverflowMode` system target ensures that all items in the scroller overflow and stack beneath each other seamlessly. The `children` system target dynamically adds items to the container's children. The `onVisibleChildrenChange` event function detects changes in the visible children and activates the `children` target to create new items that fill the gaps. 
+
+Internally, TargetJ maintains a tree-like structure to track the visible branches of the tree, optimizing the performance of the scroller. You can opt out of tree-structure optimization by setting shouldBeBracketed target to false.
+
+If you inspect the HTML elements in the browser's developer tools, you'll notice that the scroller's elements are not nested inside the container. This is because nesting is another target that can dynamically control how elements are nested.
+
+![Single page app](https://targetj.io/img/infiniteScrolling4.gif)
+
+```bash
+import { App, TModel, getEvents, getScreenHeight, getScreenWidth, } from "targetj";
+
+App(new TModel({
+    containerOverflowMode: 'always',
+    children() { 
+        const childrenCount = this.getChildren().length;
+        return Array.from({ length: 10 }, (_, i) => 
+            new TModel('scrollItem', {                     
+                width: 300,
+                background: '#B388FF',                
+                height: 32,
+                color: '#C2FC61',
+                textAlign: 'center',
+                lineHeight: 32,               
+                bottomMargin: 2,
+                x() { return this.getCenterX(); },                
+                html: childrenCount + i
+            })
+        ); 
+    },          
+    width() { return getScreenWidth(); },
+    height() { return getScreenHeight(); },  
+    onResize: [ 'width', 'height' ],
+    onScroll() {
+        this.setTarget('scrollTop', Math.max(0, this.getScrollTop() + getEvents().deltaY()));
+    },
+    onVisibleChildrenChange() { 
+        if (getEvents().dir() !== 'up' && this.visibleChildren.length * 34 < this.getHeight()) {
+            this.activateTarget('children');
+        }
+    }
+}));
+```
+
 ---
 
 ## Why TargetJ?
@@ -102,13 +152,13 @@ Imagine building a single-page web app using a unified approach for API integrat
 
 ---
 
-## Can I integrate TargetJ as a library into my existing page?
+## Integration with Existing Pages
 
 Yes, you can integrate TargetJ as a library into your existing page! TargetJ is designed to work as either a library or a framework. It was developed to be flexible and compatible with other libraries and frameworks, allowing you to enhance your page with minimal changes. You can find an example at the end of this page.
 
 ---
 
-## What does a target consist of?
+## Anatomy of a Target
 
 Each target consists of the following:
 1. Target Value and Actual Value. The target value is the value assigned to a variable or the result produced by a method. The actual value is typically the value used by the rest of the application. When the target value differs from the actual value, TargetJ iteratively updates the actual value until it matches the target value. This process is managed by two additional variables: Step, which dictates the number of iterations, and Interval, which specifies the duration (in milliseconds) the system waits before executing the next iteration.
@@ -119,7 +169,7 @@ Each target consists of the following:
 
 ---
 
-## Brief overview of how it operates
+## How TargetJ Operates
 
 All targets are in the active state by default and ready to be executed. They can include an enabledOn function that delays their execution until the specified conditions are met. Targets can also be set to inactive and activated externally when needed. 
 
@@ -176,6 +226,10 @@ This is only property. It defines the initial value of the actual value.
 
 ---
 
+## More examples
+
+Below are examples of various TargetJ use cases:
+
 ## Simple example
 
 In the example below, we incrementally increase the values of width, height, and opacity in 30 steps, with a 50-millisecond pause between each step. You can view a live example here: https://targetj.io/examples/overview.html.
@@ -221,15 +275,13 @@ App(new TModel({
 
 ---
 
-## Declarative and imperative targets
+## Declarative and Imperative Targets Example
 
 Targets in TargetJ can be defined in two ways: declaratively or imperatively.
 
 The declarative approach offers a structured method for defining targets, as seen in the previous example. However, orchestrating multiple targets with varying speeds and timings can be challenging. For instance, tracking the completion of multiple targets to trigger a new set of targets is not easily done using only declarative targets. To address this, TargetJ provides the setTarget function, allowing you to define multiple imperative targets from within a single declarative target. Additionally, the onImperativeStep and onImperativeEnd callbacks, defined in the declarative target, enable you to track each step of the imperative targets or just their completion.
 
 By combining both declarative and imperative targets, you gain a powerful toolset for designing complex interactions.
-
-## Declarative an imperative example
 
 The following example demonstrates both declarative and imperative approaches. In the `animate` target, two imperative targets are set to move a square across the screen. Once both `x` and `y` targets are completed, the `animate` target will re-execute because `loop` is defined as `true`, causing it to continue indefinitely. Additionally, we can add `onImperativeEnd()` to trigger when either the `x` or `y` target completes. We can also use `onXEnd` or `onYEnd` to listen specifically for the completion of the `x` or `y` target, respectively.
 
@@ -311,7 +363,7 @@ App(new TModel("apiCall", {
 ```
 ---
 
-## Animation API example
+## Animation API Comparison Example
 
 TargetJ provides efficient, easy-to-control UI animation and manipulation through special targets that reflect HTML style names, such as `width`, `height`, `scale`, `rotate`, and `opacity`. 
 
@@ -404,48 +456,6 @@ App(new TModel('TargetJ vs Animation Api', {
 
 ---
 
-## Infinite scrolling
-
-This example demonstrates how to handle scroll events and develop a simple infinite scrolling application.
-
-![Single page app](https://targetj.io/img/infiniteScrolling4.gif)
-
-```bash
-import { App, TModel, getEvents, getScreenHeight, getScreenWidth, } from "targetj";
-
-App(new TModel("scroller", {
-    domHolder: true,
-    overflow: 'hidden',
-    containerOverflowMode: 'always',
-    children() { 
-        const childrenCount = this.getChildren().length;
-        return Array.from({ length: 10 }, (_, i) => 
-            new TModel('scrollItem', {                     
-                width: 300,
-                background: '#B388FF',                
-                height: 32,
-                color: '#C2FC61',
-                textAlign: 'center',
-                lineHeight: 32,               
-                bottomMargin: 2,
-                x() { return this.getCenterX(); },                
-                html: childrenCount + i
-            })
-        ); 
-    },          
-    width() { return getScreenWidth(); },
-    height() { return getScreenHeight(); },  
-    onResize: [ 'width', 'height' ],
-    onScroll() {
-        this.setTarget('scrollTop', Math.max(0, this.getScrollTop() + getEvents().deltaY()));
-    },
-    onVisibleChildrenChange() { 
-        if (getEvents().dir() !== 'up' && this.visibleChildren.length * 34 < this.getHeight()) {
-            this.activateTarget('children');
-        }
-    }
-}));
-```
 
 ---
 
@@ -544,7 +554,7 @@ App(new TModel("simpleApp", {
 ```
 ---
 
-## Using TargetJ as a library into your page
+## Using TargetJ as a Library Example
 
 Here is an example that creates 1000 rows. The first argument, 'rows,' is used to find an element with the ID 'rows.' If no such element exists, it will be created at the top of the page. The OnDomEvent target activates the targets defined in its value when the DOM is found or created, eliminating the need for conditions to verify the DOM's availability before executing the target. Additionally, the parallel property creates subtasks, which improve browser performance.
 
@@ -669,7 +679,8 @@ As a result of using targets, we can develop web sites or apps with the followin
 3. TargetJ.tApp.throttle: Slows down the application. This represents the pause in milliseconds before starting another TargetJ task cycle. It is zero by default.
 4. TargetJ.tApp.debugLevel: Logs information about the TargetJ task cycle and its efficiency. It is zero by default. Set it to 1 to log the name of the caller of each cycle.
 5. Use `t()` to find an object from the browser console using its `oid`.
-6. Inspect all the vital properities using `t(oid).bug()`.
+6. t(oid).bug(): Inspect all the vital properities of an object.
+7. t(oid).logTree(): allows you to inspect the internal children structure including brackets
 
 ---
    
