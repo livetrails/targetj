@@ -4,8 +4,6 @@ Welcome to TargetJ, a powerful JavaScript UI framework and library that you migh
 
 TargetJ distinguishes itself by introducing a novel concept known as 'targets,' which forms its core. Targets give methods and variable assignments life cycles and the autonomy to operate independently, with various callbacks to adapt to changes, mimicking the behavior of living cells. This opens a new paradigm in programming.
 
-⭐ We appreciate your star, it helps!
-
 ---
 
 ## Table of Contents
@@ -33,6 +31,8 @@ TargetJ distinguishes itself by introducing a novel concept known as 'targets,' 
 13. [Documentation](#documentation)
 14. [License](#license)
 15. [Contact](#contact)
+
+⭐ We appreciate your star, it helps!
 
 ---
 
