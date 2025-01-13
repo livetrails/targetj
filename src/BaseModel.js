@@ -634,7 +634,7 @@ class BaseModel {
     resetImperative(key) {
         const targetValue = this.targetValues[key];
         
-        const isImperative = targetValue.isImperative;
+        const isImperative = targetValue?.isImperative;
 
         if (targetValue) {
             targetValue.isImperative = false;

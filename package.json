@@ -1,26 +1,26 @@
 {
-  "name": "targetj",
-  "version": "1.0.132",
+  "name": "targetjs",
+  "version": "1.0.133",
   "keywords": [
-    "targetj"
+    "targetjs"
   ],
   "main": "Export.js",
   "contributors": [
     "ahmad.wasfi"
   ],
-  "description": "TargetJ is a JavaScript framework designed for creating animated and efficient web user interfaces.",
+  "description": "TargetJS is a JavaScript framework designed for creating animated and efficient web user interfaces.",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/livetrails/targetj.io.git"
+    "url": "git+https://github.com/livetrails/targetjs.io.git"
   },
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/livetrails/targetj.io/issues"
+    "url": "https://github.com/livetrails/targetjs.io/issues"
   },
   "scripts": {
     "prod": "webpack --mode production",
     "dev": "webpack --mode development",
-    "build": "babel src --out-dir build"
+    "build": "babel src --out-dir build",
   },
   "homepage": "http://targetj.io",
   "devDependencies": {
