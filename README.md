@@ -41,7 +41,7 @@ TargetJS distinguishes itself by introducing a novel concept known as 'targets,'
 To install TargetJS, run the following command in your terminal:
 
 ```bash
-npm install targetjs
+npm install targetj
 ```
 ---
 
