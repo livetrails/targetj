@@ -1,6 +1,6 @@
 {
   "name": "targetj",
-  "version": "1.0.133",
+  "version": "1.0.134",
   "keywords": [
     "targetjs"
   ],
@@ -11,11 +11,11 @@
   "description": "TargetJS is a JavaScript framework designed for creating animated and efficient web user interfaces.",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/livetrails/targetjs.io.git"
+    "url": "git+https://github.com/livetrails/targetjs.git"
   },
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/livetrails/targetjs.io/issues"
+    "url": "https://github.com/livetrails/targetjs/issues"
   },
   "scripts": {
     "prod": "webpack --mode production",
