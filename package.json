@@ -20,7 +20,7 @@
   "scripts": {
     "prod": "webpack --mode production",
     "dev": "webpack --mode development",
-    "build": "babel src --out-dir build",
+    "build": "babel src --out-dir build"
   },
   "homepage": "http://targetj.io",
   "devDependencies": {
