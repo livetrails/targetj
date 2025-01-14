@@ -1,6 +1,6 @@
 # TargetJS: JavaScript UI framework and library - Programming the Front-End with a New Paradigm
 
-Welcome to TargetJS, a powerful JavaScript UI framework and library that you might find redefines front-end development. (https://targetj.io)
+Welcome to TargetJS, a powerful JavaScript UI framework and library that you might find redefines front-end development. (https://targetjs.io)
 
 TargetJS distinguishes itself by introducing a novel concept known as 'targets,' which forms its core. Targets give methods and variable assignments life cycles and the autonomy to operate independently, with various callbacks to adapt to changes, mimicking the behavior of living cells. This opens a new paradigm in programming.
 
@@ -63,9 +63,9 @@ In our first example, `color`, `html`, `textAlign`, `moves`, and `animate` are a
 
 You'll also find `quickStart`, the first argument in the `TModel` constructor. If an HTML element with the same ID already exists on the page, it will be used in the new instance of `TModel`, and the animation will be applied to it. If no such element exists, TargetJS will create one.
 
-You can view the live example at [https://targetj.io/examples/quick.html](https://targetj.io/examples/quick.html). Click on "Show Code" to see how the code is executed.
+You can view the live example at [https://targetjs.io/examples/quick.html](https://targetjs.io/examples/quick.html). Click on "Show Code" to see how the code is executed.
 
-![first example](https://targetj.io/img/quickExample3.gif)
+![first example](https://targetjs.io/img/quickExample3.gif)
 
 ```bash
 import { App, TModel, getEvents } from "targetjs";
@@ -107,7 +107,7 @@ Internally, TargetJS maintains a tree-like structure to track the visible branch
 
 If you inspect the HTML elements in the browser's developer tools, you'll notice that the scroller's elements are not nested inside the container. This is because nesting is another target that can dynamically control how elements are nested.
 
-![Single page app](https://targetj.io/img/infiniteScrolling4.gif)
+![Single page app](https://targetjs.io/img/infiniteScrolling4.gif)
 
 ```bash
 import { App, TModel, getEvents, getScreenHeight, getScreenWidth, } from "targetjs";
@@ -232,9 +232,9 @@ Below are examples of various TargetJS use cases:
 
 ## Simple example
 
-In the example below, we incrementally increase the values of width, height, and opacity in 30 steps, with a 50-millisecond pause between each step. You can view a live example here: https://targetj.io/examples/overview.html.
+In the example below, we incrementally increase the values of width, height, and opacity in 30 steps, with a 50-millisecond pause between each step. You can view a live example here: https://targetjs.io/examples/overview.html.
 
-![first example](https://targetj.io/img/firstExample.gif)
+![first example](https://targetjs.io/img/firstExample.gif)
 
 
 ```bash
@@ -260,7 +260,7 @@ App(new TModel({
  }));
 ```
 
-It can also be written in a more compact form using arrays (view a live example at https://targetj.io/examples/overview2.html):
+It can also be written in a more compact form using arrays (view a live example at https://targetjs.io/examples/overview2.html):
 
 ```bash
 import { App, TModel } from 'targetjs';
@@ -285,7 +285,7 @@ By combining both declarative and imperative targets, you gain a powerful toolse
 
 The following example demonstrates both declarative and imperative approaches. In the `animate` target, two imperative targets are set to move a square across the screen. Once both `x` and `y` targets are completed, the `animate` target will re-execute because `loop` is defined as `true`, causing it to continue indefinitely. Additionally, we can add `onImperativeEnd()` to trigger when either the `x` or `y` target completes. We can also use `onXEnd` or `onYEnd` to listen specifically for the completion of the `x` or `y` target, respectively.
 
-![declarative example](https://targetj.io/img/declarative.gif)
+![declarative example](https://targetjs.io/img/declarative.gif)
 
 ```bash
 import { App, TModel, getScreenWidth, getScreenHeight } from "targetjs";
@@ -327,7 +327,7 @@ In the example below, we define a target named load. Inside the value function, 
 
 In this example, we set the cycles to 9, triggering the API call 10 times at intervals of 1 second (interval set to 1000). Each API response is appended as a separate object in the output. Because we didn’t specify the fourth argument, the response is always fetched directly from the API rather than from the cache.
 
-![api loading example](https://targetj.io/img/apiLoading4.gif)
+![api loading example](https://targetjs.io/img/apiLoading4.gif)
 
 ```bash
 import { App, TModel, getLoader, getScreenHeight, getScreenWidth, Moves } from "targetjs";
@@ -339,7 +339,7 @@ App(new TModel("apiCall", {
     interval: 1000,
     cycles: 8,
     value: function (cycle) {
-      return getLoader().fetch(this, "https://targetj.io/api/randomUser", {
+      return getLoader().fetch(this, "https://targetjs.io/api/randomUser", {
         id: `user${cycle}`,
       });
     },
@@ -369,7 +369,7 @@ TargetJS provides efficient, easy-to-control UI animation and manipulation throu
 
 Below is a comparison between implementing animations in TargetJS versus using the Animation API. While the Animation API may still offer a slight performance edge, TargetJS comes very close.
 
-![animation api example](https://targetj.io/img/animationComparison2.gif)
+![animation api example](https://targetjs.io/img/animationComparison2.gif)
 
 ```bash
 import { App, TModel, getScreenHeight, getScreenWidth } from "targetjs";
@@ -465,7 +465,7 @@ Below is a simple single-page application that demonstrates how to build a fully
 
 You can now assemble your app by incorporating code segments from the examples on animation, event handling, API integration, and infinite scrolling provided above.
 
-![Single page app](https://targetj.io/img/singlePage2.gif)
+![Single page app](https://targetjs.io/img/singlePage2.gif)
 
 ```bash
 import { App, TModel, getScreenHeight, getScreenWidth, getEvents, getPager } from "targetjs";
@@ -560,7 +560,7 @@ Here is an example that creates 1000 rows. The first argument, 'rows,' is used t
 
 The `rectTop`, `absY`, and `onWindowScroll` targets are used to track the visible rows during scrolling. TargetJS automatically divides a long list into a tree structure, efficiently managing only the visible branch. The `onWindowScroll` target updates the `absY` of the table, enabling TargetJS to identify the branch visible to the user. You can opt out of this algorithm by setting the `shouldBeBracketed` target to `false`.
 
-![animation api example](https://targetj.io/img/targetjsAsLibrary.gif)
+![animation api example](https://targetjs.io/img/targetjsAsLibrary.gif)
 
 ```bash
 import { App, TModel, $Dom } from "targetjs";
@@ -685,7 +685,7 @@ As a result of using targets, we can develop web sites or apps with the followin
 ---
    
 ## Documentation
-Explore the full potential of TargetJS and dive into our interactive documentation at www.targetj.io.
+Explore the full potential of TargetJS and dive into our interactive documentation at www.targetjs.io.
 
 ---
 
