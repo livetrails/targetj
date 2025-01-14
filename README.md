@@ -103,7 +103,7 @@ App(new TModel('quickStart', {
 
 This example demonstrates how to handle scroll events and implement a simple infinite scrolling application. The `containerOverflowMode` system target ensures that all items in the scroller overflow and stack beneath each other. The `children` system target dynamically adds items to the container's children. The `onVisibleChildrenChange` event function detects changes in the visible children and activates the `children` target to create new items that fill the gaps. 
 
-Internally, TargetJS maintains a tree-like structure to track the visible branches of the tree, optimizing the performance of the scroller. You can opt out of tree-structure optimization by setting shouldBeBracketed target to false.
+Internally, TargetJS maintains a tree-like structure to track the visible branches of the tree, optimizing the performance of the scroller. You can opt out of tree-structure optimization by setting `shouldBeBracketed` target to false.
 
 If you inspect the HTML elements in the browser's developer tools, you'll notice that the scroller's elements are not nested inside the container. This is because nesting is another target that can dynamically control how elements are nested. This facilitates the reuse of HTML elements and opens the door to new user experiences.
 
@@ -154,18 +154,22 @@ Imagine building a single-page web app using a unified approach for API integrat
 
 ## Integration with Existing Pages
 
-It is possible to integrate TargetJS as a library into your existing page! TargetJS is designed to work as either a library or a framework. It was developed to be flexible and compatible with many libraries allowing you to enhance your page with minimal changes. You can find an example at the end of this page.
+It is possible to integrate TargetJS as a library into your existing page. TargetJS is designed to work as either a library or a framework. It was developed to be flexible and compatible with many libraries allowing you to enhance your page with minimal changes. You can find an example at the end of this page.
 
 ---
 
 ## Anatomy of a Target
 
 Each target consists of the following:
-1. Target Value and Actual Value. The target value refers to the value assigned to a variable or the output produced by the value() method associated with the target defined in your program. The actual value is the value used by the rest of the application. When the target value differs from the actual value, TargetJS iteratively updates the actual value until it matches the target value. This process is managed by two additional variables: Step, which dictates the number of iterations, and Interval, which specifies the duration (in milliseconds) the system waits before executing the next iteration.
+1. Target Value and Actual Value. The target value refers to the value assigned to a variable or the output produced by the `value()` method associated with the target defined in your program. The actual value is the value used by the rest of the application. When the target value differs from the actual value, TargetJS iteratively updates the actual value until it matches the target value. This process is managed by two additional variables: `step`, which dictates the number of iterations, and `interval`, which specifies the duration (in milliseconds) the system waits before executing the next iteration.
 
-2. State: Targets have four states that control their lifecycles: Active, Inactive, Updating, and Complete. Active: This is the default state for all targets. It indicates that the target is ready to be executed, and the target value needs to be initialized from the variable it represents or its value() method needs to be executed to calculate its output. Inactive: Indicates that the target is not ready to be executed. Updating: Indicates that the actual value is being adjusted to reach the target value. Complete: Indicates that the target execution is finished, and the actual value has matched the target value.
+2. State: Targets have four states that control their lifecycles: `active`, `inactive`, `updating`, and `complete`.
+   - `active`: This is the default state for all targets. It indicates that the target is ready to be executed, and the target value needs to be initialized from the variable it represents or its `value()` method needs to be executed to calculate its output.
+   - `inactive`: Indicates that the target is not ready to be executed.
+   - `updating`: Indicates that the actual value is being adjusted to reach the target value.
+   - `complete`: Indicates that the target execution is finished, and the actual value has matched the target value.
 
-3. Target Methods: All methods are optional. They are used to control the lifecycle of targets or serve as callbacks to reflect changes. The controlling methods are: enabledOn, loop, steps, cycles. The callbacks are: onValueChange, onStepsEnd, onImperativeStep, onImperativeEnd. More details in the method section.
+4. Target Methods: All methods are optional. They are used to control the lifecycle of targets or serve as callbacks to reflect changes. The controlling methods are: enabledOn, loop, steps, cycles. The callbacks are: onValueChange, onStepsEnd, onImperativeStep, onImperativeEnd. More details in the method section.
 
 ---
 
