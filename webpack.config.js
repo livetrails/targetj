@@ -5,14 +5,14 @@ module.exports = {
     entry: './src/index.js',
     output: {
         library: {
-            name: 'TargetJ',
+            name: 'TargetJS',
             type: 'window'
         },
         environment: {
           arrowFunction: false
         },        
         path: path.resolve(__dirname, './dist'),
-        filename: 'targetj.js'
+        filename: 'targetjs.js'
     },
     module: {
         rules: [
