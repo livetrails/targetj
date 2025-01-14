@@ -12,7 +12,7 @@ module.exports = {
           arrowFunction: false
         },        
         path: path.resolve(__dirname, './dist'),
-n        filename: 'targetj.js'
+        filename: 'targetj.js'
     },
     module: {
         rules: [
