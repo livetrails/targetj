@@ -68,7 +68,7 @@ You can view the live example at [https://targetjs.io/examples/quick.html](https
 ![first example](https://targetjs.io/img/quickExample3.gif)
 
 ```bash
-import { App, TModel, getEvents } from "targetjs";
+import { App, TModel, getEvents } from "targetj";
 
 App(new TModel('quickStart', {
     color: '#fff',
@@ -110,7 +110,7 @@ If you inspect the HTML elements in the browser's developer tools, you'll notice
 ![Single page app](https://targetjs.io/img/infiniteScrolling4.gif)
 
 ```bash
-import { App, TModel, getEvents, getScreenHeight, getScreenWidth, } from "targetjs";
+import { App, TModel, getEvents, getScreenHeight, getScreenWidth, } from "targetj";
 
 App(new TModel({
     containerOverflowMode: 'always',
@@ -238,7 +238,7 @@ In the example below, we incrementally increase the values of width, height, and
 
 
 ```bash
-import { App, TModel } from 'targetjs';
+import { App, TModel } from "targetj";
 
 App(new TModel({
     background: '#fff',
@@ -263,7 +263,7 @@ App(new TModel({
 It can also be written in a more compact form using arrays (view a live example at https://targetjs.io/examples/overview2.html):
 
 ```bash
-import { App, TModel } from 'targetjs';
+import { App, TModel } from "targetj";
 
 App(new TModel({
     background: '#fff',
@@ -288,7 +288,7 @@ The following example demonstrates both declarative and imperative approaches. I
 ![declarative example](https://targetjs.io/img/declarative.gif)
 
 ```bash
-import { App, TModel, getScreenWidth, getScreenHeight } from "targetjs";
+import { App, TModel, getScreenWidth, getScreenHeight } from "targetj";
 
 App(
   new TModel("declarative", {
@@ -330,7 +330,7 @@ In this example, we set the cycles to 9, triggering the API call 10 times at int
 ![api loading example](https://targetjs.io/img/apiLoading4.gif)
 
 ```bash
-import { App, TModel, getLoader, getScreenHeight, getScreenWidth, Moves } from "targetjs";
+import { App, TModel, getLoader, getScreenHeight, getScreenWidth, Moves } from "targetj";
 
 App(new TModel("apiCall", {
   width: 160,
@@ -372,7 +372,7 @@ Below is a comparison between implementing animations in TargetJS versus using t
 ![animation api example](https://targetjs.io/img/animationComparison2.gif)
 
 ```bash
-import { App, TModel, getScreenHeight, getScreenWidth } from "targetjs";
+import { App, TModel, getScreenHeight, getScreenWidth } from "targetj";
 
 App(new TModel('TargetJS vs Animation Api', { 
     addAnimateChild() {
@@ -468,7 +468,7 @@ You can now assemble your app by incorporating code segments from the examples o
 ![Single page app](https://targetjs.io/img/singlePage2.gif)
 
 ```bash
-import { App, TModel, getScreenHeight, getScreenWidth, getEvents, getPager } from "targetjs";
+import { App, TModel, getScreenHeight, getScreenWidth, getEvents, getPager } from "targetj";
 
 App(new TModel("simpleApp", {
     width() { return getScreenWidth(); },
@@ -563,7 +563,7 @@ The `rectTop`, `absY`, and `onWindowScroll` targets are used to track the visibl
 ![animation api example](https://targetjs.io/img/targetjsAsLibrary.gif)
 
 ```bash
-import { App, TModel, $Dom } from "targetjs";
+import { App, TModel, $Dom } from "targetj";
 
 App(new TModel("rows", {
     isVisible: true,
