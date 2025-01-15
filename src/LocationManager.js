@@ -108,20 +108,21 @@ class LocationManager {
         }
         
         if (BracketGenerator.bracketMap[container.oid]) {
-            delete BracketGenerator.bracketMap[container.oid];            
+            delete BracketGenerator.bracketMap[container.oid];
+            delete BracketGenerator.pageMap[container.oid];
         }
         
         return container.getChildren();
     }
     
     calculateContainer(container, shouldCalculateChildTargets = true) {
-        const allChildren = this.getChildren(container);
+        const allChildrenList = this.getChildren(container);
         const viewport = container.createViewport();                        
         const contentWidth = container.getContentWidth();
         const contentHeight = container.getContentHeight();
         container.visibleChildren.length = 0;                
         
-        for (const child of allChildren) {
+        for (const child of allChildrenList) {
             if (!child) {
                 continue;
             }
@@ -214,7 +215,7 @@ class LocationManager {
             this.runEventTargets(container, 'onContentResize');
         }        
 
-        for (const child of allChildren) {
+        for (const child of allChildrenList) {
             this.checkEventTargets(child);
         }
     }

@@ -107,7 +107,7 @@ class Bracket extends TModel {
     }
     
     getChildren() {
-        return this.allChildren;
+        return this.allChildrenList;
     }
 }
 

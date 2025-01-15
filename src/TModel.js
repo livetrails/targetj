@@ -17,7 +17,8 @@ class TModel extends BaseModel {
         this.deletedChildren = [];
         this.movedChildren = [];
         this.lastChildrenUpdate = { additions: [], deletions: [] };
-        this.allChildren = [];
+        this.allChildrenList = [];
+        this.allChildrenMap = {};
 
         this.$dom = null;
 
@@ -95,7 +96,7 @@ class TModel extends BaseModel {
         this.absY = TUtil.isDefined(this.val('absY')) ? this.val('absY') : this.getParent().absY + y;
     }
     
-    addChild(child, index = this.addedChildren.length + this.allChildren.length) {    
+    addChild(child, index = this.addedChildren.length + this.allChildrenList.length) {    
         this.addedChildren.push({ index, child });
         
         getRunScheduler().schedule(1, 'addChild-' + this.oid + "-" + child.oid);
@@ -104,7 +105,6 @@ class TModel extends BaseModel {
     }
   
     removeChild(child) {
-        child.val('canDeleteDom', true);
         this.deletedChildren.push(child);   
         this.removeFromUpdatingChildren(child);
 
@@ -129,10 +129,11 @@ class TModel extends BaseModel {
     getChildren() { 
         if (this.deletedChildren.length > 0) {            
             this.deletedChildren.forEach(child => {                
-                const index = this.allChildren.indexOf(child);
-                if (index >= 0) {
+                if (this.allChildrenMap[child.oid]) {
+                    const index = this.allChildrenList.indexOf(child);
                     this.lastChildrenUpdate.deletions.push(child);
-                    this.allChildren.splice(index, 1);
+                    this.allChildrenList.splice(index, 1);
+                    delete this.allChildrenMap[child.oid];
                 }
             });                     
                                     
@@ -144,17 +145,23 @@ class TModel extends BaseModel {
 
             this.addedChildren.forEach(({ index, child }) => {
                 
+                if (this.allChildrenMap[child.oid]) {
+                    return;
+                }
+                
                 child.parent = this;
                 if (!TUtil.isDefined(child.val('canDeleteDom')) && this.val('canDeleteDom') === false) {
                     child.val('canDeleteDom', false);
                 }
 
-                if (index >= this.allChildren.length) {
-                    this.allChildren.push(child);
+                if (index >= this.allChildrenList.length) {
+                    this.allChildrenList.push(child);
                 } else {
-                    this.allChildren.splice(index, 0, child);
+                    this.allChildrenList.splice(index, 0, child);
                 }
                 
+                this.allChildrenMap[child.oid] = true;
+ 
                 this.lastChildrenUpdate.additions.push({ index, child });
             });
                                     
@@ -170,7 +177,7 @@ class TModel extends BaseModel {
                 this.lastChildrenUpdate.deletions.push(child);
                 this.lastChildrenUpdate.additions.push({ index, child });
                 
-                const currentIndex = this.allChildren.indexOf(child);
+                const currentIndex = this.allChildrenList.indexOf(child);
                 
                 if (index === currentIndex) {
                     return;
@@ -180,7 +187,7 @@ class TModel extends BaseModel {
                     delete additionMap[child.oid];
                 }
 
-                const deleted = this.allChildren.splice(index, 1, child);
+                const deleted = this.allChildrenList.splice(index, 1, child);
                 
                 if (!deletionMap[index] && deleted.length > 0) {
                     additionMap[deleted[0].oid] = { child: deleted[0], index: index + 1 };
@@ -194,27 +201,33 @@ class TModel extends BaseModel {
                 }
             });
             Object.values(additionMap).forEach(({ index, child }) => {
-                this.allChildren.splice(index, 0, child);
+                this.allChildrenList.splice(index, 0, child);
             });
                         
             Object.values(deletionMap).forEach(({ fromIndex, child }) => {
-                const deleteIndex = this.allChildren.indexOf(child, fromIndex);
-                this.allChildren.splice(deleteIndex, 1);
+                const deleteIndex = this.allChildrenList.indexOf(child, fromIndex);
+                this.allChildrenList.splice(deleteIndex, 1);
             });
             
             this.movedChildren.length = 0;
         }
         
-        return this.allChildren;
+        return this.allChildrenList;
     }
 
     removeAll() {
-        this.allChildren = [];
+        this.allChildrenList = [];
+        this.allChildrenMap = {};
+
         this.updatingChildrenList.length = 0;
         this.updatingChildrenMap = {};
+        
         if (this.hasDom()) {
-            this.$dom.deleteAllChildren();
+            this.$dom.deleteAll();
         }
+        
+        getRunScheduler().schedule(1, 'removeAll-' + this.oid);
+ 
         return this;        
     }   
     
@@ -237,39 +250,39 @@ class TModel extends BaseModel {
     }
          
     getFirstChild() {
-        return this.allChildren[0] ;
+        return this.allChildrenList[0];
     }
     
     hasChildren() {
-        return this.allChildren.length > 0;
+        return this.allChildrenList.length > 0;
     }
     
     findChildren(type) {
-        return this.allChildren.filter(child => child.type === type);
+        return this.allChildrenList.filter(child => child.type === type);
     }
 
     getLastChild() {
-        return this.allChildren[this.allChildren.length - 1];
+        return this.allChildrenList[this.allChildrenList.length - 1];
     }
     
     getChild(index) {
-        return this.allChildren[index];
+        return this.allChildrenList[index];
     }
 
     getChildIndex(child) {
-        return this.allChildren.indexOf(child);
+        return this.allChildrenList.indexOf(child);
     }
 
     getChildrenOids() {
-        return this.allChildren.map(o => o.oid).join(" ");
+        return this.allChildrenList.map(o => o.oid).join(" ");
     }
 
     findChild(type) {
-        return this.allChildren.find(child => child.type === type);
+        return this.allChildrenList.find(child => child.type === type);
     }
 
     findLastChild(type) {
-        return this.allChildren.findLast(child => child.type === type);
+        return this.allChildrenList.findLast(child => child.type === type);
     }
 
     getParentValue(targetName) {

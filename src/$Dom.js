@@ -188,7 +188,7 @@ class $Dom {
         this.childrenCount++;
     }
     
-    deleteAllChildren() {
+    deleteAll() {
         this.element.innerHTML = this.originalContent || '';
         this.childrenCount = 0;
     }

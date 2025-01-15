@@ -56,6 +56,13 @@ class TModelManager {
         this.clear();
 
         for (const tmodel of getLocationManager().hasLocationList) {
+            if (!tmodel.getParent()?.allChildrenMap[tmodel.oid]) {
+                if (tmodel.hasDom() && !this.lists.invisibleDom.includes(tmodel)) {
+                    this.lists.invisibleDom.push(tmodel);
+                }                
+                continue;
+            }
+            
             const visible = tmodel.isVisible();
 
             if (visible) {
@@ -99,9 +106,7 @@ class TModelManager {
             }
             
             if ((visible || !tmodel.canDeleteDom()) && 
-                    (tmodel.canHaveDom() &&
-                    !tmodel.hasDom() &&
-                    !this.noDomMap[tmodel.oid])
+                    (tmodel.canHaveDom() && !tmodel.hasDom() && !this.noDomMap[tmodel.oid])
             ) {
                 this.lists.noDom.push(tmodel);
                 this.noDomMap[tmodel.oid] = true;
@@ -109,7 +114,7 @@ class TModelManager {
         }
 
         const lastVisible = Object.values(lastVisibleMap)
-            .filter(tmodel => tmodel !== null && tmodel.hasDom() && tmodel.canDeleteDom());
+            .filter(tmodel => tmodel !== null && tmodel.hasDom() && (tmodel.canDeleteDom() || !tmodel.getParent()?.allChildrenMap[tmodel.oid]));
 
         this.lists.invisibleDom.push(...lastVisible);
 
