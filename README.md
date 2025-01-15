@@ -68,7 +68,7 @@ You can view the live example at [https://targetjs.io/examples/quick.html](https
 ![first example](https://targetjs.io/img/quickExample3.gif)
 
 ```bash
-import { App, TModel, getEvents } from "targetjs";
+import { App, TModel, getEvents } from "targetj";
 
 App(new TModel('quickStart', {
     color: '#fff',
@@ -101,16 +101,16 @@ App(new TModel('quickStart', {
 
 ## Infinite Scrolling Example
 
-This example demonstrates how to handle scroll events and implement a simple infinite scrolling application. The `containerOverflowMode` system target ensures that all items in the scroller overflow and stack beneath each other seamlessly. The `children` system target dynamically adds items to the container's children. The `onVisibleChildrenChange` event function detects changes in the visible children and activates the `children` target to create new items that fill the gaps. 
+This example demonstrates how to handle scroll events and implement a simple infinite scrolling application. The `containerOverflowMode` system target ensures that all items in the scroller overflow and stack beneath each other. The `children` system target dynamically adds items to the container's children. The `onVisibleChildrenChange` event function detects changes in the visible children and activates the `children` target to create new items that fill the gaps. 
 
-Internally, TargetJS maintains a tree-like structure to track the visible branches of the tree, optimizing the performance of the scroller. You can opt out of tree-structure optimization by setting shouldBeBracketed target to false.
+Internally, TargetJS maintains a tree-like structure to track the visible branches of the tree, optimizing the performance of the scroller. You can opt out of tree-structure optimization by setting `shouldBeBracketed` target to false.
 
-If you inspect the HTML elements in the browser's developer tools, you'll notice that the scroller's elements are not nested inside the container. This is because nesting is another target that can dynamically control how elements are nested.
+If you inspect the HTML elements in the browser's developer tools, you'll notice that the scroller's elements are not nested inside the container. This is because nesting is another target that can dynamically control how elements are nested. This facilitates the reuse of HTML elements and opens the door to new user experiences.
 
 ![Single page app](https://targetjs.io/img/infiniteScrolling4.gif)
 
 ```bash
-import { App, TModel, getEvents, getScreenHeight, getScreenWidth, } from "targetjs";
+import { App, TModel, getEvents, getScreenHeight, getScreenWidth, } from "targetj";
 
 App(new TModel({
     containerOverflowMode: 'always',
@@ -148,36 +148,44 @@ App(new TModel({
 
 ## Why TargetJS?
 
-Imagine building a single-page web app using a unified approach for API integration, animations, event handling, and more—without having to manage asynchronous calls, loops, callbacks, promises, timeouts, state management, CSS, HTML attributes, tags, or HTML nesting. That’s exactly what TargetJS offers: it simplifies the entire development process with a new, simplified approach.
+Imagine building a single-page web app using a unified approach for API integration, animations, event handling, and more—without having to manage asynchronous calls, loops, callbacks, promises, timeouts, state management, CSS, HTML attributes, tags, HTML nesting, and more. That’s what TargetJS offers: it simplifies the entire development process with a new, simplified approach.
 
 ---
 
 ## Integration with Existing Pages
 
-Yes, you can integrate TargetJS as a library into your existing page! TargetJS is designed to work as either a library or a framework. It was developed to be flexible and compatible with other libraries and frameworks, allowing you to enhance your page with minimal changes. You can find an example at the end of this page.
+It is possible to integrate TargetJS as a library into your existing page. TargetJS is designed to work as either a library or a framework. It was developed to be flexible and compatible with many libraries allowing you to enhance your page with minimal changes. You can find an example at the end of this page.
 
 ---
 
 ## Anatomy of a Target
 
 Each target consists of the following:
-1. Target Value and Actual Value. The target value is the value assigned to a variable or the result produced by a method. The actual value is typically the value used by the rest of the application. When the target value differs from the actual value, TargetJS iteratively updates the actual value until it matches the target value. This process is managed by two additional variables: Step, which dictates the number of iterations, and Interval, which specifies the duration (in milliseconds) the system waits before executing the next iteration.
+1. Target Value and Actual Value. The target value refers to the value assigned to a variable or the output produced by the `value()` method associated with the target defined in your program. The actual value is the value used by the rest of the application. When the target value differs from the actual value, TargetJS iteratively updates the actual value until it matches the target value. This process is managed by two additional variables: `step`, which dictates the number of iterations, and `interval`, which specifies the duration (in milliseconds) the system waits before executing the next iteration.
 
-2. State: Targets have four states that control their lifecycle: Active, Inactive, Updating, and Complete. Active: This is the default state for all targets. It indicates that the target is ready to be executed, and the target value needs to be initialized from the variable it represents or its value() method needs to be executed to calculate its output. Inactive: Indicates that the target is not ready to be executed. Updating: Indicates that the actual value is being adjusted to reach the target value. Complete: Indicates that the target execution is finished, and the actual value has matched the target value.
+2. State: Targets have four states that control their lifecycles: `active`, `inactive`, `updating`, and `complete`.
+   - `active`: This is the default state for all targets. It indicates that the target is ready to be executed, and the target value needs to be initialized from the variable it represents or its `value()` method needs to be executed to calculate its output.
+   - `inactive`: Indicates that the target is not ready to be executed.
+   - `updating`: Indicates that the actual value is being adjusted to reach the target value.
+   - `complete`: Indicates that the target execution is finished, and the actual value has matched the target value.
 
-3. Target Methods: All methods are optional. They are used to control the lifecycle of targets or serve as callbacks to reflect changes. The controlling methods are: enabledOn, loop, steps, cycles. The callbacks are: onValueChange, onStepsEnd, onImperativeStep, onImperativeEnd. More details in the method section.
+4. Target Methods: All methods are optional. They are used to control the lifecycle of targets or serve as callbacks to reflect changes. The controlling methods are: enabledOn, loop, steps, cycles. The callbacks are: onValueChange, onStepsEnd, onImperativeStep, onImperativeEnd. More details in the method section.
 
 ---
 
 ## How TargetJS Operates
 
-All targets are in the active state by default and ready to be executed. They can include an enabledOn function that delays their execution until the specified conditions are met. Targets can also be set to inactive and activated externally when needed. 
+All targets are in the active state by default and ready for execution unless explicitly set as inactive or their name is prefixed with an underscore (_). They can also include an enabledOn function that delays their execution until the specified conditions are met.
 
-The target task monitors all active targets, and if a target is enabled, it will be executed. The target value is generated either from the result of a method or from a static value defined in the target. For simple targets without steps, cycles, or loops, the actual value is set immediately based on the target value. Once executed, the target’s state becomes complete, and it will not be executed again.
+The target task monitors all active targets, and if a target is enabled, it will be executed. The target task executes active targets in the order they are defined in the program. The target value is generated either from the result of a method or from a static value defined in the target. For simple targets without steps, cycles, or loops, the actual value is set immediately based on the target value. Once executed, the target’s state becomes complete, and it will not be executed again.
 
-If the target has loop or cycle methods defined, its value method will be re-executed after a pause specified by the interval. The number of executions will be determined by the cycles or will continue as long as the loop condition returns true. If the target has steps defined, its state changes to updating, and the actual value is updated iteratively until it reaches the target value, according to the number of steps and pauses specified by steps and intervals.
+If the target has loop or cycle methods defined, its value method will be re-executed. The number of executions will be determined by the cycles or will continue as long as the loop condition returns true. A pause can be inserted by setting the `interval`, which can be a fixed value defined as a property or dynamic, defined as a function.
 
-A target can reactivate itself in the `onStepsEnd` callback once all steps are completed, or in the `onImperativeEnd` callback when all imperative targets initiated by that target are finished, allowing it to re-execute. It can also be reactivated externally, either directly or through an event.
+If the target has steps defined, its state changes to updating, and the actual value is updated iteratively until it reaches the target value, according to the number of steps and pauses specified by `steps` and `intervals`.
+
+A target can reactivate itself in the `onStepsEnd` callback once all steps are completed, or in the `onImperativeEnd` callback when all imperative targets initiated by that target are finished, allowing it to re-execute.
+
+Targets can also be reactivated externally, either directly by calling activateTarget() or through user events.
 
 ---
 
@@ -238,7 +246,7 @@ In the example below, we incrementally increase the values of width, height, and
 
 
 ```bash
-import { App, TModel } from 'targetjs';
+import { App, TModel } from "targetj";
 
 App(new TModel({
     background: '#fff',
@@ -263,7 +271,7 @@ App(new TModel({
 It can also be written in a more compact form using arrays (view a live example at https://targetjs.io/examples/overview2.html):
 
 ```bash
-import { App, TModel } from 'targetjs';
+import { App, TModel } from "targetj";
 
 App(new TModel({
     background: '#fff',
@@ -288,7 +296,7 @@ The following example demonstrates both declarative and imperative approaches. I
 ![declarative example](https://targetjs.io/img/declarative.gif)
 
 ```bash
-import { App, TModel, getScreenWidth, getScreenHeight } from "targetjs";
+import { App, TModel, getScreenWidth, getScreenHeight } from "targetj";
 
 App(
   new TModel("declarative", {
@@ -321,7 +329,7 @@ App(
 
 ## Loading data example
 
-Calling backend APIs is simplified through the use of targets in TargetJS. Additionally, TargetJS provides a Loader class, accessible via getLoader(), which streamlines API integration.
+Calling backend APIs is simplified through the use of targets in TargetJS. It alo provides a Loader class, accessible via getLoader(), which streamlines API integration.
 
 In the example below, we define a target named load. Inside the value function, we make the API call using fetch(). The second argument specifies the API URL, and the third argument contains the query parameters passed to the API. A fourth optional parameter, omitted in this example, can specify a cache ID if we want to cache the result. This cache ID can also be used to retrieve the cached data. If it’s not specified, the result will always come from the API. Once the API response is received, it triggers either onSuccess or onError, depending on the outcome.
 
@@ -330,7 +338,7 @@ In this example, we set the cycles to 9, triggering the API call 10 times at int
 ![api loading example](https://targetjs.io/img/apiLoading4.gif)
 
 ```bash
-import { App, TModel, getLoader, getScreenHeight, getScreenWidth, Moves } from "targetjs";
+import { App, TModel, getLoader, getScreenHeight, getScreenWidth, Moves } from "targetj";
 
 App(new TModel("apiCall", {
   width: 160,
@@ -372,7 +380,7 @@ Below is a comparison between implementing animations in TargetJS versus using t
 ![animation api example](https://targetjs.io/img/animationComparison2.gif)
 
 ```bash
-import { App, TModel, getScreenHeight, getScreenWidth } from "targetjs";
+import { App, TModel, getScreenHeight, getScreenWidth } from "targetj";
 
 App(new TModel('TargetJS vs Animation Api', { 
     addAnimateChild() {
@@ -456,9 +464,6 @@ App(new TModel('TargetJS vs Animation Api', {
 
 ---
 
-
----
-
 ## Simple Single Page App Example
 
 Below is a simple single-page application that demonstrates how to build a fully-featured app using TargetJS. Each page is represented by a textarea. You’ll notice that when you type something, switch to another page, and then return to the same page, your input remains preserved. This also applies to the page's scroll position—when you return, the page will open at the same scroll position where you left it, rather than defaulting to the top.
@@ -468,7 +473,7 @@ You can now assemble your app by incorporating code segments from the examples o
 ![Single page app](https://targetjs.io/img/singlePage2.gif)
 
 ```bash
-import { App, TModel, getScreenHeight, getScreenWidth, getEvents, getPager } from "targetjs";
+import { App, TModel, getScreenHeight, getScreenWidth, getEvents, getPager } from "targetj";
 
 App(new TModel("simpleApp", {
     width() { return getScreenWidth(); },
@@ -563,7 +568,7 @@ The `rectTop`, `absY`, and `onWindowScroll` targets are used to track the visibl
 ![animation api example](https://targetjs.io/img/targetjsAsLibrary.gif)
 
 ```bash
-import { App, TModel, $Dom } from "targetjs";
+import { App, TModel, $Dom } from "targetj";
 
 App(new TModel("rows", {
     isVisible: true,
@@ -614,20 +619,20 @@ In addition to styles and attribute names, we have the following special names:
 6. **scrollLeft** and **scrollTop**: Control the scrolling position of the object.
 7. **leftMargin**, **rightMargin**, **topMargin**, **bottomMargin**: Set margins between objects.
 8. **children**: Sets the `TModel` children of the object.
-9. **domHolder**: Assigned by the container to hold children or descendants without a `domParent`.
+9. **domHolder**: When specified, it designates the parent or any ancestor as the DOM holder for its descendants.
 10. **domParent**: Set by the container or children to control which DOM container they are embedded in.
-11. **isVisible**: An optional boolean to explicitly control the visibility of the object, bypassing TargetJS’s automatic calculation.
+11. **isVisible**: An optional target to explicitly control the visibility of the object, bypassing TargetJS’s automatic calculation.
 12. **canHaveDom**: A boolean flag that determines if the object can have a DOM element on the page.
-13. **canHandleEvents**: Specifies which events the object can handle.
-14. **widthFromDom** and **heightFromDom**: Boolean flags to control if the width and height should be derived from the DOM element.
-15. **textOnly**: A boolean flag to set content type as text or HTML.
+13. **canHandleEvents**: An optional target that directly specifies the events the object can handle. If not specified, it will specified by event targets defined in the object (see below).
+14. **widthFromDom** and **heightFromDom**: Boolean flags to explicilty control if the width and height should be derived from the DOM element.
+15. **textOnly**: A boolean flag that specifies the content type as either text or HTML. The default value is false, indicating text.
 16. **isInFlow**: A boolean flag that determines if the object will contribute to the content height and width of its parent.
 
 Lastly, we have the event targets which their values can be an array of targets to activate on specific events or may implement the event handler directly.
 
 **Example with Target Array:**
 ```javascript
-onResize: [ 'width', 'height' ]  // Activates 'width' and 'height' targets on screen resize.
+onResize: [ 'width', 'height' ]  // Activates declarative 'width' and 'height' targets on screen resize.
 ```
 
 **Example with Event handler:**
@@ -644,17 +649,22 @@ Here are all the event targets:
 3. **onFocus**: Triggered on focus events.
 4. **onBlur**: Triggered on blur events.
 5. **onClick**: Activated on click events.
-6. **onTouch**: Generic handler for all touch events.
-7. **onTouchEnd**: Called when `touchend` or `mouseup` events occur.
-8. **onSwipe**: Activated on swipe events.
-9. **onEnter**: Triggered when the mouse cursor enters the object’s DOM.
-10. **onLeave**: Triggered when the mouse cursor leaves the object’s DOM.
-11. **onScroll**: Called on scroll events.
-12. **onKey**: Triggered by key events.
-13. **onInvisible**: Activated when the object becomes invisible.
-14. **onChildrenChange**: Triggered when the children count changes.
-15. **onVisibleChildrenChange**: Triggered when the count of visible children changes.
-
+6. **onTouchStart**: Called when `touchstart` or `mousedown` events occur.
+7. **onTouch**: Generic handler for all touch events.
+8. **onTouchEnd**: Called when `touchend` or `mouseup` events occur.
+9. **onSwipe**: Activated on swipe events.
+10. **onEnter**: Triggered when the mouse cursor enters the object’s DOM.
+11. **onLeave**: Triggered when the mouse cursor leaves the object’s DOM.
+12. **onScrollTop**: Called on top scroll events.
+13. **onScrollLeft**: Called on left scroll events.
+14. **onScroll**: Called on both scroll events.
+15. **onWindowScroll**: Called on window scroll events.
+16. **onKey**: Triggered by key events.
+17. **onVisible**: Activated when the object becomes visible.
+18. **onChildrenChange**: Triggered when the children count changes.
+19. **onVisibleChildrenChange**: Triggered when the count of visible children changes.
+20. **onDomEvent**: It accepts an array of targets and activates them when their associated object acquires a DOM element.
+21. 
 ---
 
 ## Features
@@ -666,7 +676,7 @@ As a result of using targets, we can develop web sites or apps with the followin
 - **No HTML nesting**: HTML nesting is seldom required in TargetJS. If it is required, nesting is done at runtime. Elements can be dynamically detached and incorporated into other elements, facilitating the easy reuse of components regardless of their location or attachment. It also opens the door for a new user experiences.
 - **Next-level animation**: Users can program objects to move at varying speeds, pause at certain intervals, and repeat sequences based on various conditions. It allows the creation of complicated animations.
 - **Control the flow of execution with time**: TargetJS simplifies the execution of various program segments at specific times, making it easy to sequence or parallelize numerous actions.
-- **Handle events effortlessly**: In TargetJS, events are triggered synchronously and are designed so that any component can detect when an event occurs. Event handling can be simply implemented as conditions in the enabling functions of \'targets.\' This ensures that managing events is both simple and effective.
+- **Handle events effortlessly**: In TargetJS, events are triggered synchronously and are designed so that any component can detect when an event occurs.
 - **Easy to learn**: TargetJS simplifies development by employing the single concept of \'targets\' making it easy to learn.
 - **Handle 100,000s of items**: TargetJS efficiently manages large collections of objects on a single page. This is done by its data structure and optimization algorithm. It divides a long list into a tree structure, monitoring only the branches that are visible to the user at any given time.
 - **AI friendly**: With a unified concept of targets for all development, the ability to add and remove targets at runtime, and the capability to inspect various statuses of running objects, TargetJS is a strong candidate for AI-powered UI development.
@@ -677,10 +687,10 @@ As a result of using targets, we can develop web sites or apps with the followin
 1. TargetJS.tApp.stop(): Stops the application.
 2. TargetJS.tApp.start(): Restarts the application
 3. TargetJS.tApp.throttle: Slows down the application. This represents the pause in milliseconds before starting another TargetJS task cycle. It is zero by default.
-4. TargetJS.tApp.debugLevel: Logs information about the TargetJS task cycle and its efficiency. It is zero by default. Set it to 1 to log the name of the caller of each cycle.
-5. Use `t()` to find an object from the browser console using its `oid`.
-6. t(oid).bug(): Inspect all the vital properities of an object.
-7. t(oid).logTree(): allows you to inspect the internal children structure including brackets
+4. TargetJS.tApp.debugLevel: Logs information about the TargetJ task cycle when set to 1. It is zero by default.
+5. Use `t()` in the browser console to find an object by its oid, which corresponds to the ID of the HTML element..
+6. Use `t(oid).bug()` to inspect all the vital properities of an object.
+7. Use `t(oid).logTree()` to inspect the internal children structure including brackets of a container.
 
 ---
    
