@@ -56,10 +56,11 @@ class TModelManager {
         this.clear();
 
         for (const tmodel of getLocationManager().hasLocationList) {
-            if (!tmodel.getParent()?.allChildrenMap[tmodel.oid]) {
+            if (tmodel.getParent() && !tmodel.getParent().allChildrenMap[tmodel.oid]) {
                 if (tmodel.hasDom() && !this.lists.invisibleDom.includes(tmodel)) {
                     this.lists.invisibleDom.push(tmodel);
-                }                
+                }  
+                
                 continue;
             }
             
