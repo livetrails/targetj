@@ -2,7 +2,9 @@
 
 Welcome to TargetJS, a powerful JavaScript UI framework and library that you might find redefines front-end development. (https://targetjs.io)
 
-TargetJS distinguishes itself by introducing a novel concept known as 'targets,' which forms its core. Targets give methods and variable assignments life cycles and the autonomy to operate independently, with various callbacks to adapt to changes, mimicking the behavior of living cells. This opens a new paradigm in programming.
+TargetJS distinguishes itself by introducing a novel concept known as 'targets,' which forms its core. Targets give methods and variable assignments life cycles and the autonomy to operate independently, with various callbacks to adapt to changes, mimicking the behavior of living cells. This opens a new paradigm in programming. 
+
+We believe TargetJS not only increases productivity but also enhances the development process by making it more enjoyable and user-experience-centered.
 
 ---
 
@@ -58,8 +60,6 @@ Targets provide a **unified approach** for solving challenges in **animation**, 
 - **Methods**:
   - Can execute themselves when specific conditions are met.
   - Can adjust pauses between executions, limit the number of executions, track the progress of other variables or methods, and activate the life cycles of additional methods, and more.
-
-TargetJS not only increases productivity but also enhances the development process by making it more enjoyable and user-experience-centered.
 
 ---
 
