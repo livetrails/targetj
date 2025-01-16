@@ -10,7 +10,7 @@ TargetJS distinguishes itself by introducing a novel concept known as 'targets,'
 
 1. [Installation](#installation)
 2. [What are Targets?](#what-are-targets)
-3. Quick Examples:
+3. Two Quick Examples:
    - [Draggable Animation Example](#draggable-animation-example)
    - [Infinite Scrolling Example](#infinite-scrolling-example)
 4. [Why TargetJS?](#why-targetjs)
@@ -63,11 +63,9 @@ TargetJS not only increases productivity but also enhances the development proce
 
 ---
 
-## Quick examples
+## Two Quick examples
 
-This section provides two quick demonstrations of what TargetJS can do.
-
-## Draggable Animation Example 
+### Draggable Animation Example 
 
 In our first example, `color`, `html`, `textAlign`, `moves`, and `animate` are all targets. These targets are executed in the same order they appear in the program. `color`, `html`, `textAlign`, `moves` get competed and their life cycle end. The main target `animate` remains active with an indefinite lifecycle specified by the `loop` property. After each animation cycle, there is a one-second pause, defined by the `interval` property in the `animate` target. Both `loop` and `interval` can also be defined as methods, which will be explained further below. The `setTarget` method defines an imperative target, which is also explained in more detail below, executes the assigment in 30 steps. The `animate` target starts a new cycle after all the imperative targets have been completed or at least one second pass specified in the interval value given that the imperative targets get executed less than 1 second.
 
@@ -109,7 +107,7 @@ App(new TModel('quickStart', {
 }));
 ```
 
-## Infinite Scrolling Example
+### Infinite Scrolling Example
 
 This example demonstrates how to handle scroll events and implement a simple infinite scrolling application. The `containerOverflowMode` system target ensures that all items in the scroller overflow and stack beneath each other. The `children` target dynamically adds items to the container's children. The `onVisibleChildrenChange` event function detects changes in the visible children and activates the `children` target to create new items that fill the gaps. 
 
