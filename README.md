@@ -47,7 +47,7 @@ npm install targetj
 
 ## What are targets?
 
-In TargetJS, **targets** serve as the core building blocks of components, replacing traditional variables and methods. Each component is composed of a set of targets that integrate seamlessly into every aspect of the program.
+In TargetJS, **targets** serve as the core building blocks of components, replacing traditional variables and methods. Each component is composed of a set of targets.
 
 Targets provide a **unified approach** for solving challenges in **animation**, **user interface organization**, **program flow control**, **state management**, **event handling**, **API calls**, and more. They achieve this by offering a consistent interface for variable assignments and methods, enabling them to operate autonomously and manage their own life cycles.
 
