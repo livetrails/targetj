@@ -65,7 +65,7 @@ TargetJS not only increases productivity but also enhances the development proce
 
 ## Quick examples
 
-This section provides a few quick demonstrations of what TargetJS can do.
+This section provides two quick demonstrations of what TargetJS can do.
 
 ## Draggable Animation Example 
 
