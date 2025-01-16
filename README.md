@@ -25,8 +25,8 @@ TargetJS distinguishes itself by introducing a novel concept known as 'targets,'
    - [Animation API Comparison Example](#animation-api-comparison-example)
    - [Simple Single Page App Example](#simple-single-page-app-example)
    - [Using TargetJS as a Library Example](#using-targetjs-as-a-library-example)
-10. [Special Target Names](#special-target-names)
-11. [Features](#features)
+10. [Features](#features)     
+11. [Special Target Names](#special-target-names)
 12. [How to Debug in TargetJS](#how-to-debug-in-targetjs)
 13. [Documentation](#documentation)
 14. [License](#license)
@@ -610,6 +610,22 @@ App(new TModel("rows", {
 ```
 ---
 
+## Features
+
+As a result of using targets, we can develop web sites or apps with the following features:
+
+- **No HTML required**: HTML tags are seldom necessary.
+- **No CSS required**: Most popular styles are incorporated directly into targets.
+- **No HTML nesting**: HTML nesting is seldom required in TargetJS. If it is required, nesting is done at runtime. Elements can be dynamically detached and incorporated into other elements, facilitating the easy reuse of components regardless of their location or attachment. It also opens the door for a new user experiences.
+- **Next-level animation**: Users can program objects to move at varying speeds, pause at certain intervals, and repeat sequences based on various conditions. It allows the creation of complicated animations.
+- **Control the flow of execution with time**: TargetJS simplifies the execution of various program segments at specific times, making it easy to sequence or parallelize numerous actions.
+- **Handle events effortlessly**: In TargetJS, events are triggered synchronously and are designed so that any component can detect when an event occurs.
+- **Easy to learn**: TargetJS simplifies development by employing the single concept of \'targets\' making it easy to learn.
+- **Handle 100,000s of items**: TargetJS efficiently manages large collections of objects on a single page. This is done by its data structure and optimization algorithm. It divides a long list into a tree structure, monitoring only the branches that are visible to the user at any given time.
+- **AI friendly**: With a unified concept of targets for all development, the ability to add and remove targets at runtime, and the capability to inspect various statuses of running objects, TargetJS is a strong candidate for AI-powered UI development.
+
+---
+
 ## Special target names
 
 All HTML style names and attributes are treated as special target names. The most commonly used style names and attributes have already been added to the framework, with the possibility of adding more in the future.
@@ -675,21 +691,6 @@ Here are all the event targets:
 19. **onVisibleChildrenChange**: Triggered when the count of visible children changes.
 20. **onDomEvent**: It accepts an array of targets and activates them when their associated object acquires a DOM element.
 21. 
----
-
-## Features
-
-As a result of using targets, we can develop web sites or apps with the following features:
-
-- **No HTML required**: HTML tags are seldom necessary.
-- **No CSS required**: Most popular styles are incorporated directly into targets.
-- **No HTML nesting**: HTML nesting is seldom required in TargetJS. If it is required, nesting is done at runtime. Elements can be dynamically detached and incorporated into other elements, facilitating the easy reuse of components regardless of their location or attachment. It also opens the door for a new user experiences.
-- **Next-level animation**: Users can program objects to move at varying speeds, pause at certain intervals, and repeat sequences based on various conditions. It allows the creation of complicated animations.
-- **Control the flow of execution with time**: TargetJS simplifies the execution of various program segments at specific times, making it easy to sequence or parallelize numerous actions.
-- **Handle events effortlessly**: In TargetJS, events are triggered synchronously and are designed so that any component can detect when an event occurs.
-- **Easy to learn**: TargetJS simplifies development by employing the single concept of \'targets\' making it easy to learn.
-- **Handle 100,000s of items**: TargetJS efficiently manages large collections of objects on a single page. This is done by its data structure and optimization algorithm. It divides a long list into a tree structure, monitoring only the branches that are visible to the user at any given time.
-- **AI friendly**: With a unified concept of targets for all development, the ability to add and remove targets at runtime, and the capability to inspect various statuses of running objects, TargetJS is a strong candidate for AI-powered UI development.
 
 ---
 
@@ -705,7 +706,7 @@ As a result of using targets, we can develop web sites or apps with the followin
 ---
    
 ## Documentation
-Explore the full potential of TargetJS and dive into our interactive documentation at www.targetjs.io.
+Explore the potential of TargetJS and dive into our interactive documentation at www.targetjs.io.
 
 ---
 
