@@ -26,7 +26,7 @@ TargetJS distinguishes itself by introducing a novel concept known as 'targets,'
    - [Simple Single Page App Example](#simple-single-page-app-example)
    - [Using TargetJS as a Library Example](#using-targetjs-as-a-library-example)
 10. [Special Target Names](#special-target-names)
-11. [TargetJS Features](#features)
+11. [Features](#features)
 12. [How to Debug in TargetJS](#how-to-debug-in-targetjs)
 13. [Documentation](#documentation)
 14. [License](#license)
