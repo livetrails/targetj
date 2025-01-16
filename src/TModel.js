@@ -225,9 +225,7 @@ class TModel extends BaseModel {
         if (this.hasDom()) {
             this.$dom.deleteAll();
         }
-        
-        getRunScheduler().schedule(1, 'removeAll-' + this.oid);
- 
+         
         return this;        
     }   
     

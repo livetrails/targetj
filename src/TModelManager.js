@@ -23,6 +23,7 @@ class TModelManager {
             invisibleDom: [],
             noDom: [],
             updatingTModels: [],
+            activeTModels: [],
             updatingTargets: [],
             activeTargets: []
         };
@@ -43,6 +44,7 @@ class TModelManager {
         this.lists.relocation.length = 0;        
         this.lists.noDom.length = 0;
         this.lists.updatingTModels.length = 0;
+        this.lists.activeTModels.length = 0;
         this.lists.updatingTargets.length = 0;
         this.lists.activeTargets.length = 0;
         this.visibleTypeMap = {};
@@ -60,7 +62,6 @@ class TModelManager {
                 if (tmodel.hasDom() && !this.lists.invisibleDom.includes(tmodel)) {
                     this.lists.invisibleDom.push(tmodel);
                 }  
-                
                 continue;
             }
             
@@ -94,9 +95,9 @@ class TModelManager {
                     this.lists.updatingTargets = [...this.lists.updatingTargets, ...tmodel.updatingTargetList];
                 }
 
-                const activeTargets = Object.keys(tmodel.activeTargetMap);
-                if (activeTargets.length > 0) {
-                    this.lists.activeTargets = [...this.lists.activeTargets, `'${tmodel.oid}'`, ...activeTargets];
+                if (tmodel.activeTargetList.length > 0) {
+                    this.lists.activeTModels.push(tmodel);
+                    this.lists.activeTargets = [...this.lists.activeTargets, ...tmodel.activeTargetList];
                 }
 
                 if (Object.keys(tmodel.targetMethodMap).length > 0) {
@@ -107,11 +108,10 @@ class TModelManager {
             }
             
             if ((visible || !tmodel.canDeleteDom()) && 
-                    (tmodel.canHaveDom() && !tmodel.hasDom() && !this.noDomMap[tmodel.oid])
-            ) {
+                    (tmodel.canHaveDom() && !tmodel.hasDom() && !this.noDomMap[tmodel.oid])) {
                 this.lists.noDom.push(tmodel);
                 this.noDomMap[tmodel.oid] = true;
-            }   
+            }    
         }
 
         const lastVisible = Object.values(lastVisibleMap)
