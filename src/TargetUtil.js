@@ -1,5 +1,5 @@
 import { TModel } from "./TModel.js";
-import { getManager, getEvents, getResizeLastUpdate } from "./App.js";
+import { getRunScheduler, getManager, getEvents, getResizeLastUpdate } from "./App.js";
 import { TUtil } from "./TUtil.js";
 import { ColorUtil } from "./ColorUtil.js";
 
@@ -184,7 +184,7 @@ class TargetUtil {
     };
     
     static targetToEventsMapping = {
-        onClickEvent: [ 'clickEvents', 'touchStart', 'touchEnd' ],
+        onClickEvent: [ 'clickEvents', 'touchStart', 'touchEnd', 'startEvents' ],
         onTouchStart: [ 'touchStart', 'startEvents' ],
         onTouchEnd: [ 'touchEnd', 'endEvents' ],
         onSwipeEvent: [ 'touchStart', 'startEvents', 'touchEnd', 'endEvents', 'cancelEvents', 'moveEvents' ],
@@ -195,7 +195,7 @@ class TargetUtil {
         onScrollEvent: [ 'touchStart', 'startEvents', 'touchEnd', 'endEvents', 'cancelEvents', 'moveEvents', 'wheelEvents' ],
         onWindowScrollEvent: [ 'windowScrollEvents' ],
         
-        onClick: [ 'clickEvents', 'touchStart', 'touchEnd' ],
+        onClick: [ 'clickEvents', 'touchStart', 'touchEnd', 'startEvents' ],
         onSwipe: [ 'touchStart', 'startEvents', 'touchEnd', 'endEvents', 'cancelEvents', 'moveEvents' ],
         onAnySwipe: [ 'touchStart', 'startEvents', 'touchEnd', 'endEvents', 'cancelEvents', 'moveEvents' ],
         onTouch: [ 'touchStart', 'startEvents', 'touchEnd', 'endEvents', 'cancelEvents' ],
@@ -230,14 +230,11 @@ class TargetUtil {
         onDomEvent: tmodel => tmodel.hasDomNow,
         onVisible: tmodel => tmodel.isNowVisible,
         onResize: tmodel => {            
-            const lastUpdateWidth = tmodel.getActualValueLastUpdate('width');
-            const lastUpdateHeight = tmodel.getActualValueLastUpdate('height');
+            const lastUpdate = tmodel.getDimLastUpdate();
             const parent = tmodel.getParent();
-            const resizeLastUpdate = parent 
-                ? Math.max(parent.getActualValueLastUpdate('width') || 0, parent.getActualValueLastUpdate('height') || 0, getResizeLastUpdate()) 
-                : getResizeLastUpdate();
+            const resizeLastUpdate = parent ? Math.max(parent.getDimLastUpdate(), getResizeLastUpdate()) : getResizeLastUpdate();
 
-            if ((lastUpdateWidth || lastUpdateHeight) && resizeLastUpdate > Math.max(lastUpdateWidth || 0, lastUpdateHeight || 0)) {
+            if (lastUpdate > 0 && resizeLastUpdate > lastUpdate) {
                 return true;
             }
             
@@ -476,53 +473,47 @@ class TargetUtil {
     }
 
     static setWidthFromDom(child) {
-        let height = child.domWidth?.height;
-        let width = child.domWidth?.width;
-        
+        const timestamp = child.domWidthTimestamp;
+        const parent = child.getParent();
         const domParent = child.getDomParent();
+        
         let rerender = false;
-
         if (getManager().needsRerender(child)) {
             child.isTextOnly() ? child.$dom.text(child.getHtml()) : child.$dom.html(child.getHtml());
             rerender = true;
         }
 
-        if (!TUtil.isDefined(child.domWidth) || rerender || height !== child.getHeight() ||
-                (domParent && child.getActualValueLastUpdate('width') <= domParent.getActualValueLastUpdate('width'))) {
+        if (rerender || (parent && timestamp <= parent.getDimLastUpdate()) || (domParent && timestamp <= domParent.getDimLastUpdate())) {
             child.$dom.width('auto');
-            width = child.$dom.width();
-            height = child.$dom.height();
+            const width = child.$dom.width();
+            child.domWidthTimestamp = TUtil.now();
+
+            child.val('width', width);  
+  
+            getRunScheduler().schedule(15, 'resize');           
         }
-
-        child.domWidth = { width, height };
-        child.val('width', width);
-
-        return width;
     }
 
     static setHeightFromDom(child) {
-        let height = child.domHeight?.height;
-        let width = child.domHeight?.width;
-        
+        const timestamp = child.domHeightTimestamp;
+        const parent = child.getParent();
         const domParent = child.getDomParent();
+        
         let rerender = false;
-
         if (getManager().needsRerender(child)) {
             child.isTextOnly() ? child.$dom.text(child.getHtml()) : child.$dom.html(child.getHtml());
             rerender = true;
         }     
-
-        if (!TUtil.isDefined(child.domHeight) || rerender || width !== child.getWidth() ||
-                (domParent && child.getActualValueLastUpdate('height') <= domParent.getActualValueLastUpdate('height'))) {
+ 
+        if (rerender || (parent && timestamp <= parent.getDimLastUpdate()) || (domParent && timestamp <= domParent.getDimLastUpdate())) {
             child.$dom.height('auto');
-            width = child.$dom.width();
-            height = child.$dom.height();
+            const height = child.$dom.height();
+            child.domHeightTimestamp = TUtil.now();
+               
+            child.val('height', height);  
+
+            getRunScheduler().schedule(15, 'resize');
         }
-
-        child.domHeight = { height, width };
-        child.val('height', height);
-
-        return height;
     }
 }
 

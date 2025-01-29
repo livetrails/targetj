@@ -150,9 +150,7 @@ class TModelManager {
     needsRestyle(tmodel) {
         if (tmodel.hasDom()) {  
             if (tmodel.styleTargetList.length > 0) {
-                this.lists.restyle.push(tmodel);                  
-                tmodel.domHeight = undefined;
-                tmodel.domWidth = undefined;                   
+                this.lists.restyle.push(tmodel);             
             }
             if (tmodel.asyncStyleTargetList.length > 0) {
                 this.lists.reasyncStyle.push(tmodel);
@@ -170,8 +168,8 @@ class TModelManager {
         for (const tmodel of this.lists.rerender) {
             tmodel.isTextOnly() ? tmodel.$dom?.text(tmodel.getHtml()) : tmodel.$dom?.html(tmodel.getHtml());
             tmodel.setActualValueLastUpdate('html');
-            tmodel.domHeight = undefined;
-            tmodel.domWidth = undefined;
+            tmodel.domHeightTimestamp = 0;
+            tmodel.domWidthTimestamp = 0;
         }
     }
 

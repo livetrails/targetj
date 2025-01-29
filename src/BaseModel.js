@@ -424,6 +424,15 @@ class BaseModel {
     getActualValueLastUpdate(key) {
         return this.targetValues[key]?.actualValueLastUpdate;
     }
+    
+    getDimLastUpdate() {
+        return Math.max(
+            this.getActualValueLastUpdate('width') || 0,
+            this.getActualValueLastUpdate('height') || 0,
+            this.domHeightTimestamp,
+            this.domWidthTimestamp
+        );
+    }
 
     getTargetCreationTime(key) {
         return this.targetValues[key] ? this.targetValues[key].creationTime : undefined;

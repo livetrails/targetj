@@ -27,8 +27,8 @@ class TModel extends BaseModel {
         this.absX = 0;
         this.absY = 0;
 
-        this.domHeight = undefined;
-        this.domWidth = undefined;
+        this.domHeightTimestamp = 0;
+        this.domWidthTimestamp = 0;
 
         this.contentWidth = 0;
         this.contentHeight = 0;
@@ -629,11 +629,11 @@ class TModel extends BaseModel {
     }
 
     getScrollTop() {
-        return Math.floor(this.val('scrollTop'));
+        return this.val('scrollTop');
     }
 
     getScrollLeft() {
-        return Math.floor(this.val('scrollLeft'));
+        return this.val('scrollLeft');
     }
 
     getCss() {

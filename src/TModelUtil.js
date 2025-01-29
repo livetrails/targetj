@@ -88,8 +88,8 @@ class TModelUtil {
         tmodel.$dom.stamp();
         tmodel.isTextOnly() ? tmodel.$dom.text(tmodel.getHtml()) : tmodel.$dom.html(tmodel.getHtml());
         tmodel.setActualValueLastUpdate('html');
-        tmodel.domHeight = undefined;
-        tmodel.domWidth = undefined;        
+        tmodel.domHeightTimestamp = 0;
+        tmodel.domWidthTimestamp = 0;        
         tmodel.transformMap = {};
         tmodel.styleMap = {};
         tmodel.allStyleTargetList.forEach(function(key) {

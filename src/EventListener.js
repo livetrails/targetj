@@ -190,14 +190,14 @@ class EventListener {
                 
                 if (Math.abs(this.currentTouch.deltaY) < 0.1) {
                     this.currentTouch.deltaY = 0;
-                }
+    }
                 if (Math.abs(this.currentTouch.deltaX) < 0.1) {
                     this.currentTouch.deltaX = 0;
                 }
                 if (Math.abs(this.currentTouch.pinchDelta) < 0.1) {
                     this.currentTouch.pinchDelta = 0;
                 }                
-
+    
                 if (this.currentTouch.deltaX === 0 && this.currentTouch.deltaY === 0 && this.currentTouch.pinchDelta === 0) { 
                     this.touchTimeStamp = 0;
                 }
@@ -334,6 +334,7 @@ class EventListener {
             case 'mousedown':
             case 'touchstart':
                 this.clearStart();
+                this.clearEnd();
                 this.clearTouch();
 
                 this.touchCount = this.countTouches(event);
@@ -384,6 +385,7 @@ class EventListener {
                 if (this.preventDefault(tmodel, eventName)) {
                     event.preventDefault();
                 }
+                
                 this.end(event);
 
                 if (this.start0 && eventName === 'touchend') {
@@ -399,7 +401,7 @@ class EventListener {
                     }
                 }
 
-                this.clearStart();
+                this.clearEnd();
                 this.touchCount = 0; 
 
                 event.stopPropagation();
@@ -409,10 +411,21 @@ class EventListener {
                 if (this.preventDefault(tmodel, eventName)) {
                     event.preventDefault();
                 }
-
-                this.eventQueue.length = 0;
-                this.eventQueue.push({ eventName, eventItem, eventType, originalName, tmodel, eventTarget, timeStamp: now });
-                this.clearStart();
+                      
+                this.end0 = this.getTouch(event);
+                                
+                if (this.start0) {
+                    const deltaX = this.end0 ? Math.abs(this.end0.originalX - this.start0.originalX) : 0;
+                    const deltaY = this.end0 ? Math.abs(this.end0.originalY - this.start0.originalY) : 0;                
+                    const period = this.end0 ? Math.abs(this.end0.timeStamp - this.start0.timeStamp) : 300;
+                    
+                    if (deltaX <= 1 && deltaY <= 1 && period <= 300) {
+                        this.eventQueue.length = 0;
+                        this.eventQueue.push({ eventName, eventItem, eventType, originalName, tmodel, eventTarget, timeStamp: now });
+                    }
+                }
+                        
+                this.clearEnd();
                 this.touchCount = 0; 
 
                 event.stopPropagation();
@@ -441,6 +454,8 @@ class EventListener {
     resizeRoot() {
         tRoot().val('width', tRoot().targets.width());
         tRoot().val('height', tRoot().targets.height());
+        tRoot().setActualValueLastUpdate('width');
+        tRoot().setActualValueLastUpdate('height');
     }
 
     preventDefault(tmodel, eventName) {
@@ -463,8 +478,11 @@ class EventListener {
     clearStart() {
         this.start0 = undefined;
         this.start1 = undefined;
+    }
+    
+    clearEnd() {
         this.end0 = undefined;
-        this.end1 = undefined;
+        this.end1 = undefined;        
     }
 
     clearTouch() {
@@ -482,6 +500,7 @@ class EventListener {
 
     clearAll() {
         this.clearStart();
+        this.clearEnd();
         this.clearTouch();
         this.eventQueue.length = 0;
         this.touchTimeStamp = 0;
@@ -700,9 +719,9 @@ class EventListener {
         if (this.touchCount === 1) {
             this.start0.y = this.end0 ? this.end0.y : this.start0.y;
             this.start0.x = this.end0 ? this.end0.x : this.start0.x;
-
-            this.end0 = this.getTouch(event);
             
+            this.end0 = this.getTouch(event);
+
             if (TUtil.isDefined(this.end0)) {
                 const deltaX = this.start0.x - this.end0.x;
                 const deltaY = this.start0.y - this.end0.y;
