@@ -63,16 +63,26 @@ class EventListener {
         this.eventTargetMap = {};
                
         this.startEvents = {
-            touchstart: { eventName: 'touchstart', inputType: 'touch', eventType: 'start', order: 1, windowEvent: false, queue: true, rateLimit: 0 },
             pointerdown: { eventName: 'mousedown', inputType: 'pointer', eventType: 'start', order: 2, windowEvent: false, queue: true, rateLimit: 0 },
             mousedown: { eventName: 'mousedown', inputType: 'mouse', eventType: 'start', order: 3, windowEvent: false, queue: true, rateLimit: 0 },
         };
         
         this.endEvents = {
-            touchend: { eventName: 'touchend', inputType: 'touch', eventType: 'end', order: 1, windowEvent: false, queue: true, rateLimit: 0 },
-            pointerup: { eventName: 'mouseup', inputType: 'pointer', eventType: 'end', order: 1, windowEvent: false, queue: true, rateLimit: 0 },
+            pointerup: { eventName: 'mouseup', inputType: 'pointer', eventType: 'end', order: 2, windowEvent: false, queue: true, rateLimit: 0 },
             mouseup: { eventName: 'mouseup', inputType: 'mouse', eventType: 'end', order: 3, windowEvent: false, queue: true, rateLimit: 0 },
-        };        
+        }; 
+        
+        this.clickEvents = {           
+            click: { eventName: 'click', inputType: 'mouse', eventType: 'click', order: 1, windowEvent: false, queue: false, rateLimit: 0 }
+        }; 
+        
+        this.touchStart = {
+            touchstart: { eventName: 'touchstart', inputType: 'touch', eventType: 'start', order: 1, windowEvent: false, queue: true, rateLimit: 0 }
+        };
+        
+        this.touchEnd = {
+            touchend: { eventName: 'touchend', inputType: 'touch', eventType: 'end', order: 1, windowEvent: false, queue: true, rateLimit: 0 } 
+        };
         
         this.cancelEvents = {
             touchcancel: { eventName: 'touchend', inputType: 'touch', eventType: 'cancel', order: 1, windowEvent: false, queue: true, rateLimit: 0 },       
@@ -84,17 +94,17 @@ class EventListener {
             keyup: { eventName: 'key', inputType: '', eventType: 'key', order: 1, windowEvent: true, queue: true, rateLimit: 50 },
             keydown: { eventName: 'key', inputType: '', eventType: 'key', order: 1, windowEvent: true, queue: true, rateLimit: 50 },
             blur: { eventName: 'blur', inputType: 'mouse', eventType: 'cancel', order: 2, windowEvent: true, queue: true, rateLimit: 0 },
-            resize: { eventName: 'resize', inputType: '', eventType: 'resize', order: 1, windowEvent: true, queue: false, rateLimit: 50 },
-            orientationchange: { eventName: 'resize', inputType: '', eventType: 'resize', order: 1, windowEvent: true, queue: false, rateLimit: 50 },
+            resize: { eventName: 'resize', inputType: '', eventType: 'resize', order: 1, windowEvent: true, queue: true, rateLimit: 50 },
+            orientationchange: { eventName: 'resize', inputType: '', eventType: 'resize', order: 1, windowEvent: true, queue: true, rateLimit: 50 },
         };
         
         this.windowScrollEvents = {
             scroll: { eventName: 'scroll', inputType: '', eventType: 'windowScroll', order: 1, windowEvent: true, queue: true, rateLimit: 50 }            
-        }
+        };
         
         this.leaveEvents = {
             mouseleave: { eventName: 'mouseleave', inputType: 'mouse', eventType: 'cancel', order: 3, windowEvent: false, queue: true, rateLimit: 0 },
-        }        
+        };        
         
         this.moveEvents = {
             touchmove: { eventName: 'touchmove', inputType: 'touch', eventType: 'move', order: 1, windowEvent: false, queue: true, rateLimit: 50 },            
@@ -108,8 +118,11 @@ class EventListener {
         };
         
         this.allEvents = {
+            ...this.touchStart,
+            ...this.touchEnd,            
             ...this.startEvents,
             ...this.endEvents,
+            ...this.clickEvents,
             ...this.cancelEvents,
             ...this.leaveEvents,            
             ...this.moveEvents,
@@ -151,7 +164,7 @@ class EventListener {
                 this.attachedEventMap[event] = this.$document;
                 this.attachEvents(this.attachedEventMap[event], this[event]);
             }
-        })
+        });
     }
     
     detachAll() {
@@ -252,7 +265,7 @@ class EventListener {
         }
         
         const lastEvent = this.eventQueue.shift();
-                        
+                                
         if (this.canFindHandlers) {
             this.findEventHandlers(lastEvent);
         }
@@ -275,7 +288,7 @@ class EventListener {
 
         const { type: originalName, target: eventTarget } = event;
         const eventItem = this.allEvents[originalName];
-                        
+                                        
         if (!eventItem) {
             return;
         }
@@ -367,13 +380,13 @@ class EventListener {
                 break;
             }
             case 'mouseup':
-            case 'touchend':                
+            case 'touchend':    
                 if (this.preventDefault(tmodel, eventName)) {
                     event.preventDefault();
                 }
                 this.end(event);
 
-                if (this.start0) {
+                if (this.start0 && eventName === 'touchend') {
                     const deltaX = this.end0 ? Math.abs(this.end0.originalX - this.start0.originalX) : 0;
                     const deltaY = this.end0 ? Math.abs(this.end0.originalY - this.start0.originalY) : 0;
                     const period = this.end0 ? Math.abs(this.end0.timeStamp - this.start0.timeStamp) : 300;
@@ -386,6 +399,19 @@ class EventListener {
                     }
                 }
 
+                this.clearStart();
+                this.touchCount = 0; 
+
+                event.stopPropagation();
+                break;                             
+                
+            case 'click':
+                if (this.preventDefault(tmodel, eventName)) {
+                    event.preventDefault();
+                }
+
+                this.eventQueue.length = 0;
+                this.eventQueue.push({ eventName, eventItem, eventType, originalName, tmodel, eventTarget, timeStamp: now });
                 this.clearStart();
                 this.touchCount = 0; 
 
@@ -405,7 +431,7 @@ class EventListener {
                 break;
                 
             case 'resize':
-                this.resizeRoot();
+                this.resizeRoot();                
                 break;              
         }
         
@@ -414,7 +440,7 @@ class EventListener {
     
     resizeRoot() {
         tRoot().val('width', tRoot().targets.width());
-        tRoot().val('height', tRoot().targets.height());        
+        tRoot().val('height', tRoot().targets.height());
     }
 
     preventDefault(tmodel, eventName) {

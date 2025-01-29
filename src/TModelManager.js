@@ -111,7 +111,7 @@ class TModelManager {
                     (tmodel.canHaveDom() && !tmodel.hasDom() && !this.noDomMap[tmodel.oid])) {
                 this.lists.noDom.push(tmodel);
                 this.noDomMap[tmodel.oid] = true;
-            }    
+            }
         }
 
         const lastVisible = Object.values(lastVisibleMap)
@@ -127,7 +127,7 @@ class TModelManager {
             this.lists.invisibleDom.length > 0 ? 5 :
             this.lists.restyle.length > 0 ? 10 : -1;    
     }
-
+    
     needsRelocation(tmodel) {
         if (tmodel.hasDom() && TUtil.isDefined(tmodel.domOrderIndex)) {
             this.lists.relocation.push(tmodel);  
@@ -263,8 +263,13 @@ class TModelManager {
         
         for (const tmodel of needsDom) {
             if (tmodel.getDomHolder(tmodel)?.exists()) {
-                tmodel.$dom = new $Dom();
-                TModelUtil.createDom(tmodel);
+                if (tmodel.val('$dom')) {
+                    tmodel.$dom = tmodel.val('$dom');
+                } else {
+                    tmodel.$dom = new $Dom();
+                    TModelUtil.createDom(tmodel);
+                } 
+                
                 tmodel.getDomHolder(tmodel).appendTModel$Dom(tmodel);
                 tmodel.hasDomNow = true;                
             }

@@ -19,6 +19,7 @@ const AppFn = (firstChild) => {
     my.throttle = 0;
     my.debugLevel = 0;
     my.runningFlag = false;
+    my.resizeLastUpdate = 0;
 
     my.init = function() {
         my.browser = new Browser();
@@ -59,15 +60,25 @@ const AppFn = (firstChild) => {
                 },
                 isVisible: true,
                 width() {
-                    return document.documentElement.clientWidth || document.body.clientWidth;
+                    const width = $Dom.getScreenWidth();
+                    if (width !== tmodel.val('width')) {
+                        my.resizeLastUpdate = TUtil.now();     
+                    }
+                    return width;
                 },
                 height() {
-                    return document.documentElement.clientHeight || document.body.clientHeight;
-                },
-                onResize: ['width', 'height']
+                    const height = $Dom.getScreenHeight();
+                    if (height !== tmodel.val('height')) {
+                        my.resizeLastUpdate = TUtil.now();     
+                    }
+                    return height;
+                }
             });
             
             tmodel.oids = {};
+
+            tmodel.val('width', $Dom.getScreenWidth());                
+            tmodel.val('height', $Dom.getScreenHeight());            
            
             if (my.tRoot) {
                 my.tRoot.getChildren().forEach(t => {
@@ -92,7 +103,7 @@ const AppFn = (firstChild) => {
 
     my.start = async function() {
         my.runningFlag = false;
-               
+             
         my.events.detachAll();        
         my.events.detachWindowEvents();
         my.events.attachWindowEvents();
@@ -172,6 +183,7 @@ const getBrowser = () => tApp?.browser;
 const getScreenWidth = () => tApp?.tRoot?.getWidth() ?? 0;
 const getScreenHeight = () => tApp?.tRoot?.getHeight() ?? 0;
 const getVisibles = () => tApp?.manager?.lists.visible;
+const getResizeLastUpdate = () => tApp?.resizeLastUpdate;
 
 window.t = window.t || SearchUtil.find;
 
@@ -189,5 +201,6 @@ export {
     getBrowser,
     getScreenWidth,
     getScreenHeight,
-    getVisibles
+    getVisibles,
+    getResizeLastUpdate
 };

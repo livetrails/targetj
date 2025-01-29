@@ -40,13 +40,13 @@ class TModel extends BaseModel {
         
         this.visibilityStatus = { top: false, right: false, bottom: false, left: false };
         this.isNowInvisible = false;
-        
-        this.visibleChildren = [];
-        
+                
+        this.visibleChildren = [];                  
+      
         this.hasDomNow = false;
         this.isNowVisible = false;
         this.currentStatus = 'new';
-
+        
         this.initTargets();        
     }
 
@@ -96,10 +96,10 @@ class TModel extends BaseModel {
         this.absY = TUtil.isDefined(this.val('absY')) ? this.val('absY') : this.getParent().absY + y;
     }
     
-    addChild(child, index = this.addedChildren.length + this.allChildrenList.length) {    
+    addChild(child, index = this.addedChildren.length + this.allChildrenList.length) { 
         this.addedChildren.push({ index, child });
         
-        getRunScheduler().schedule(1, 'addChild-' + this.oid + "-" + child.oid);
+        child.activate();
 
         return this;
     }
@@ -298,11 +298,13 @@ class TModel extends BaseModel {
 
     val(key, value) {
         let actual = this.actualValues;
+        let lastActual = this.lastActualValues;
         if (key.startsWith('_')) {
             actual = this;
             key = key.slice(1);
         }
         if (value !== undefined) {
+            lastActual[key] = actual[key];
             if (value !== actual[key]) {
                 actual[key] = value;
             }
@@ -310,6 +312,10 @@ class TModel extends BaseModel {
         }
         
         return actual[key];
+    }
+    
+    lastVal(key) {
+        return this.lastActualValues[key];
     }
 
     floorVal(key) {
@@ -362,7 +368,7 @@ class TModel extends BaseModel {
         if (this.targets['isVisible']) {
             return typeof this.targets['isVisible'] === 'function' ? this.targets['isVisible'].call(this) : this.targets['isVisible'];
         }
-        return this.val('isVisible')
+        return this.val('isVisible');
     }
     
     calcVisibility() {
@@ -439,7 +445,7 @@ class TModel extends BaseModel {
     isTextOnly() {
         return this.val('textOnly');
     }
-
+    
     getHtml() {
         return this.val('html');
     }
@@ -473,7 +479,7 @@ class TModel extends BaseModel {
     }
     
     excludeStyling() {
-        return this.targets['styling'] === false
+        return this.targets['styling'] === false;
     }
         
     getBracketThreshold() {
@@ -494,8 +500,11 @@ class TModel extends BaseModel {
     isIncluded() {
         return this.val('isIncluded');
     }
-
+    
     canHaveDom() {
+        if (this.targets['$dom'] && !this.val('$dom')) {
+            return;
+        }
         return this.val('canHaveDom');
     }
     

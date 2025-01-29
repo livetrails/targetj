@@ -23,6 +23,7 @@ class BaseModel {
 
         this.targetValues = {};
         this.actualValues = {};
+        this.lastActualValues = {};
 
         this.activeTargetList = [];
         this.activeTargetMap = {};
@@ -53,12 +54,12 @@ class BaseModel {
         this.activatedTargets = [];
                 
         this.targetExecutionCount = 0;
-        
+      
         this.parent = null;
 
         this.targetMethodMap = {};
     }
-    
+
     getParent() {
         return this.parent;
     }
@@ -114,7 +115,7 @@ class BaseModel {
             return;
         }
 
-        if (TargetUtil.otherTargetEventsMap[key]) {
+        if (TargetUtil.bypassInitialProcessingTargetMap[key]) {
             return;
         }     
 
@@ -417,11 +418,11 @@ class BaseModel {
     }
 
     getTargetInitialValue(key) {
-        return this.targetValues[key] ? this.targetValues[key].initialValue : undefined;
+        return this.targetValues[key]?.initialValue;
     }
 
     getActualValueLastUpdate(key) {
-        return this.targetValues[key] ? this.targetValues[key].actualValueLastUpdate : undefined;
+        return this.targetValues[key]?.actualValueLastUpdate;
     }
 
     getTargetCreationTime(key) {
@@ -663,6 +664,7 @@ class BaseModel {
             const targetValue = this.targetValues[key];
 
             if (targetValue) {
+                targetValue.isImperative = false;
                 targetValue.executionFlag = false;
                 targetValue.scheduleTimeStamp = undefined;
                 targetValue.step = 0;
@@ -672,7 +674,7 @@ class BaseModel {
             } else {
                 this.addToActiveTargets(key);
             }            
-
+            
             this.activate(key);            
         }
 

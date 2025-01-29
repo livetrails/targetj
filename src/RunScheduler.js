@@ -29,6 +29,7 @@ class RunScheduler {
         this.rerunId = '';
         this.delayProcess = undefined;
         this.resetting = false;
+        this.activeStartTime = undefined;
     }
    
     async resetRuns() { 
@@ -44,10 +45,11 @@ class RunScheduler {
         this.domProcessing = 0;        
         this.runningFlag = false;
         this.runId = '';
-        this.runStartTime = undefined;        
+        this.runStartTime = undefined;       
         this.rerunId = '';
         this.delayProcess = undefined;
         this.resetting = false;
+        this.activeStartTime = undefined;
     }
     
     schedule(delay, runId) {
@@ -86,7 +88,7 @@ class RunScheduler {
             getManager().doneTargets.length = 0;
         }
         
-        tApp.targetManager.applyTargetValues(tApp.tRoot);            
+        tApp.targetManager.applyTargetValues(tApp.tRoot);
         getLocationManager().calculateAll();      
         getLocationManager().calculateActivated();    
         tApp.events.resetEventsOnTimeout();
@@ -120,13 +122,17 @@ class RunScheduler {
 
             if (newDelay >= 15) {
                 if (getEvents().eventQueue.length > 0) {
-                    this.schedule(15, `events-${getEvents().eventQueue.length}`);                
+                    this.schedule(15, `events-${getEvents().eventQueue.length}`); 
+                } else if (getManager().lists.updatingTModels.length > 0) {
+                    this.schedule(15, `getManager-needsRerun-updatingTModels`);                     
                 } else if (getManager().lists.activeTModels.length > 0) {
                     const activeTModel = getManager().lists.activeTModels.find(tmodel => {
-                        return tmodel.activeTargetList.some(target => tmodel.isTargetEnabled(target));
+                        return tmodel.activeTargetList.some(target => tmodel.isTargetEnabled(target) && tmodel.shouldScheduleRun(target));
                     });
                     if (activeTModel) {
-                        this.schedule(15, `getManager-needsRerun-${activeTModel.oid}-${activeTModel.activeTargetList}`);
+                        const delay = !this.activeStartTime || TUtil.now() - this.activeStartTime > 15 ? 1 : 15;
+                        this.activeStartTime = TUtil.now();
+                        this.schedule(delay, `getManager-needsRerun-${activeTModel.oid}-${activeTModel.activeTargetList}`);
                     }
                 }
             }

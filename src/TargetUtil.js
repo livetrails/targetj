@@ -1,5 +1,5 @@
 import { TModel } from "./TModel.js";
-import { getManager, getEvents, getLocationManager } from "./App.js";
+import { getManager, getEvents, getResizeLastUpdate } from "./App.js";
 import { TUtil } from "./TUtil.js";
 import { ColorUtil } from "./ColorUtil.js";
 
@@ -68,7 +68,7 @@ class TargetUtil {
         borderTop: true,
         borderLeft: true,
         borderRight: true,
-        borderBottom: true,
+        borderBottom: true
     };
     
     static asyncStyleTargetMap = {
@@ -176,7 +176,7 @@ class TargetUtil {
         };
     }
     
-    static otherTargetEventsMap = {
+    static bypassInitialProcessingTargetMap = {
         onChildrenChange: true,
         onVisibleChildrenChange: true,
         onPageClose: true,
@@ -184,27 +184,27 @@ class TargetUtil {
     };
     
     static targetToEventsMapping = {
-        onClickEvent: [ 'startEvents', 'endEvents', 'cancelEvents' ],
-        onTouchStart: [ 'startEvents' ],
-        onTouchEnd: [ 'endEvents' ],
-        onSwipeEvent: [ 'startEvents', 'endEvents', 'cancelEvents', 'moveEvents' ],
-        onAnySwipeEvent: [ 'startEvents', 'endEvents', 'cancelEvents', 'moveEvents' ],
-        onTouchEvent: [ 'startEvents', 'endEvents', 'cancelEvents' ],
+        onClickEvent: [ 'clickEvents', 'touchStart', 'touchEnd' ],
+        onTouchStart: [ 'touchStart', 'startEvents' ],
+        onTouchEnd: [ 'touchEnd', 'endEvents' ],
+        onSwipeEvent: [ 'touchStart', 'startEvents', 'touchEnd', 'endEvents', 'cancelEvents', 'moveEvents' ],
+        onAnySwipeEvent: [ 'touchStart', 'startEvents', 'touchEnd', 'endEvents', 'cancelEvents', 'moveEvents' ],
+        onTouchEvent: [ 'touchStart', 'startEvents', 'touchEnd', 'endEvents', 'cancelEvents' ],
         onEnterEvent: [ 'moveEvents', 'leaveEvents' ],
         onLeaveEvent: [ 'moveEvents', 'leaveEvents' ],
-        onScrollEvent: [ 'startEvents', 'endEvents', 'cancelEvents', 'moveEvents', 'wheelEvents' ],
+        onScrollEvent: [ 'touchStart', 'startEvents', 'touchEnd', 'endEvents', 'cancelEvents', 'moveEvents', 'wheelEvents' ],
         onWindowScrollEvent: [ 'windowScrollEvents' ],
         
-        onClick: [ 'startEvents', 'endEvents', 'cancelEvents' ],
-        onSwipe: [ 'startEvents', 'endEvents', 'cancelEvents', 'moveEvents' ],
-        onAnySwipe: [ 'startEvents', 'endEvents', 'cancelEvents', 'moveEvents' ],
-        onTouch: [ 'startEvents', 'endEvents', 'cancelEvents' ],
+        onClick: [ 'clickEvents', 'touchStart', 'touchEnd' ],
+        onSwipe: [ 'touchStart', 'startEvents', 'touchEnd', 'endEvents', 'cancelEvents', 'moveEvents' ],
+        onAnySwipe: [ 'touchStart', 'startEvents', 'touchEnd', 'endEvents', 'cancelEvents', 'moveEvents' ],
+        onTouch: [ 'touchStart', 'startEvents', 'touchEnd', 'endEvents', 'cancelEvents' ],
         onEnter: [ 'moveEvents', 'leaveEvents' ],
         onLeave: [ 'moveEvents', 'leaveEvents' ],
-        onScroll: [ 'startEvents', 'endEvents', 'cancelEvents', 'moveEvents', 'wheelEvents' ],
-        onScrollLeft: [ 'startEvents', 'endEvents', 'cancelEvents', 'moveEvents', 'wheelEvents' ],
-        onScrollTop: [ 'startEvents', 'endEvents', 'cancelEvents', 'moveEvents', 'wheelEvents' ],
-        onWindowScroll: [ 'windowScrollEvents' ],
+        onScroll: [ 'touchStart', 'startEvents', 'touchEnd', 'endEvents', 'cancelEvents', 'moveEvents', 'wheelEvents' ],
+        onScrollLeft: [ 'touchStart', 'startEvents', 'touchEnd', 'endEvents', 'cancelEvents', 'moveEvents', 'wheelEvents' ],
+        onScrollTop: [ 'touchStart', 'startEvents', 'touchEnd', 'endEvents', 'cancelEvents', 'moveEvents', 'wheelEvents' ],        
+        onWindowScroll: [ 'windowScrollEvents' ]
     };
     
     static touchEventMap = {
@@ -229,36 +229,19 @@ class TargetUtil {
         onVisibleEvent: tmodel => tmodel.isNowVisible,
         onDomEvent: tmodel => tmodel.hasDomNow,
         onVisible: tmodel => tmodel.isNowVisible,
-        onResize: tmodel => {
+        onResize: tmodel => {            
             const lastUpdateWidth = tmodel.getActualValueLastUpdate('width');
             const lastUpdateHeight = tmodel.getActualValueLastUpdate('height');
-            const resizeLastUpdate = getLocationManager().resizeLastUpdate;
+            const parent = tmodel.getParent();
+            const resizeLastUpdate = parent 
+                ? Math.max(parent.getActualValueLastUpdate('width') || 0, parent.getActualValueLastUpdate('height') || 0, getResizeLastUpdate()) 
+                : getResizeLastUpdate();
 
-            if (lastUpdateWidth && lastUpdateHeight) {
-                tmodel.setActualValueLastUpdate('width');
-                tmodel.setActualValueLastUpdate('height');
-                return resizeLastUpdate > Math.max(lastUpdateWidth, lastUpdateHeight);
-            }
-            if (lastUpdateWidth) {  
-                tmodel.setActualValueLastUpdate('width');
-                return resizeLastUpdate > lastUpdateWidth;
-            }
-            if (lastUpdateHeight) {
-                tmodel.setActualValueLastUpdate('height');                
-                return resizeLastUpdate > lastUpdateHeight;
-            }
-             
-            return getLocationManager().resizeFlag;
-        },
-        onParentResize: tmodel => { 
-            if (tmodel.getParent().getActualValueLastUpdate('width') > tmodel.getActualValueLastUpdate('width')) {
-                tmodel.setActualValueLastUpdate('width');
+            if ((lastUpdateWidth || lastUpdateHeight) && resizeLastUpdate > Math.max(lastUpdateWidth || 0, lastUpdateHeight || 0)) {
                 return true;
             }
-            if (tmodel.getParent().getActualValueLastUpdate('height') > tmodel.getActualValueLastUpdate('height')) {
-                tmodel.setActualValueLastUpdate('height');
-                return true;
-            }            
+            
+            return false;
         }       
     };
  
@@ -492,7 +475,7 @@ class TargetUtil {
         }
     }
 
-    static setWidthFromDom(child, resizeFlag) {
+    static setWidthFromDom(child) {
         let height = child.domWidth?.height;
         let width = child.domWidth?.width;
         
@@ -504,7 +487,7 @@ class TargetUtil {
             rerender = true;
         }
 
-        if (!TUtil.isDefined(child.domWidth) || rerender || height !== child.getHeight() || resizeFlag ||
+        if (!TUtil.isDefined(child.domWidth) || rerender || height !== child.getHeight() ||
                 (domParent && child.getActualValueLastUpdate('width') <= domParent.getActualValueLastUpdate('width'))) {
             child.$dom.width('auto');
             width = child.$dom.width();
@@ -517,7 +500,7 @@ class TargetUtil {
         return width;
     }
 
-    static setHeightFromDom(child, resizeFlag) {
+    static setHeightFromDom(child) {
         let height = child.domHeight?.height;
         let width = child.domHeight?.width;
         
@@ -529,7 +512,7 @@ class TargetUtil {
             rerender = true;
         }     
 
-        if (!TUtil.isDefined(child.domHeight) || rerender || width !== child.getWidth() || resizeFlag ||
+        if (!TUtil.isDefined(child.domHeight) || rerender || width !== child.getWidth() ||
                 (domParent && child.getActualValueLastUpdate('height') <= domParent.getActualValueLastUpdate('height'))) {
             child.$dom.height('auto');
             width = child.$dom.width();

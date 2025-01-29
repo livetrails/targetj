@@ -3,7 +3,7 @@ import { TUtil } from "./TUtil.js";
 import { TargetUtil } from "./TargetUtil.js";
 import { TModelUtil } from "./TModelUtil.js";
 import { TargetExecutor } from "./TargetExecutor.js";
-import { tApp, getScreenWidth, getScreenHeight, getEvents } from "./App.js";
+import { tApp, getEvents } from "./App.js";
 
 /*
  * It calculates the locations and dimensions of all objects and triggers the calculation of all targets. 
@@ -20,17 +20,10 @@ class LocationManager {
         this.locationListStats = [];
         
         this.activatedList = [];
-        this.activatedMap = {};
-               
-        this.screenWidth = getScreenWidth();
-        this.screenHeight = getScreenHeight();
-        this.resizeLastUpdate = 0;
-        this.resizeFlag = false;        
+        this.activatedMap = {};    
     }
     
     clear() {
-        this.screenWidth = 0;
-        this.screenHeight = 0;
         this.visibleChildrenLengthMap = {};
         this.childrenLengthMap = {}; 
         this.activatedList = [];
@@ -43,14 +36,6 @@ class LocationManager {
         this.locationListStats = [];
 
         this.startTime = TUtil.now();
-        this.resizeFlag = false;
-
-        if (this.screenWidth !== getScreenWidth() || this.screenHeight !== getScreenHeight()) {
-            this.resizeLastUpdate = this.startTime;
-            this.resizeFlag = false;
-            this.screenWidth = getScreenWidth();
-            this.screenHeight = getScreenHeight();
-        }
 
         this.calculate();
         
@@ -222,19 +207,19 @@ class LocationManager {
 
     calculateTargets(tmodel) {
         this.checkInternalEventTargets(tmodel);
-        tApp.targetManager.applyTargetValues(tmodel);
+        tApp.targetManager.applyTargetValues(tmodel);        
         tApp.targetManager.setActualValues(tmodel);
 
         if (tmodel.hasDom()) {
             if (TModelUtil.shouldMeasureWidthFromDom(tmodel)) {
-                TargetUtil.setWidthFromDom(tmodel, this.resizeFlag);
+                TargetUtil.setWidthFromDom(tmodel);
                 tmodel.addToStyleTargetList('width');              
             }
         }
         
         if (tmodel.hasDom()) {
             if (TModelUtil.shouldMeasureHeightFromDom(tmodel)) {
-                TargetUtil.setHeightFromDom(tmodel, this.resizeFlag);
+                TargetUtil.setHeightFromDom(tmodel);
                 tmodel.addToStyleTargetList('height');                       
             }           
         }        

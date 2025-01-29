@@ -9,32 +9,6 @@ class Browser {
     }
 
     setup() {
-        if (!document.getElementsByClassName) {
-            const getElementsByClassName = (className, context) => {
-                let elems;
-                if (document.querySelectorAll) {
-                   elems = context.querySelectorAll(`.${className}`);
-                } else {
-                    const all = context.getElementsByTagName("*");
-                    elems = [];
-                    for (let i = 0; i < all.length; i++) {
-                        if (all[i].className && (` ${all[i].className} `).indexOf(` ${className} `) > -1 && elems.indexOf(all[i]) === -1) {
-                            elems.push(all[i]);
-                        }
-                    }
-                }
-                return elems;
-            };
-
-            document.getElementsByClassName = function (className) {
-                return getElementsByClassName(className, document);
-            };
-
-            Element.prototype.getElementsByClassName = function (className) {
-                return getElementsByClassName(className, this);
-            };
-        }
-
         this.style = {
             transform: this.prefixStyle('transform'),
             transitionTimingFunction: this.prefixStyle('transitionTimingFunction'),

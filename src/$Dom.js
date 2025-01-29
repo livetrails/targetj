@@ -18,7 +18,18 @@ class $Dom {
         this.originalContent = undefined;
         this.textOnly = true;
     }
-
+    
+    static createTemplate(html) {
+        const $dom = new $Dom();
+        $dom.create('template');
+        $dom.innerHTML(html.trim());
+        return $dom;
+    }
+    
+    cloneTemplate() {
+        return new $Dom(this.element.content?.cloneNode(true).children[0]);
+    }
+    
     exists() {
         if (this.selector) {
             this.element = $Dom.query(this.selector);
@@ -33,7 +44,7 @@ class $Dom {
     create(tagName) {
         this.element = document.createElement(tagName);
     }
-    
+
     getTagName() {
         return this.element.tagName.toLowerCase();
     }
@@ -45,7 +56,7 @@ class $Dom {
     setId(id) {
         this.attr('id', id[0] === '#' ? id.slice(1) : id);
     }
-
+    
     focus() {
         this.element.focus();
     }
@@ -164,6 +175,28 @@ class $Dom {
     append$Dom($dom) {
         this.element.appendChild($dom.element);
     }
+    
+    appendElement(element) {
+        this.element.appendChild(element);
+    }
+    
+    removeElement(element) {
+        this.element.removeChild(element);        
+    }
+    
+    elementCount() {
+        return this.element.children.length;
+    }
+    
+    swapElements(element1, element2) {
+        const nextSibling = element2.nextSibling;
+        if (nextSibling === element1) {
+            this.element.insertBefore(element1, element2);
+        } else {
+            this.element.insertBefore(element2, element1);
+            this.element.insertBefore(element1, nextSibling);
+        }
+    }    
 
     insertFirst$Dom($dom) {
         if (this.element.firstChild) {
@@ -300,6 +333,14 @@ class $Dom {
         const element = TUtil.isDefined(selector) ? $Dom.query(selector) : this.query('canvas');
         return element ? element.getContext(type) : undefined;
     }
+    
+    query(query) {
+        return this.element.querySelector(query);
+    }
+    
+    queryAll(query) {
+        return this.element.querySelectorAll(query);
+    }
 
     findFirstByClass(className) {
         return $Dom.findFirstByClass(className, this.element);
@@ -309,10 +350,6 @@ class $Dom {
         return $Dom.findFirstByTag(tagName, this.element);
     }
 
-    query(selector) {
-        return selector[0] === '#' ? $Dom.findById(selector) : selector[0] === '.' ? this.findFirstByClass(selector) : this.findFirstByTag(selector);
-    }
-    
     stamp() {
         this.attr('data-tgt', 'true');
     }
@@ -375,7 +412,15 @@ class $Dom {
     
     static getWindowScrollLeft() {
         return window.pageXOffset || document.documentElement.scrollLeft || 0;        
-    }    
+    } 
+    
+    static getScreenWidth() {
+        return document.documentElement.clientWidth || document.body.clientWidth;
+    }
+    
+    static getScreenHeight() {
+        return document.documentElement.clientHeight || document.body.clientHeight;
+    }
 
     static ready(callback) {
         const $doc = new $Dom(document);

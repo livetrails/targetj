@@ -38,6 +38,8 @@ class TargetExecutor {
     static updateTarget(tmodel, targetValue, key) {
         targetValue.executionCount++;
         targetValue.executionFlag = true;
+                
+        tmodel.setActualValueLastUpdate(key);
 
         if (tmodel.getTargetSteps(key) === 0) {
             TargetExecutor.snapActualToTarget(tmodel, key);
@@ -93,7 +95,6 @@ class TargetExecutor {
         const oldValue = tmodel.val(key);
         const value = tmodel.targetValues[key].value;
         tmodel.val(key, typeof value === 'function' ? value.call(tmodel) : value);
-        tmodel.setActualValueLastUpdate(key);
         TargetUtil.handleValueChange(tmodel, key, tmodel.val(key), oldValue, 0, 0);
     }
 
