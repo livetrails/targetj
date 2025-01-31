@@ -8,7 +8,15 @@ Additionally, **TargetJS** executes targets in the exact order they appear in th
 
 Targets cannot be called directly; instead, they are **activated** and then executed sequentially in the order of their activation. This approach ensures **predictable execution** and a consistent flow.  
 
-We believe **TargetJS** introduces a **new programming paradigm**—one that enhances productivity and makes the coding experience more enjoyable and user-centric.
+## TargetJ: A Unique Computational Paradigm
+
+TargetJ introduces a unique paradigm by blending multiple computational models:
+
+- **Turing Completeness**: targets can execute continuously, modify values dynamically, and conditionally skip execution.
+- **Von Neumann Execution Model**: Targets are executed in the order they appear in the code or based on their activation order.
+- **Functional Programming**: Targets can be composed to transform data in a pipeline-like manner, similar to functional programming constructs.
+
+We believe TargetJS' new programming paradigm will enhance productivity and make the coding experience more enjoyable and user-centric.
 
 ---
 
@@ -48,15 +56,15 @@ We believe **TargetJS** introduces a **new programming paradigm**—one that enh
 
 Unlike traditional UI frameworks that rely on methods and variables, **TargetJS** structures its code around **targets**. Targets execute sequentially in the order they appear in the code, which can also form an **assembly line** where each target processes data based on the results of the previous one. Additionally, targets can operate **autonomously**, each with its own **life cycle**. There are also **no direct calls** to targets. They can only be **activated** for execution, and the **task cycle** executes targets in the order of activation, ensuring a consistent flow and predictable access to data.
 
-### Synchronous Event Handling  
-
-Events in **TargetJS** are handled **synchronously** and made available to **all active targets** within visible components. This approach ensures **flexible, consistent event handling** and less error prone.
-
 ### Minimal Dependence on HTML and CSS  
 
 - **HTML is optional**: We believe traditional HTML introduces unnecessary complexity and rigidity. While **TargetJS** can be integrated into existing HTML pages, it is **not required** when developing new ones.  
 - **CSS is optional**: Instead of relying on external stylesheets, **styles can be incorporated directly as targets**. This allows styles to be **dynamically updated** and easily accessible from the rest of the code.  
-- **Dynamic HTML nesting**:  TargetJ generates a flat HTML structure by default. When HTML element nesting is necessary, it is handled as a **target**, making it **dynamic** and easy to update.  
+- **Dynamic HTML nesting**:  TargetJ generates a flat HTML structure by default. When HTML element nesting is necessary, it is handled as a **target**, making it **dynamic** and easy to update.
+
+### Synchronous Event Handling  
+
+Events in **TargetJS** are handled **synchronously** and made available to **all active targets** within visible components. This approach ensures **flexible, consistent event handling** and less error prone.
 
 ### Execution Control with Time 
 
