@@ -79,7 +79,7 @@ to focus on the user experience more than other frameworks.
 
 ### Future Enhancements  
 
-Currently, **TargetJS** generates **HTML elements**, but we plan to support **canvas-based rendering directly within targets**. This will enable **highly interactive UIs** capable of handling **millions of elements** efficiently.  
+Currently, TargetJ generates HTML elements with styles. We plan to support additional rendering APIs, such as the Canvas API and the Animation API, directly within targets to make them easily accessible. This will also enable highly interactive UIs capable of efficiently handling a large number of objects.
 
 ---
 
