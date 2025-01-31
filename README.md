@@ -46,8 +46,7 @@ We believe **TargetJS** introduces a **new programming paradigm**—one that enh
 
 ### A Target-Based Approach  
 
-Unlike traditional UI frameworks that rely on methods and variables, **TargetJS** structures its code around **targets**. Targets execute sequentially in the order they appear in the code, which can also form an **assembly line** where each target processes data based on the results of the previous one. Additionally, targets can operate **autonomously**, each with its own **life cycle**. There are also **no direct calls** to targets.  
-They can only be **activated** for execution, and the **task cycle** executes targets in the order of activation, ensuring a consistent flow and predictable access to data.
+Unlike traditional UI frameworks that rely on methods and variables, **TargetJS** structures its code around **targets**. Targets execute sequentially in the order they appear in the code, which can also form an **assembly line** where each target processes data based on the results of the previous one. Additionally, targets can operate **autonomously**, each with its own **life cycle**. There are also **no direct calls** to targets. They can only be **activated** for execution, and the **task cycle** executes targets in the order of activation, ensuring a consistent flow and predictable access to data.
 
 ### Synchronous Event Handling  
 
