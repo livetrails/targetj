@@ -620,7 +620,7 @@ Here is an example that creates 1000 rows. The first argument, 'rows,' is used t
 
 The `rectTop`, `absY`, and `onWindowScroll` targets are used to track the visible rows during scrolling. TargetJS automatically divides a long list into a tree structure, efficiently managing only the visible branch. The `onWindowScroll` target updates the `absY` of the table, enabling TargetJS to identify the branch visible to the user. You can opt out of this algorithm by setting the `shouldBeBracketed` target to `false`.
 
-![animation api example](https://targetjs.io/img/targetjsAsLibrary.gif)
+![animation api example](https://targetjs.io/img/targetjsAsLibrary.gif) 
 
 ```bash
 import { App, TModel, $Dom } from "targetj";
