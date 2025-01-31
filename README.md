@@ -61,21 +61,21 @@ Events in **TargetJS** are handled **synchronously** and made available to **all
 
 ### Execution Control with Time 
 
-**TargetJS** enables developers to **natively** control when targets execute, allowing **sequencing and parallelization** of numerous actions, which simplifies the development of complex UI behavior.
+**TargetJS** enables developers to control execution timing of targets, allowing **sequencing and parallelization** of numerous actions, which simplifies the development of complex UI behavior.
 
 ### Unified Approach for Development  
 
 Targets offer a **unified solution** for UI, animation, event handling, API calls, and state management, rather than working with multiple technologies, 
 commands, and approaches. This simplifies development and makes **TargetJS** easier to learn.
  
-### High Performance  
+### High Performance for large Lists
 
 **TargetJS** optimizes performance by internally building a **tree structure** where there is a long list of components. The TargetJS task cycle monitors only 
 the **visible branch** of the tree, ensuring high performance of pages with large lists of UI items.
 
 ### Enhanced User Experience  
 
-By its simplified and unified approach, removing the need for a static HTML layer and CSS files, it allows the code itself to drive the user experience.
+By its simplified and unified approach, removing the need for a static HTML layer and CSS files, the dynamic nature of targets, and its timing ability, it allows the developer to focus on the user experience.
 
 ### Future Enhancements  
 
