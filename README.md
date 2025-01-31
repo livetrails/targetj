@@ -6,7 +6,7 @@ Welcome to TargetJS, a powerful JavaScript UI framework and library that you mig
 
 Additionally, **TargetJS** executes targets in the exact order they appear in the code. Each target can process new data based on the outcome of the previous one, creating a structured flow. Each target can conditionally opt out of execution or re-execute a number of times when specific conditions are met.
 
-Targets cannot be called directly; instead, they are **activated** and then executed sequentially when the **target task cycle** starts. This approach ensures **predictable execution** and **reduces errors** by maintaining a consistent flow.  
+Targets cannot be called directly; instead, they are **activated** and then executed sequentially in the order of their activation. This approach ensures **predictable execution** and a consistent flow.  
 
 We believe **TargetJS** introduces a **new programming paradigm**—one that enhances productivity and makes the coding experience more enjoyable and user-centric.
 
