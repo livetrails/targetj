@@ -8,7 +8,7 @@ Additionally, **TargetJS** executes targets in the exact order they appear in th
 
 Targets cannot be called directly; instead, they are **activated** and then executed sequentially when the **target task cycle** starts. This approach ensures **predictable execution** and **reduces errors** by maintaining a consistent flow.  
 
-We believe **TargetJS** introduces a **new programming paradigm**—one that enhances productivity and makes the coding experience more enjoyable and user-centeric.
+We believe **TargetJS** introduces a **new programming paradigm**—one that enhances productivity and makes the coding experience more enjoyable and user-centric.
 
 ---
 
