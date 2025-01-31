@@ -55,12 +55,12 @@ Events in **TargetJS** are handled **synchronously** and made available to **all
 ### Minimal Dependence on HTML and CSS  
 
 - **HTML is optional**: We believe traditional HTML introduces unnecessary complexity and rigidity. While **TargetJS** can be integrated into existing HTML pages, it is **not required** when developing new ones.  
-- **CSS is optional**: Instead of relying on external stylesheets, ** styles can be incorporated directly as targets**. This allows styles to be **dynamically updated** and accessible from the rest of the code.  
-- **Dynamic HTML nesting**:  TargetJ generates a flat HTML structure by default. When HTML nesting is necessary, it is handled as a **target**, making it **dynamic** and easy to update.  
+- **CSS is optional**: Instead of relying on external stylesheets, **styles can be incorporated directly as targets**. This allows styles to be **dynamically updated** and easily accessible from the rest of the code.  
+- **Dynamic HTML nesting**:  TargetJ generates a flat HTML structure by default. When HTML element nesting is necessary, it is handled as a **target**, making it **dynamic** and easy to update.  
 
 ### Execution Control with Time 
 
-**TargetJS** enables developers to control execution timing of targets, allowing **sequencing and parallelization** of numerous actions, which simplifies the development of complex UI behavior.
+TargetJS enables developers to control the execution timing of targets, allowing for the sequencing and parallelization of numerous actions, which simplifies the development of complex UI behaviors.
 
 ### Unified Approach for Development  
 
