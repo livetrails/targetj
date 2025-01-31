@@ -70,7 +70,7 @@ commands, and approaches. This simplifies development and makes **TargetJS** eas
  
 ### High Performance  
 
-**TargetJS** optimizes performance by internally building a **tree structure** from a long list of components. The **TargetJS task cycle** monitors only 
+**TargetJS** optimizes performance by internally building a **tree structure** where there is a long list of components. The TargetJS task cycle monitors only 
 the **visible branch** of the tree, ensuring high performance of pages with large lists of UI items.
 
 ### Enhanced User Experience  
