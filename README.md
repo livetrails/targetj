@@ -57,7 +57,7 @@ Events in **TargetJS** are handled **synchronously** and made available to **all
 
 - **HTML is optional**: We believe traditional HTML introduces unnecessary complexity and rigidity. While **TargetJS** can be integrated into existing HTML pages, it is **not required** when developing new ones.  
 - **CSS is optional**: Instead of relying on external stylesheets, ** styles can be incorporated directly as targets**. This allows styles to be **dynamically updated** and accessible from the rest of the code.  
-- **Dynamic HTML nesting**:  TargetJ generates a flat HTML structure by default. When HTML Nesting is necessary, it is handled as a **target**, making it **dynamic** and easy to update.  
+- **Dynamic HTML nesting**:  TargetJ generates a flat HTML structure by default. When HTML nesting is necessary, it is handled as a **target**, making it **dynamic** and easy to update.  
 
 ### Execution Control with Time 
 
