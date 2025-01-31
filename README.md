@@ -4,7 +4,7 @@ Welcome to TargetJS, a powerful JavaScript UI framework and library that you mig
 
 **TargetJS** distinguishes itself by introducing a novel concept known as **"targets,"** which form its core. Targets provide methods and variable assignments with life cycles, allowing them to operate independently and autonomously. They include various callbacks to adapt to changes, mimicking the behavior of living cells.  
 
-Additionally, **TargetJS** executes targets in the exact order they appear in the code. Each target can process new data based on the outcome of the previous one, creating a structured flow. Each target can conditionally opt out of execution or re-execute a number of times when specific conditions are met.
+Additionally, **TargetJS** executes targets in the exact order they appear in the code. Each target can process new data based on the outcome of the previous one, creating a structured flow. Each target can also conditionally opt out of execution or re-execute a number of times when specific conditions are met.
 
 Targets cannot be called directly; instead, they are **activated** and then executed sequentially in the order of their activation. This approach ensures **predictable execution** and a consistent flow.  
 
@@ -74,7 +74,8 @@ the **visible branch** of the tree, ensuring high performance of pages with larg
 
 ### Enhanced User Experience  
 
-By its simplified and unified approach, removing the need for a static HTML layer and CSS files, the dynamic nature of targets, and its timing ability, it allows the developer to focus on the user experience.
+With its simplified and unified approach, eliminating the need for a static HTML layer and CSS files, along with the dynamic nature of targets, we believe TargetJS enables developers
+to focus on the user experience more than other frameworks.
 
 ### Future Enhancements  
 
