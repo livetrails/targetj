@@ -17,6 +17,8 @@ class EventListener {
         this.currentTouch = {
             deltaY: 0,
             deltaX: 0,
+            prevDeltaX: 0,
+            prevDeltaY: 0,
             pinchDelta: 0,
             key: '',
             manualMomentumFlag: false,
@@ -251,6 +253,9 @@ class EventListener {
     }
 
     captureEvents() {
+        this.currentTouch.prevDeltaX = 0;
+        this.currentTouch.prevDeltaY = 0;
+        
         this.currentHandlers.enterEvent = undefined;
         this.currentHandlers.leaveEvent = undefined;
         this.currentHandlers.justFocused = undefined;
@@ -415,11 +420,9 @@ class EventListener {
                 this.end0 = this.getTouch(event);
                                 
                 if (this.start0) {
-                    const deltaX = this.end0 ? Math.abs(this.end0.originalX - this.start0.originalX) : 0;
-                    const deltaY = this.end0 ? Math.abs(this.end0.originalY - this.start0.originalY) : 0;                
-                    const period = this.end0 ? Math.abs(this.end0.timeStamp - this.start0.timeStamp) : 300;
+                    const touchHandler = SearchUtil.findFirstTouchHandler(tmodel);
                     
-                    if (deltaX <= 1 && deltaY <= 1 && period <= 300) {
+                    if (touchHandler && touchHandler === this.currentHandlers.touch) {
                         this.eventQueue.length = 0;
                         this.eventQueue.push({ eventName, eventItem, eventType, originalName, tmodel, eventTarget, timeStamp: now });
                     }
@@ -489,6 +492,8 @@ class EventListener {
         this.currentTouch = {
             deltaY: 0,
             deltaX: 0,
+            prevDeltaX: 0,
+            prevDeltaY: 0,
             pinchDelta: 0,
             key: '',
             manualMomentumFlag: false,
@@ -790,8 +795,12 @@ class EventListener {
             this.currentTouch.source = source;
         }
         
-        this.currentTouch.deltaY = deltaY;
-        this.currentTouch.deltaX = deltaX;
+        // Accumulate movement deltas before they get reset in `captureEvents` to sync with the task cycle when movement is too fast
+        this.currentTouch.prevDeltaX += deltaX;              
+        this.currentTouch.prevDeltaY += deltaY;
+        
+        this.currentTouch.deltaX = this.currentTouch.prevDeltaX;        
+        this.currentTouch.deltaY = this.currentTouch.prevDeltaY;
     }
 
     wheel(event) {

@@ -56,7 +56,7 @@ class BaseModel {
         this.targetExecutionCount = 0;
       
         this.parent = null;
-
+        
         this.targetMethodMap = {};
     }
 
@@ -105,7 +105,7 @@ class BaseModel {
             return;
         }
 
-        TargetUtil.bindTargetName(this.targets, key);
+        TargetUtil.bindTargetName(this, key);
 
         if (TargetUtil.allEventMap[key] || TargetUtil.internalEventMap[key]) {
             if (!this.eventTargetMap[key]) {

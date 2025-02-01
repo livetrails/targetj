@@ -288,26 +288,34 @@ class TargetUtil {
         return autoHandleEvents;
     }
    
-    static bindTargetName(targetInstance, key) {
-        const target = targetInstance[key];
+    static bindTargetName(instance, key) {
+        const target = instance.targets[key];
+        const keys = Object.keys(instance.targets);
+        const keyIndex = keys.indexOf(key);
+        const prevKey = keyIndex > 0 ? keys[keyIndex - 1] : undefined;
+
+        const getPrevValue = () => (prevKey !== undefined ? instance.val(prevKey) : undefined);
 
         if (typeof target === 'object') {
             const stepPattern = /^on[A-Za-z]+Step$/;
             const endPattern = /^on[A-Za-z]+End$/;  
             const methods = ['value', 'enabledOn', 'onStepsEnd', 'onValueChange', 'loop', 'onImperativeEnd', 'onImperativeStep', 'onSuccess', 'onError'];
+
             Object.keys(target).forEach(method => {
                 if (typeof target[method] === 'function' && (methods.includes(method) || stepPattern.test(method) || endPattern.test(method))) {
                     const originalMethod = target[method];
                     target[method] = function() {
                         this.key = key;
+                        this.prevTargetValue = getPrevValue();
                         return originalMethod.apply(this, arguments);
                     };
                 }
             });
         } else if (typeof target === 'function') {
             const originalFunction = target;
-            targetInstance[key] = function() {
+            instance.targets[key] = function() {
                 this.key = key;
+                this.prevTargetValue = getPrevValue();
                 return originalFunction.apply(this, arguments);
             };
         }

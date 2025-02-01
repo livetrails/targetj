@@ -22,6 +22,9 @@ class SearchUtil {
     }
 
     static findFirstHandler(tmodel, options) {
+        if (!tmodel) {
+            return;
+        }
         const { eventName, eventType } = options;
         
         const handlerKey = `${tmodel.oid} ${eventName} ${eventType}`;
