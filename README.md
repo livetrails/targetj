@@ -146,8 +146,8 @@ App(new TModel('quickStart', {
         loop: true,
         cycles: 2,
         interval: 1000,
-        value() {
-            const move = this.val('moves')[this.getTargetCycle(this.key)];
+        value(cycle) {
+            const move = this.prevTargetValue[cycle];
             const x = (this.getParentValue('width') - move.width) / 2;
             const y = (this.getParentValue('height') - move.height) / 2;
             this.setTarget({ ...move, x, y }, 30);
