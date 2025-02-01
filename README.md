@@ -2,32 +2,44 @@
 
 Welcome to TargetJS, a powerful JavaScript UI framework and library that you might find redefines front-end development. (https://targetjs.io)
 
-TargetJS distinguishes itself by introducing a novel concept known as 'targets,' which forms its core. Targets give methods and variable assignments life cycles and the autonomy to operate independently, with various callbacks to adapt to changes, mimicking the behavior of living cells. This opens a new paradigm in programming. 
+**TargetJS** distinguishes itself by introducing a novel concept known as **"targets,"** which form its core. Targets provide methods and variable assignments with life cycles, allowing them to operate independently and autonomously. They include various callbacks to adapt to changes, mimicking the behavior of living cells.  
 
-We believe TargetJS not only increases productivity but also enhances the development process by making it more enjoyable and user-experience-centered.
+Additionally, **TargetJS** executes targets in the exact order they appear in the code. Each target can process new data based on the outcome of the previous one, creating a structured flow. Each target can also conditionally opt out of execution or re-execute a number of times when specific conditions are met.
+
+Targets cannot be called directly; instead, they are **activated** and then executed sequentially in the order of their activation. This approach ensures **predictable execution** and a consistent flow.  
+
+## TargetJ: A Unique Computational Paradigm
+
+TargetJ introduces a unique paradigm by blending multiple computational models:
+
+- **Turing Completeness**: targets can execute continuously, modify values dynamically, and conditionally skip execution.
+- **Von Neumann Execution Model**: Targets are executed in the order they appear in the code or based on their activation order.
+- **Functional Programming**: Targets can be composed to transform data in a pipeline-like manner, similar to functional programming constructs.
+
+We believe TargetJS' new programming paradigm will enhance productivity and make the coding experience more enjoyable and user-centric.
 
 ---
 
 ## Table of Contents
 
 1. [Installation](#installation)
-2. [What are Targets?](#what-are-targets)
-3. Two Quick Examples:
+2. [Comparison with Other UI Frameworks](#Comparison-with-other-ui-frameworks)
+3. [What are Targets?](#what-are-targets)
+4. Two Quick Examples:
    - [Draggable Animation Example](#draggable-animation-example)
    - [Infinite Scrolling Example](#infinite-scrolling-example)
-4. [Why TargetJS?](#why-targetjs)
-5. [Integration with Existing Pages](#integration-with-existing-pages)
-6. [Anatomy of a Target](#anatomy-of-a-target)
-7. [How TargetJS Operates](#how-targetjs-operates)
-8. [Target Methods](#target-methods)
-9. Examples:
+5. [Why TargetJS?](#why-targetjs)
+6. [Integration with Existing Pages](#integration-with-existing-pages)
+7. [Anatomy of a Target](#anatomy-of-a-target)
+8. [How TargetJS Operates](#how-targetjs-operates)
+9. [Target Methods](#target-methods)
+10. Examples:
    - [Simple Example](#simple-example)
    - [Declarative and Imperative Targets Example](#declarative-and-imperative-targets-example)
    - [Loading Data Example](#loading-data-example)
    - [Animation API Comparison Example](#animation-api-comparison-example)
    - [Simple Single Page App Example](#simple-single-page-app-example)
-   - [Using TargetJS as a Library Example](#using-targetjs-as-a-library-example)
-10. [Features](#features)     
+   - [Using TargetJS as a Library Example](#using-targetjs-as-a-library-example) 
 11. [Special Target Names](#special-target-names)
 12. [How to Debug in TargetJS](#how-to-debug-in-targetjs)
 13. [Documentation](#documentation)
@@ -35,6 +47,47 @@ We believe TargetJS not only increases productivity but also enhances the develo
 15. [Contact](#contact)
 
 ⭐ We appreciate your star, it helps!
+
+---
+
+## Comparison with Other UI Frameworks  
+
+### A Target-Based Approach  
+
+Unlike traditional UI frameworks that rely on methods and variables, **TargetJS** structures its code around **targets**. Targets execute sequentially in the order they appear in the code, which can also form an **assembly line** where each target processes data based on the results of the previous one. Additionally, targets can operate **autonomously**, each with its own **life cycle**. There are also **no direct calls** to targets. They can only be **activated** for execution, and the **task cycle** executes targets in the order of activation, ensuring a consistent flow and predictable access to data.
+
+### Minimal Dependence on HTML and CSS  
+
+- **HTML is optional**: We believe traditional HTML introduces unnecessary complexity and rigidity. While **TargetJS** can be integrated into existing HTML pages, it is **not required** when developing new ones.  
+- **CSS is optional**: Instead of relying on external stylesheets, **styles can be incorporated directly as targets**. This allows styles to be **dynamically updated** and easily accessible from the rest of the code.  
+- **Dynamic HTML nesting**:  TargetJ generates a flat HTML structure by default. When HTML element nesting is necessary, it is handled as a **target**, making it **dynamic** and easy to update.
+
+### Synchronous Event Handling  
+
+Events in **TargetJS** are handled **synchronously** and made available to **all active targets** within visible components. This approach ensures **flexible, consistent event handling** and less error prone.
+
+### Execution Control with Time 
+
+TargetJS enables developers to control the execution timing of targets, allowing for the sequencing and parallelization of numerous actions, which simplifies the development of complex UI behaviors.
+
+### Unified Approach for Development  
+
+Targets offer a **unified solution** for UI, animation, event handling, API calls, and state management, rather than working with multiple technologies, 
+commands, and approaches. This simplifies development and makes **TargetJS** easier to learn.
+ 
+### High Performance for large Lists
+
+**TargetJS** optimizes performance by internally building a **tree structure** where there is a long list of components. The TargetJS task cycle monitors only 
+the **visible branch** of the tree, ensuring high performance of pages with large lists of UI items.
+
+### Enhanced User Experience  
+
+With its simplified and unified approach, eliminating the need for a static HTML layer and CSS files, along with the dynamic nature of targets, we believe TargetJS enables developers
+to focus on the user experience more than other frameworks.
+
+### Future Enhancements  
+
+Currently, TargetJ generates HTML elements with styles. We plan to support additional rendering APIs, such as the Canvas API and the Animation API, directly within targets to make them easily accessible. This will also enable highly interactive UIs capable of efficiently handling a large number of objects.
 
 ---
 
@@ -51,7 +104,7 @@ npm install targetj
 
 In TargetJS, **targets** serve as the core building blocks of components, replacing traditional variables and methods. Each component is composed of a set of targets.
 
-Targets provide a **unified approach** for solving challenges in **animation**, **user interface organization**, **program flow control**, **state management**, **event handling**, **API calls**, and more. They achieve this by offering a consistent interface for variable assignments and methods, enabling them to operate autonomously and manage their own life cycles.
+Targets provide a **unified approach** for addressing **animation**, **user interface**, **program flow control**, **state management**, **event handling**, **API calls**, and more. They achieve this by offering a consistent interface for variable assignments and methods, enabling them to operate autonomously and manage their own life cycles.
 
 ### For example:
 - **Variables**:
@@ -67,7 +120,9 @@ Targets provide a **unified approach** for solving challenges in **animation**, 
 
 ### Draggable Animation Example 
 
-In our first example, `color`, `html`, `textAlign`, `moves`, and `animate` are all targets. These targets are executed in the same order they appear in the program. `color`, `html`, `textAlign`, `moves` get competed and their life cycle end. The main target `animate` remains active with an indefinite lifecycle specified by the `loop` property. After each animation cycle, there is a one-second pause, defined by the `interval` property in the `animate` target. Both `loop` and `interval` can also be defined as methods, which will be explained further below. The `setTarget` method defines an imperative target, which is also explained in more detail below, executes the assigment in 30 steps. The `animate` target starts a new cycle after all the imperative targets have been completed or at least one second pass specified in the interval value given that the imperative targets get executed less than 1 second.
+In our first example, `color`, `html`, `textAlign`, `moves`, and `animate` are all targets. These targets are executed in the same order they appear in the program. `color`, `html`, `textAlign`, `moves` get competed and their life cycle end.
+The `moves` target prepares the data required for the `animate` target before execution. The `animate` target then generates a list of imperative targets for each style included in each move.
+The target `animate` remains active with an indefinite lifecycle specified by the `loop` property. After each animation cycle, there is a one-second pause, defined by the `interval` property. Both `loop` and `interval` can also be defined as methods, which will be explained further below. The `setTarget` method defines an imperative target, which is also explained in more detail below, executes the assigment in 30 steps. The `animate` target starts a new cycle after all the imperative targets have been completed or at least one second pass specified in the interval value given that the imperative targets get executed less than 1 second.
 
 You'll also find `quickStart`, the first argument in the `TModel` constructor. If an HTML element with the same ID already exists on the page, it will be used in the new instance of `TModel`, and the animation will be applied to it. If no such element exists, TargetJS will create one.
 
@@ -115,7 +170,7 @@ Internally, TargetJS maintains a tree-like structure to track the visible branch
 
 If you inspect the HTML elements in the browser's developer tools, you'll notice that the scroller's elements are not nested inside the container. This is because nesting is another target that can dynamically control how elements are nested. This facilitates the reuse of HTML elements and opens the door to new user experiences.
 
-![Single page app](https://targetjs.io/img/infiniteScrolling4.gif)
+![Single page app](https://targetjs.io/img/infiniteScrolling5.gif)
 
 ```bash
 import { App, TModel, getEvents, getScreenHeight, getScreenWidth, } from "targetj";
@@ -573,7 +628,7 @@ Here is an example that creates 1000 rows. The first argument, 'rows,' is used t
 
 The `rectTop`, `absY`, and `onWindowScroll` targets are used to track the visible rows during scrolling. TargetJS automatically divides a long list into a tree structure, efficiently managing only the visible branch. The `onWindowScroll` target updates the `absY` of the table, enabling TargetJS to identify the branch visible to the user. You can opt out of this algorithm by setting the `shouldBeBracketed` target to `false`.
 
-![animation api example](https://targetjs.io/img/targetjsAsLibrary.gif)
+![animation api example](https://targetjs.io/img/targetjsAsLibrary.gif) 
 
 ```bash
 import { App, TModel, $Dom } from "targetj";
@@ -606,22 +661,6 @@ App(new TModel("rows", {
     }
 }));
 ```
----
-
-## Features
-
-As a result of using targets, we can develop web sites or apps with the following features:
-
-- **No HTML required**: HTML tags are seldom necessary.
-- **No CSS required**: Most popular styles are incorporated directly into targets.
-- **No HTML nesting**: HTML nesting is seldom required in TargetJS. If it is required, nesting is done at runtime. Elements can be dynamically detached and incorporated into other elements, facilitating the easy reuse of components regardless of their location or attachment. It also opens the door for a new user experiences.
-- **Next-level animation**: Users can program objects to move at varying speeds, pause at certain intervals, and repeat sequences based on various conditions. It allows the creation of complicated animations.
-- **Control the flow of execution with time**: TargetJS simplifies the execution of various program segments at specific times, making it easy to sequence or parallelize numerous actions.
-- **Handle events effortlessly**: In TargetJS, events are triggered synchronously and are designed so that any component can detect when an event occurs.
-- **Easy to learn**: TargetJS simplifies development by employing the single concept of \'targets\' making it easy to learn.
-- **Handle 100,000s of items**: TargetJS efficiently manages large collections of objects on a single page. This is done by its data structure and optimization algorithm. It divides a long list into a tree structure, monitoring only the branches that are visible to the user at any given time.
-- **AI friendly**: With a unified concept of targets for all development, the ability to add and remove targets at runtime, and the capability to inspect various statuses of running objects, TargetJS is a strong candidate for AI-powered UI development.
-
 ---
 
 ## Special target names
