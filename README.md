@@ -637,7 +637,7 @@ App(new TModel("rows", {
     isVisible: true,
     containerOverflowMode: "always",
     rectTop() { return this.$dom.getBoundingClientRect().top; },
-    absY() { return this.val("rectTop") - $Dom.getWindowScrollTop(); },
+    absY() { return this.prevTargetValue - $Dom.getWindowScrollTop(); },
     defaultStyling: false,
     domHolder: true,
     onDomEvent: ["rectTop", "absY"],
