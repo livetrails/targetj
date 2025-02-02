@@ -147,7 +147,7 @@ App(new TModel('quickStart', {
     ],
     animate: {
         loop: true,
-        cycles: 2,
+        cycles() { return this.prevTargetValue.length - 1; },
         interval: 1000,
         value(cycle) {
             const move = this.prevTargetValue[cycle];
