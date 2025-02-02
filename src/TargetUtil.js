@@ -293,8 +293,23 @@ class TargetUtil {
         const keys = Object.keys(instance.targets);
         const keyIndex = keys.indexOf(key);
         const prevKey = keyIndex > 0 ? keys[keyIndex - 1] : undefined;
-
+        
         const getPrevValue = () => (prevKey !== undefined ? instance.val(prevKey) : undefined);
+
+        let lastPrevUpdateTime = prevKey !== undefined ? instance.getActualValueLastUpdate(prevKey) : undefined;
+
+        const getPrevUpdateTime = () => prevKey !== undefined ? instance.getActualValueLastUpdate(prevKey) : undefined;
+
+        const isPrevTargetUpdated = () => {
+            const currentPrevUpdateTime = getPrevUpdateTime();
+            if (lastPrevUpdateTime === undefined && currentPrevUpdateTime === undefined) {
+                return false;
+            }
+            if (lastPrevUpdateTime === undefined && currentPrevUpdateTime !== undefined) {
+                return true;
+            }
+            return currentPrevUpdateTime !== lastPrevUpdateTime;
+        };
 
         if (typeof target === 'object') {
             const stepPattern = /^on[A-Za-z]+Step$/;
@@ -307,7 +322,10 @@ class TargetUtil {
                     target[method] = function() {
                         this.key = key;
                         this.prevTargetValue = getPrevValue();
-                        return originalMethod.apply(this, arguments);
+                        this.isPrevTargetUpdated = isPrevTargetUpdated;
+                        const result = originalMethod.apply(this, arguments);
+                        lastPrevUpdateTime = getPrevUpdateTime() ?? lastPrevUpdateTime;
+                        return result;
                     };
                 }
             });
@@ -316,7 +334,10 @@ class TargetUtil {
             instance.targets[key] = function() {
                 this.key = key;
                 this.prevTargetValue = getPrevValue();
-                return originalFunction.apply(this, arguments);
+                this.isPrevTargetUpdated = isPrevTargetUpdated;
+                const result = originalFunction.apply(this, arguments);
+                lastPrevUpdateTime = getPrevUpdateTime() ?? lastPrevUpdateTime;
+                return result;
             };
         }
     }
