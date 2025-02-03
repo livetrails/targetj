@@ -13,8 +13,8 @@ Targets cannot also be called directly; instead, they are **activated** and then
 TargetJ introduces a unique paradigm by blending multiple computational models:
 
 - **Turing Completeness**: targets can execute continuously, modify values dynamically, and conditionally skip execution.
-- **Von Neumann Execution Model**: Targets are executed in the order they appear in the code or based on their activation order.
-- **Functional Programming**: Targets can be composed to transform data in a pipeline-like manner, similar to functional programming constructs.
+- **Von Neumann Execution Model**: Targets are executed in the order they appear in the code or based on their activation order. They cannot be called directly.
+- **Functional Programming**: Targets can be composed to transform data in a pipeline-like manner, similar to functional programming constructs. Each target can access the result of the previous target using this.prevTargetValue and determine if it has changed with isPrevTargetUpdate(), making targets easier to test.
 
 We believe TargetJS' new programming paradigm will enhance productivity and make the coding experience more enjoyable and user-centric.
 
