@@ -171,7 +171,7 @@ This example demonstrates how to handle scroll events and implement a simple inf
 
 Internally, TargetJS maintains a tree-like structure to track the visible branches of the tree, optimizing the performance of the scroller. You can opt out of tree-structure optimization by setting `shouldBeBracketed` target to false.
 
-Each item's width will start at 100px and expand to 300px over 15 steps, executed as quickly as the device allows. Simultaneously, the background will transition from yellow to purple in 15 steps, with each step occurring every 15 milliseconds.
+Each item's width will start at 100px and expand to 250px over 15 steps, executed as quickly as the device allows. Simultaneously, the background will transition from yellow to purple in 15 steps, with each step occurring every 15 milliseconds.
 
 If you inspect the HTML elements in the browser's developer tools, you'll notice that the scroller's elements are not nested inside the container. This is because nesting is another target that can dynamically control how elements are nested. This facilitates the reuse of HTML elements and opens the door to new user experiences.
 
@@ -186,7 +186,7 @@ App(new TModel({
         const childrenCount = this.getChildren().length;
         return Array.from({ length: 10 }, (_, i) => 
             new TModel('scrollItem', {
-                width: [{ list: [100, 300] }, 15],
+                width: [{ list: [100, 250] }, 15],
                 background: [{ list: ["#FCE961", "#B388FF"] }, 15, 15],              
                 height: 32,
                 color: '#C2FC61',
