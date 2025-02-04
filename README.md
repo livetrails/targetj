@@ -455,42 +455,44 @@ App(
 
 Calling backend APIs is simplified through the use of targets in TargetJS. It alo provides a Loader class, accessible via getLoader(), which streamlines API integration.
 
-In the example below, we define a target named load. Inside the value function, we make the API call using fetch(). The second argument specifies the API URL, and the third argument contains the query parameters passed to the API. A fourth optional parameter, omitted in this example, can specify a cache ID if we want to cache the result. This cache ID can also be used to retrieve the cached data. If it’s not specified, the result will always come from the API. Once the API response is received, it triggers either onSuccess or onError, depending on the outcome.
+In the example below, we define a target named load. Inside the value function, we make the API call using fetch(). The second argument specifies the API URL, and the third argument contains the query parameters passed to the API. A fourth optional parameter, omitted in this example, can specify a cache ID if we want to cache the result. This cache ID can also be used to retrieve the cached data. If it’s not specified, the result will always come from the API. 
 
-In this example, we set the cycles to 9, triggering the API call 10 times at intervals of 1 second (interval set to 1000). Each API response is appended as a separate object in the output. Because we didn’t specify the fourth argument, the response is always fetched directly from the API rather than from the cache.
+Once the API response is received, it activates the `children` target to create the user and add it to its children. Notice that `prevTargetValue` will have a different value in each occurrence.  
 
-![api loading example](https://targetjs.io/img/apiLoading4.gif)
+- In the `height` target, it reflects the `width` value.  
+- In the `lineHeight` target, it reflects the `height` value.  
+- In the `html` target, it holds the retrieved user value, as it is not inside a function and takes the value from `loader`.  
+
+You can also define `onSuccess` and `onError` callbacks in `loader`, which will be executed based on the result returned.
+
+![api loading example](https://targetjs.io/img/loadingExample2.gif)
 
 ```bash
 import { App, TModel, getLoader, getScreenHeight, getScreenWidth, Moves } from "targetj";
 
 App(new TModel("apiCall", {
-  width: 160,
-  height: getScreenHeight,
-  load: {
-    interval: 1000,
-    cycles: 8,
-    value: function (cycle) {
-      return getLoader().fetch(this, "https://targetjs.io/api/randomUser", {
-        id: `user${cycle}`,
-      });
+    height() { return getScreenHeight(); },
+    width: 250,
+    load: {
+      interval: 1000,
+      cycles: 4,
+      value: function (cycle) {
+        getLoader().fetch(this, "https://targetjs.io/api/randomUser", { id: `user${cycle}` });
+      }
     },
-    onSuccess(res) {
-      this.addChild(
-        new TModel("user", {
-          lineHeight: 50,
-          textAlign: "center",
-          html: res.result.name,
-          width: 50,
-          height: 50,
-          rightMargin: 5,
-          bottomMargin: 5,
-          color: "#fff",
-          background: "#B388FF",
-        })
-      );
+    _children$() {
+      return new TModel("user", {
+        width: [120, 50, 30],
+        height$() { return this.prevTargetValue / 2; },
+        lineHeight$() { return this.prevTargetValue; },
+        html: this.prevTargetValue.name,        
+        bottomMargin: 5,
+        rightMargin: 5,
+        textAlign: "center",
+        backgroundColor: "#B388FF",
+        overflow: "hidden"
+      });
     }
-  }
 }));
 ```
 ---
