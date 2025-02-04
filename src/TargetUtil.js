@@ -1,5 +1,5 @@
 import { TModel } from "./TModel.js";
-import { getRunScheduler, getManager, getEvents, getResizeLastUpdate } from "./App.js";
+import { getRunScheduler, getManager, getEvents, getResizeLastUpdate, getLoader } from "./App.js";
 import { TUtil } from "./TUtil.js";
 import { ColorUtil } from "./ColorUtil.js";
 
@@ -287,18 +287,31 @@ class TargetUtil {
 
         return autoHandleEvents;
     }
-   
-    static bindTargetName(instance, key) {
-        const target = instance.targets[key];
-        const keys = Object.keys(instance.targets);
+    
+    static getTargetName(key) {
+        if (!key) {
+            return key;
+        }
+
+        let cleanKey = key.startsWith('_') ? key.slice(1) : key;
+        cleanKey = cleanKey.endsWith('$') ? cleanKey.slice(0, -1) : cleanKey;
+
+        return cleanKey;
+    }
+    
+    static bindTarget(tmodel, key, keys = Object.keys(tmodel.targets)) {
+        let target = tmodel.targets[key];
         const keyIndex = keys.indexOf(key);
-        const prevKey = keyIndex > 0 ? keys[keyIndex - 1] : undefined;
+        const prevKey = keyIndex > 0 ? TargetUtil.getTargetName(keys[keyIndex - 1]) : undefined;
+        const nextKey = keyIndex < keys.length - 1 ? keys[keyIndex + 1] : undefined;
         
-        const getPrevValue = () => (prevKey !== undefined ? instance.val(prevKey) : undefined);
+        const getPrevValue = () => {
+            return (prevKey !== undefined ? tmodel.val(prevKey) : undefined);
+        };
 
-        let lastPrevUpdateTime = prevKey !== undefined ? instance.getActualValueLastUpdate(prevKey) : undefined;
+        let lastPrevUpdateTime = prevKey !== undefined ? tmodel.getActualValueLastUpdate(prevKey) : undefined;
 
-        const getPrevUpdateTime = () => prevKey !== undefined ? instance.getActualValueLastUpdate(prevKey) : undefined;
+        const getPrevUpdateTime = () => prevKey !== undefined ? tmodel.getActualValueLastUpdate(prevKey) : undefined;
 
         const isPrevTargetUpdated = () => {
             const currentPrevUpdateTime = getPrevUpdateTime();
@@ -310,6 +323,17 @@ class TargetUtil {
             }
             return currentPrevUpdateTime !== lastPrevUpdateTime;
         };
+        
+        const doesNextTargetUsePrevValue = nextKey && nextKey.endsWith('$') ? true : false;
+             
+        if (doesNextTargetUsePrevValue) {
+            if (typeof target === 'object' && !Array.isArray(target)) {
+                target.activateNextTarget = TargetUtil.getTargetName(nextKey);
+            } else {
+                tmodel.targets[key] = { value: target, activateNextTarget: TargetUtil.getTargetName(nextKey) };
+                target = tmodel.targets[key];                
+            }
+        }  
 
         if (typeof target === 'object') {
             const stepPattern = /^on[A-Za-z]+Step$/;
@@ -320,8 +344,8 @@ class TargetUtil {
                 if (typeof target[method] === 'function' && (methods.includes(method) || stepPattern.test(method) || endPattern.test(method))) {
                     const originalMethod = target[method];
                     target[method] = function() {
-                        this.key = key;
-                        this.prevTargetValue = getPrevValue();
+                        this.key = TargetUtil.getTargetName(key);
+                        this.prevTargetValue = getPrevValue();         
                         this.isPrevTargetUpdated = isPrevTargetUpdated;
                         const result = originalMethod.apply(this, arguments);
                         lastPrevUpdateTime = getPrevUpdateTime() ?? lastPrevUpdateTime;
@@ -331,14 +355,26 @@ class TargetUtil {
             });
         } else if (typeof target === 'function') {
             const originalFunction = target;
-            instance.targets[key] = function() {
-                this.key = key;
+            tmodel.targets[key] = function() {
+                this.key = TargetUtil.getTargetName(key);
                 this.prevTargetValue = getPrevValue();
                 this.isPrevTargetUpdated = isPrevTargetUpdated;
                 const result = originalFunction.apply(this, arguments);
                 lastPrevUpdateTime = getPrevUpdateTime() ?? lastPrevUpdateTime;
                 return result;
             };
+        }
+    }
+    
+    static shouldActivateNextTarget(tmodel, key) {
+        if (tmodel.targets[key]?.activateNextTarget) {
+            const targetName = tmodel.targets[key]?.activateNextTarget;
+            if (!getLoader().isInTModelKeyMap(tmodel, key)) {
+                if (tmodel.isTargetImperative(targetName)) {
+                    tmodel.targetValues[targetName].isImperative = false;
+                }
+                tmodel.activate(targetName);
+            }
         }
     }
 

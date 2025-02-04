@@ -1,6 +1,7 @@
 import { $Dom } from "./$Dom.js";
 import { TUtil } from "./TUtil.js";
 import { getRunScheduler } from "./App.js";
+import { TargetUtil } from "./TargetUtil.js";
 
 /**
  * It provides a central place for managing fetching of external APIs and images. 
@@ -9,6 +10,7 @@ class LoadingManager {
     constructor() {
         this.cacheMap = {};
         
+        this.tmodelKeyMap = {};
         this.fetchingAPIMap = {};
         this.fetchingImageMap = {};
     }
@@ -19,8 +21,10 @@ class LoadingManager {
                 tmodel.targets[tmodel.key].onSuccess.call(tmodel, { ...this.cacheMap[cacheId], fetchingPeriod: 0 });
             }            
         } else if (fetchMap[fetchId]) {
+            this.addToTModelKeyMap(tmodel, tmodel.key);
             fetchMap[fetchId].targets.push({ tmodel, targetName: tmodel.key });
         } else {
+            this.addToTModelKeyMap(tmodel, tmodel.key);
             fetchMap[fetchId] = {
                 fetchId,
                 cacheId,
@@ -33,6 +37,21 @@ class LoadingManager {
         }
         
         return fetchId;
+    }
+    
+    addToTModelKeyMap(tmodel, targetName) {
+        const key = `${tmodel.oid} ${targetName}`;
+        this.tmodelKeyMap[key] = true;
+    }
+    
+    removeFromTModelKeyMap(tmodel, targetName) {
+        const key = `${tmodel.oid} ${targetName}`;
+        delete this.tmodelKeyMap[key];        
+    }
+    
+    isInTModelKeyMap(tmodel, targetName) {
+        const key = `${tmodel.oid} ${targetName}`;
+        return this.tmodelKeyMap[key];
     }
 
     fetch(tmodel, url, query, cacheId) {
@@ -76,9 +95,12 @@ class LoadingManager {
         };
 
         targets.forEach(({ tmodel, targetName }) => {
+            this.removeFromTModelKeyMap(tmodel, targetName);
             if (typeof tmodel.targets[targetName]?.onSuccess === 'function' && tmodel.isTargetEnabled(targetName)) {
                 tmodel.targets[targetName].onSuccess.call(tmodel, res);
             }
+            tmodel.val(targetName, result);
+            TargetUtil.shouldActivateNextTarget(tmodel, targetName);
         });
         
         delete fetchMap[fetchId];
@@ -100,9 +122,12 @@ class LoadingManager {
         };
 
         targets.forEach(({ tmodel, targetName }) => {
+            this.removeFromTModelKeyMap(tmodel, targetName);            
             if (typeof tmodel.targets[targetName]?.onError === 'function') {
                 tmodel.targets[targetName].onError.call(tmodel, res);
             }
+            tmodel.actualValues[targetName] = res;
+            TargetUtil.shouldActivateNextTarget(tmodel, targetName);            
         });
         
         delete fetchMap[fetchId];

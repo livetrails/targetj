@@ -61,7 +61,7 @@ class TModelUtil {
         };
     }
     
-    static defaultTargets() {
+    static defaultTargetStyles() {
         return { 
             position: 'absolute', 
             left: 0, 

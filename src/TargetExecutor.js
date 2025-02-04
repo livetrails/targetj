@@ -8,9 +8,11 @@ import { getEvents } from "./App.js";
  */
 class TargetExecutor {
     
-    static executeDeclarativeTarget(tmodel, key) {  
+    static executeDeclarativeTarget(tmodel, key) { 
         TargetExecutor.resolveTargetValue(tmodel, key);
-        TargetExecutor.updateTarget(tmodel, tmodel.targetValues[key], key);      
+        TargetExecutor.updateTarget(tmodel, tmodel.targetValues[key], key);
+
+        TargetUtil.shouldActivateNextTarget(tmodel, key);
     }
 
     static executeImperativeTarget(tmodel, key, value, steps, interval, easing, originalTargetName) {
@@ -109,7 +111,7 @@ class TargetExecutor {
         const newSteps = valueArray[1] || 0;
         const newInterval = valueArray[2] || 0;
         const newCycles = valueArray[3] || 0;
-                
+        
         const targetValue = tmodel.targetValues[key] || TargetUtil.emptyValue();
 
         tmodel.targetValues[key] = targetValue;

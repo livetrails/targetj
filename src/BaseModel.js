@@ -69,11 +69,13 @@ class BaseModel {
         this.targetValues = {};
         this.activeTargetMap = {};
         this.activeTargetList = [];
+          
+        const targetNames = Object.keys(this.targets);
         
         const domExists = $Dom.query(`#${this.oid}`);
         
         if (!domExists && !this.excludeDefaultStyling()) {
-            Object.entries(TModelUtil.defaultTargets()).forEach(([key, value]) => {
+            Object.entries(TModelUtil.defaultTargetStyles()).forEach(([key, value]) => {
                 if (!(key in this.targets)) {
                     this.targets[key] = value;
                 }
@@ -83,29 +85,34 @@ class BaseModel {
         }
         
         Object.keys(this.targets).forEach(key => {
-            this.processNewTarget(key);
+            this.processNewTarget(key, targetNames);
         });
     }    
     
-    processNewTarget(key) {
-        const isInactiveKey = key.startsWith('_');
+    processNewTarget(key, targetNames) {
         
-        if (isInactiveKey) {
-            const newKey = key.slice(1);
-            this.targets[newKey] = typeof this.targets[key] === 'object' && this.targets[key].value ? this.targets[key] : { value: this.targets[key] };
-            this.targets[newKey].active = false;
-            delete this.targets[key];
-            key = newKey;
-        }
-
-        const target = this.targets[key];
-
-        if (!TUtil.isDefined(target)) {
+        if (!TUtil.isDefined(this.targets[key])) {
             this.delVal('key');
             return;
         }
 
-        TargetUtil.bindTargetName(this, key);
+        TargetUtil.bindTarget(this, key, targetNames);
+        
+        const cleanKey = TargetUtil.getTargetName(key);
+        const isInactiveKey = key.startsWith('_');
+
+        if (cleanKey !== key) {
+            if (isInactiveKey) {
+                this.targets[cleanKey] = typeof this.targets[key] === 'object' && this.targets[key].value ? this.targets[key] : { value: this.targets[key] };
+                this.targets[cleanKey].active = false;
+            } else {
+                this.targets[cleanKey] = this.targets[key];
+            }
+            delete this.targets[key];
+            key = cleanKey;
+        }
+
+        const target = this.targets[key];        
 
         if (TargetUtil.allEventMap[key] || TargetUtil.internalEventMap[key]) {
             if (!this.eventTargetMap[key]) {

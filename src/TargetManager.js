@@ -174,6 +174,8 @@ class TargetManager {
             tmodel.incrementTargetStep(key);
 
             tmodel.updateTargetStatus(key);
+            
+            TargetUtil.shouldActivateNextTarget(tmodel, key);
                      
             if (tmodel.getTargetStep(key) < steps) {
                 getRunScheduler().schedule(interval, `${tmodel.oid}---${key}-${step}/${steps}-${cycle}-${interval}`);
