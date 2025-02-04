@@ -25,15 +25,17 @@ We believe TargetJS' new programming paradigm will enhance productivity and make
 1. [Installation](#installation)
 2. [Comparison with Other UI Frameworks](#Comparison-with-other-ui-frameworks)
 3. [What are Targets?](#what-are-targets)
-4. Two Quick Examples:
+4. Examples:
+   - [Quick Example](#quick-example)   
+   - [Loading API Example](#loading-api-example)
    - [Draggable Animation Example](#draggable-animation-example)
    - [Infinite Scrolling Example](#infinite-scrolling-example)
-5. [Why TargetJS?](#why-targetjs)
-6. [Integration with Existing Pages](#integration-with-existing-pages)
-7. [Anatomy of a Target](#anatomy-of-a-target)
-8. [How TargetJS Operates](#how-targetjs-operates)
-9. [Target Methods](#target-methods)
-10. Examples:
+6. [Why TargetJS?](#why-targetjs)
+7. [Integration with Existing Pages](#integration-with-existing-pages)
+8. [Anatomy of a Target](#anatomy-of-a-target)
+9. [How TargetJS Operates](#how-targetjs-operates)
+10. [Target Methods](#target-methods)
+11. More Examples:
    - [Simple Example](#simple-example)
    - [Declarative and Imperative Targets Example](#declarative-and-imperative-targets-example)
    - [Loading Data Example](#loading-data-example)
@@ -118,11 +120,65 @@ Targets provide a **unified approach** for addressing **animation**, **user inte
 
 ---
 
-## Two Quick examples
+## Examples
+
+### Quick example
+
+In our first quick example, which demonstrates a simple functional pipeline, a purple `div` will grow from `100px` to `250px` in 15 steps, with each step occurring at a minimum interval of 10 milliseconds. The `height` target will activate whenever the `width` target executes, using the `width` value to proportionally adjust the `height`. Similarly, the `scale` target will take the `height` value and update whenever the `height` target executes.
+
+Notice that no CSS is required, and HTML is not needed.
+
+![first example](https://targetjs.io/img/quickExample4.gif)
+
+```bash
+import { App, TModel } from "targetj";
+
+App(new TModel('quickExample', {
+    background: 'B388FF',
+    width: [ { list: [ 100, 250 ] }, 15, 10 ],
+    _height$() { return this.prevTargetValue / 2; },
+    _scale$() { return this.prevTargetValue / 50; }
+}));
+```
+
+### Loading API Example
+
+In this example, we will load two separate users, and once both APIs return a result, we will display their names and flash the background. All targets without a prefix `'_'` will be executed in the order they appear in the code. Targets with the prefix `'_'` are inactive and must be activated externally. Target names with the suffix `'$'` indicate that they will be activated when the previous target is executed. This allows these targets to form a functional execution pipeline.
+
+The `'html'` target initializes the text content of the `'div'` to `'loading'`. The `div` is the default element if no `baseElement` target is specified. Then, the `loadUser1` and `loadUser2` targets are executed. If the API call for `loadUser2` returns a result before `loadUser1`, `loadUser2` will be executed again. However, it will fetch the result from the loader cache because we specified the fourth argument in the `fetch()` function. This means another API call will not be made, but it will still activate the `displayName` target again, ensuring that both users' names are displayed without any race conditions.
+
+The execution pipeline will then continue, expanding the width and height while morphing the background from yellow to purple over 15 steps, with 15-millisecond pauses between them..
+
+![first example](https://targetjs.io/img/loadingExample.gif)
+
+```bash
+import { App, TModel, getLoader } from "targetj";
+
+App(new TModel('apiCall', {
+    html: 'Loading...',
+    loadUser1() {
+        getLoader().fetch(this, 'https://targetjs.io/api/randomUser', { id: 'user0' });
+    },
+    loadUser2$() {
+        getLoader().fetch(this, 'https://targetjs.io/api/randomUser', { id: 'user1' }, 'user1');
+    },    
+    _displayName$: {
+        value() {
+            this.setTarget('html', `user0:${this.val('loadUser1').name} user1:${this.val('loadUser1').name}`);
+        },
+        enabledOn() {
+            return this.val('loadUser1') && this.val('loadUser2');
+        }
+    },
+    _width$: 200,
+    _height$: 200,
+    _background$: [{ list: ["#FCE961", "#B388FF"] }, 15, 15]
+}));
+```
 
 ### Draggable Animation Example 
 
-In our first example, `color`, `html`, `textAlign`, `moves`, and `animate` are all targets. These targets are executed in the same order they appear in the program. `color`, `html`, `textAlign`, `moves` get competed and their life cycle end.
+In this example, `color`, `html`, `textAlign`, `moves`, and `animate` are all targets. These targets are executed in the same order they appear in the program. `color`, `html`, `textAlign`, `moves` get competed and their life cycle end.
 The `moves` target prepares the data required for the `animate` target before execution. The `animate` target accesses the moves generated by the previous target using `this.prevTargetValue`, then generates a list of imperative targets for each style included in each move. Although it is not needed in this example, we can also use `isPrevTargetUpdated()` to check if the previous target value has been updated, allowing us to skip unnecessary execution and improve performance.
 
 The target `animate` remains active with an indefinite lifecycle specified by the `loop` property. After each animation cycle, there is a one-second pause, defined by the `interval` property. Both `loop` and `interval` can also be defined as methods, which will be explained further below. The `setTarget` method defines an imperative target, which is also explained in more detail below, executes the assigment in 30 steps. The `animate` target starts a new cycle after all the imperative targets have been completed or at least one second pass specified in the interval value given that the imperative targets get executed less than 1 second.
