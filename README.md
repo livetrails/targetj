@@ -131,16 +131,19 @@ In our first quick example, which demonstrates a simple functional pipeline, a p
 
 Notice that no CSS is required, and HTML is not needed.
 
-![first example](https://targetjs.io/img/quickExample5.gif)
+![first example](https://targetjs.io/img/quickExample8.gif)
 
 ```bash
-import { App, TModel } from "targetj";
+import { App, TModel, getEvents } from "targetj";
 
 App(new TModel('quickExample', {
     background: '#B388FF',
-    width: [ { list: [ 100, 250 ] }, 50, 10 ],
+    width: [ { list: [ 100, 250, 100 ] }, 15, 10 ],
     _height$() { return this.prevTargetValue / 2; },
-    _scale$() { return this.prevTargetValue / 50; }
+    _scale$() { return this.prevTargetValue / 50; },
+    onSwipe() { 
+      this.setTarget({ x: getEvents().swipeX(this), y: getEvents().swipeY(this) });
+    }   
 }));
 ```
 
