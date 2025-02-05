@@ -138,7 +138,7 @@ import { App, TModel, getEvents } from "targetj";
 
 App(new TModel('quickExample', {
     background: '#B388FF',
-    width: [ { list: [ 100, 250, 100 ] }, 15, 10 ],
+    width: [ { list: [ 100, 250, 100 ] }, 50, 10 ],
     _height$() { return this.prevTargetValue / 2; },
     _scale$() { return this.prevTargetValue / 50; },
     onSwipe() { 
