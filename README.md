@@ -67,7 +67,7 @@ commands, and approaches. This simplifies development and makes **TargetJS** eas
 
 - **HTML is optional**: We believe traditional HTML introduces unnecessary complexity and rigidity. While **TargetJS** can be integrated into existing HTML pages, it is **not required** when developing new ones.  
 - **CSS is optional**: Instead of relying on external stylesheets, **styles can be incorporated directly as targets**. This allows styles to be **dynamically updated** and easily accessible from the rest of the code.  
-- **Dynamic HTML nesting**:  TargetJ generates a flat HTML structure by default. When HTML element nesting is necessary, it is handled as a **target**, making it **dynamic** and easy to update.
+- **Dynamic HTML nesting**:  TargetJS generates a flat HTML structure by default. When HTML element nesting is necessary, it is handled as a **target**, making it **dynamic** and easy to update.
 
 ### Execution Control with Time 
 
@@ -89,7 +89,7 @@ to focus on the user experience more than other frameworks.
 
 ### Future Enhancements  
 
-Currently, TargetJ generates HTML elements with styles. We plan to support additional rendering APIs, such as the Canvas API and the Animation API, directly within targets to make them easily accessible. This will also enable highly interactive UIs capable of efficiently handling a large number of objects.
+Currently, TargetJS generates HTML elements with styles. We plan to support additional rendering APIs, such as the Canvas API and the Animation API, directly within targets to make them easily accessible. This will also enable highly interactive UIs capable of efficiently handling a large number of objects.
 
 ---
 
@@ -806,7 +806,7 @@ Here are all the event targets:
 1. TargetJS.tApp.stop(): Stops the application.
 2. TargetJS.tApp.start(): Restarts the application
 3. TargetJS.tApp.throttle: Slows down the application. This represents the pause in milliseconds before starting another TargetJS task cycle. It is zero by default.
-4. TargetJS.tApp.debugLevel: Logs information about the TargetJ task cycle when set to 1. It is zero by default.
+4. TargetJS.tApp.debugLevel: Logs information about the TargetJS task cycle when set to 1. It is zero by default.
 5. Use `t()` in the browser console to find an object by its oid, which corresponds to the ID of the HTML element..
 6. Use `t(oid).bug()` to inspect all the vital properities of an object.
 7. Use `t(oid).logTree()` to inspect the internal children structure including brackets of a container.
