@@ -152,7 +152,7 @@ The `'html'` target initializes the text content of the `'div'` to `'loading'`. 
 
 The execution pipeline will then continue, expanding the width and height while morphing the background from yellow to purple over 15 steps, with 15-millisecond pauses between them..
 
-![first example](https://targetjs.io/img/loadingExample.gif)
+![first example](https://targetjs.io/img/loadingExample6.gif)
 
 ```bash
 import { App, TModel, getLoader } from "targetj";
@@ -167,7 +167,7 @@ App(new TModel('apiCall', {
     },    
     _displayName$: {
         value() {
-            this.setTarget('html', `user0:${this.val('loadUser1').name} user1:${this.val('loadUser1').name}`);
+            this.setTarget('html', `${this.val('loadUser1').name} ${this.val('loadUser2').name}`);
         },
         enabledOn() {
             return this.val('loadUser1') && this.val('loadUser2');
