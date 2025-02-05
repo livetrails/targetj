@@ -127,7 +127,7 @@ Targets follow a simple execution pattern, despite they can operate continuously
 
 ### Quick example
 
-In our first quick example, which demonstrates a simple functional pipeline, a purple `div` will grow from `100px` to `250px` in 50 steps, with each step occurring at a minimum interval of 10 milliseconds. The `height` target will activate whenever the `width` target executes, using the `width` value to proportionally adjust the `height`. Similarly, the `scale` target will take the `height` value and update whenever the `height` target executes.
+In our first quick example, which demonstrates a simple functional pipeline, a purple `div` will grow from `100px` to `250px` and then shrink back to `100px` in 50 steps for each transformation, with each step occurring at a minimum interval of 10 milliseconds. The `height` target will activate whenever the `width` target executes, using the `width` value to proportionally adjust the `height`. Similarly, the `scale` target will take the `height` value and update whenever the `height` target executes.
 
 Notice that no CSS is required, and HTML is not needed.
 
