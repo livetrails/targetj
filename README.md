@@ -2,21 +2,19 @@
 
 Welcome to TargetJS, a powerful JavaScript UI framework and library that you might find redefines front-end development. (https://targetjs.io)
 
-**TargetJS** distinguishes itself by introducing a novel concept known as **"targets,"** which form its core. Targets provide methods and variable assignments with life cycles, allowing them to operate independently and autonomously. They include various callbacks to adapt to changes, mimicking the behavior of living cells.  
+**TargetJS** distinguishes itself by introducing **targets** as its core innovation. Targets provide methods and variable assignments with **life cycles**, allowing them to operate **independently** and **autonomously**, mimicking the behavior of living cells.
 
-Additionally, **TargetJS** executes targets in the exact order they appear in the code. Each target can process new data based on the outcome of the previous one, creating a structured flow. Each target can also conditionally opt out of execution or re-execute a number of times when specific conditions are met.
+TargetJS execution flow is well structured, predictable, synchronous, compact, and easy to understand. It simplifies handling timing and asynchronous operations. 
 
-Targets cannot also be called directly; instead, they are **activated** and then executed sequentially in the order of their activation. This approach ensures **predictable execution** and a consistent flow.  
+It also offers one unified solution for UI, API handling, animation, event handling.
 
-## TargetJ: A Unique Computational Paradigm
+TargetJS introduces a unique paradigm by blending multiple computational models:
 
-TargetJ introduces a unique paradigm by blending multiple computational models:
+- **Turing Completeness**: Targets can execute continuously, conditionally skip execution, and modify values dynamically.  
+- **Von Neumann Execution Model**: Targets are executed based on their activation order, which initially follows the order they appear in the code. Targets cannot also be called directly. This makes the execution flow more predictable, easier to understand, and performant.  
+- **Functional Programming**: Targets can be composed to transform data in a pipeline-like manner, similar to functional programming. It also has ability to observe the execution of the preceding target. This keeps the pipeline execution again simple, easy to understand, and performant.
 
-- **Turing Completeness**: targets can execute continuously, modify values dynamically, and conditionally skip execution.
-- **Von Neumann Execution Model**: Targets are executed in the order they appear in the code or based on their activation order. They cannot be called directly.
-- **Functional Programming**: Targets can be composed to transform data in a pipeline-like manner, similar to functional programming constructs. Each target can access the result of the previous target using this.prevTargetValue and determine if it has changed with isPrevTargetUpdate(), making targets easier to test.
-
-We believe TargetJS' new programming paradigm will enhance productivity and make the coding experience more enjoyable and user-centric.
+We believe TargetJS' will enhance productivity and make the coding experience more enjoyable and user-centric.
 
 ---
 
@@ -38,7 +36,7 @@ We believe TargetJS' new programming paradigm will enhance productivity and make
 11. More Examples:
    - [Simple Example](#simple-example)
    - [Declarative and Imperative Targets Example](#declarative-and-imperative-targets-example)
-   - [Loading Data Example](#loading-data-example)
+   - [Another Loading Data Example](#another-loading-data-example)
    - [Animation API Comparison Example](#animation-api-comparison-example)
    - [Simple Single Page App Example](#simple-single-page-app-example)
    - [Using TargetJS as a Library Example](#using-targetjs-as-a-library-example) 
@@ -448,12 +446,11 @@ App(
   })
 );
 ```
-
 ---
 
-## Loading data example
+## Another Loading Data Example
 
-Calling backend APIs is simplified through the use of targets in TargetJS. It alo provides a Loader class, accessible via getLoader(), which streamlines API integration.
+Calling backend APIs is simplified through the use of targets in TargetJS. It also provides a `Loader` class, as seen in the earlier example, which is accessible via `getLoader()`.
 
 In the example below, we define a target named load. Inside the value function, we make the API call using fetch(). The second argument specifies the API URL, and the third argument contains the query parameters passed to the API. A fourth optional parameter, omitted in this example, can specify a cache ID if we want to cache the result. This cache ID can also be used to retrieve the cached data. If it’s not specified, the result will always come from the API. 
 
