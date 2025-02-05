@@ -14,7 +14,7 @@ TargetJS introduces a unique paradigm by blending multiple computational models:
 - **Von Neumann Execution Model**: Targets are executed based on their activation order, which initially follows the order they appear in the code. Targets cannot also be called directly. This makes the execution flow more predictable, easier to understand, and performant.  
 - **Functional Programming**: Targets can be composed to transform data in a pipeline-like manner, similar to functional programming. It also has ability to observe the execution of the preceding target. This keeps the pipeline execution again simple, easy to understand, and performant.
 
-We believe TargetJS' will enhance productivity and make the coding experience more enjoyable and user-centric.
+We believe TargetJS will enhance productivity and make the coding experience more enjoyable and user-centric.
 
 ---
 
