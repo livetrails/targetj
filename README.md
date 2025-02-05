@@ -6,7 +6,7 @@ Welcome to TargetJS, a powerful JavaScript UI framework and library that you mig
 
 TargetJS execution flow is well structured, predictable, synchronous, compact, and easy to understand. It simplifies handling timing and asynchronous operations. 
 
-It also offers one unified solution for UI, API handling, animation, event handling.
+It also offers one unified solution for UI, API handling, animation, state management, and event handling.
 
 TargetJS introduces a unique paradigm by blending multiple computational models:
 
