@@ -127,18 +127,18 @@ Targets follow a simple execution pattern, despite they can operate continuously
 
 ### Quick example
 
-In our first quick example, which demonstrates a simple functional pipeline, a purple `div` will grow from `100px` to `250px` in 15 steps, with each step occurring at a minimum interval of 10 milliseconds. The `height` target will activate whenever the `width` target executes, using the `width` value to proportionally adjust the `height`. Similarly, the `scale` target will take the `height` value and update whenever the `height` target executes.
+In our first quick example, which demonstrates a simple functional pipeline, a purple `div` will grow from `100px` to `250px` in 50 steps, with each step occurring at a minimum interval of 10 milliseconds. The `height` target will activate whenever the `width` target executes, using the `width` value to proportionally adjust the `height`. Similarly, the `scale` target will take the `height` value and update whenever the `height` target executes.
 
 Notice that no CSS is required, and HTML is not needed.
 
-![first example](https://targetjs.io/img/quickExample4.gif)
+![first example](https://targetjs.io/img/quickExample5.gif)
 
 ```bash
 import { App, TModel } from "targetj";
 
 App(new TModel('quickExample', {
-    background: 'B388FF',
-    width: [ { list: [ 100, 250 ] }, 15, 10 ],
+    background: '#B388FF',
+    width: [ { list: [ 100, 250 ] }, 50, 10 ],
     _height$() { return this.prevTargetValue / 2; },
     _scale$() { return this.prevTargetValue / 50; }
 }));
