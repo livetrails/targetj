@@ -116,6 +116,11 @@ Targets provide a **unified approach** for addressing **animation**, **user inte
   - Can execute themselves when specific conditions are met.
   - Can adjust pauses between executions, limit the number of executions, track the progress of other variables or methods, and activate the life cycles of additional methods, and more.
 
+Targets follow a simple execution pattern, despite they can operate continuously and autonomously:  
+
+- They initially execute in the order they appear in the code.  
+- Each target can also listen to the one directly above it, encouraging related targets to be placed closer together and eliminating the need for extra constructs for observability.  
+- They can form a functional transformation pipeline. 
 ---
 
 ## Examples
