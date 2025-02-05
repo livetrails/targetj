@@ -323,6 +323,9 @@ All methods and properties are optional, but they play integral roles in making 
 1. **value**
 If defined, value is the primary target method that will be executed. The target value will be calculated based on the result of value().
 
+2. **active**
+This is only property. It indicates that the target is in an inactive state and is not ready to be executed. It must be activated first, for example, by a user event, before it can execute. You can also prefix the target name with '_' to achieve the same effect as setting active to false.
+
 2. **onEnabled**
 Determines whether the target is eligible for execution. If enabledOn() returns false, the target remains active until it is enabled and gets executed.
 
@@ -353,11 +356,14 @@ This method is invoked only after the final step of updating the actual value is
 11. **onImperativeEnd**
    - Similar to `onImperativeStep`, but it is triggered when an imperative target completes. If multiple targets are expected to complete, you can use `on${targetName}End` instead. For example, `onWidthEnd` is called when the `width` target gets completed.
 
-12. **active**
-This is only property. It indicates that the target is in an inactive state and is not ready to be executed. You can also prefix the target name with '_' to achieve the same effect as setting active to false.
-
 13. **initialValue**
 This is only property. It defines the initial value of the actual value.
+
+14. Postfix **$** to the target name  
+Targets with a `$` postfix in their names indicate that they will be activated when the preceding target is executed or updated.
+
+15. **this.prevTargetValue** and **this.isPrevTargetUpdated()**  
+`this.prevTargetValue` holds the value of the previous target, while `this.isPrevTargetUpdated()` returns `true` if the previous target has been updated. This method is useful when a target is activated externally, such as by a user event, rather than by the preceding target.  
 
 ---
 
