@@ -55,7 +55,7 @@ We believe TargetJS will enhance productivity and make the coding experience mor
 | Feature                               | TargetJS                        | Reactive Model Frameworks             |
 |--------------------------------------|-----------------------------------------------------------------|------------------------------------------------------|
 | **Component Basic Structure**     | Components consist of targets, which internally provide unified interface for methods and variables | Components consist of methods and variables
-| **Execution Order**                   | Targets execute based on their activation order, which initially follows their appearance in the code. They run in a sequential and predictable manner | Execution is mainly **driven by data changes**. |
+| **Execution Order**                   | Targets execute based on their activation order, which initially follows their appearance in the code. They run in a sequential and predictable manner | Execution is mainly **driven by data changes** and less predictable. |
 | **Function Calls**                    | Functions (or Targets in TargetJS) **cannot be called directly**. TargetJS executes all active targets in sequence as part of its task cycle | Functions **re-execute reactively** when dependencies change or are imperatively called. |
 | **Flow Control**                      | Execution is structured by a **deterministic task cycle**. **No direct invocation, only activation** | The flow is **data-driven**, and execution order depends on observed changes. |
 | **Autonomous Execution**              | **Targets can self-activate and operate autonomously**. | Functions do not execute autonomously. |
