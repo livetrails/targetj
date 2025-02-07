@@ -52,22 +52,27 @@ We believe TargetJS will enhance productivity and make the coding experience mor
 
 ## Comparison with Other UI Frameworks  
 
-### A Target-Based Approach  
+| Feature                               | TargetJS                        | Reactive Model Frameworks             |
+|--------------------------------------|-----------------------------------------------------------------|------------------------------------------------------|
+| **Component Basic Structure**     | Targets, which internally provide unified interface for methods and variables | Components that consist of methods and variables
+| **Execution Order**                   | Based on the **order of activation** which is initially follow their appearance order in code. Targets execute in a **sequential and predictable order**. | Execution is **driven by data changes**. Dependencies are **automatically tracked**, and computations are triggered **whenever observed data changes**. |
+| **Function Calls**                    | Functions (or Targets in TargetJS) **cannot be called arbitrarily**. TargetJS task process execute all active targets in sequence. | Functions reactively re-execute whenever their dependencies change or imperatively called. |
+| **Flow Control**                      | Execution is structured by a **deterministic task cycle**. **No direct invocation** | The flow is **data-driven**, and execution order depends on observed changes. |
+| **Autonomous Execution**              | **Targets can keep activating themselves** and operate autonomously. | Functions do not execute autonomously unless state changes trigger them. |
+| **Execution Pipeline**                | **Targets can form a controlled execution pipeline**, where a target can be activated when the **preceding target in the code is executed**. | Functions are called **whenever dependencies update**, but they do not follow a strict execution order based on code structure. |
+| **Event Handling**                    | **Events in TargetJS are handled primarily by activating targets**, making event handling consistent with the core execution model. | Events are handled through **event listeners, subscriptions, or reactive bindings**. |
+| **State Management**                  | **State is managed by targets**, which provide a **unified interface** for both methods and functions, eliminating the need for external state libraries. | State is often managed through reactive stores**. |
+| **UI Organization and Animation**      | **UI is primarily controlled by targets**, with styles incorporated directly within them. **Animations are handled directly by targets**, which iterate step by step towards new values and allow **pauses between updates**. | UI is updated via **component-based rendering and reactivity**. Animations are often handled via **CSS transitions, imperative JavaScript animations, or external libraries like GSAP**. |
+| **HTML and Nesting**                   | **TargetJS minimizes the role of HTML** and strives to make **code the primary player** in user experience rather than relying on a static HTML layer. **HTML Nesting is managed by target**, making the structure **simplified and only as deep as necessary**. | HTML structure is an **integral part** of UI frameworks. Components and templates define **static layouts**, and **JSX, templates, or compiled HTML structures** are used to organize UI elements. |
+| **CSS Handling**                       | **CSS is optional**: Instead of relying on external stylesheets, **styles can be incorporated directly as targets**. This allows styles to be **dynamically updated** and easily accessible from the rest of the code. | CSS is usually handled through **external stylesheets, CSS-in-JS (styled-components, Emotion), or Tailwind**. Styles are often **separate from logic**. |
+| **API Calls**                          | **API calls can be chained together in a pipeline**, where the **bottom target is activated only when all API calls are complete**. | API calls are usually handled with **Promises, async/await, or reactive effects**, which can lead to race conditions or unstructured execution. |
 
-Unlike traditional UI frameworks that rely on direct method calls and variables, TargetJS structures its code around targets. Targets get executed sequentially in the order they appear in the code, 
-which can also form an **assembly line** where each target processes data based on the results of the previous one.
-Additionally, targets operate autonomously, each with its own life cycle. There are also **no direct calls** to targets. They can only be **activated** for execution, and the **task cycle** executes targets in the order of activation, ensuring a consistent flow and predictable access to data.
+**Other Advantages of TargetJS**:
 
 ### Unified Approach for Development  
 
 Targets offer a **unified solution** for **UI**, **animation**, **event handling**, **API calls**, and **state management**, rather than working with multiple technologies, 
 commands, and approaches. This simplifies development and makes **TargetJS** easier to learn.
-
-### Minimal Dependence on HTML and CSS  
-
-- **HTML is optional**: We believe traditional HTML introduces unnecessary complexity and rigidity. While **TargetJS** can be integrated into existing HTML pages, it is **not required** when developing new ones.  
-- **CSS is optional**: Instead of relying on external stylesheets, **styles can be incorporated directly as targets**. This allows styles to be **dynamically updated** and easily accessible from the rest of the code.  
-- **Dynamic HTML nesting**:  TargetJS generates a flat HTML structure by default. When HTML element nesting is necessary, it is handled as a **target**, making it **dynamic** and easy to update.
 
 ### Execution Control with Time 
 
@@ -78,18 +83,10 @@ TargetJS enables developers to control the execution timing of targets, allowing
 **TargetJS** optimizes performance by internally building a **tree structure** where there is a long list of components. The TargetJS task cycle monitors only 
 the **visible branch** of the tree, ensuring high performance of pages with large lists of UI items.
 
-### Synchronous Event Handling  
-
-Events in **TargetJS** are handled **synchronously** and made available to **all active targets** within visible components. This approach ensures **flexible, consistent event handling** and less error prone.
-
 ### Enhanced User Experience  
 
 With its simplified and unified approach, eliminating the need for a static HTML layer and CSS files, along with the dynamic nature of targets, we believe TargetJS enables developers
 to focus on the user experience more than other frameworks.
-
-### Future Enhancements  
-
-Currently, TargetJS generates HTML elements with styles. We plan to support additional rendering APIs, such as the Canvas API and the Animation API, directly within targets to make them easily accessible. This will also enable highly interactive UIs capable of efficiently handling a large number of objects.
 
 ---
 
