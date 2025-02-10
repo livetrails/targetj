@@ -146,11 +146,13 @@ App(new TModel('quickExample', {
 
 ### Loading API Example
 
-In this example, we will load two separate users, and once both APIs return a result, we will display their names and flash the background. All targets without a prefix `'_'` will be executed in the order they appear in the code. Targets with the prefix `'_'` are inactive and must be activated externally. Target names with the suffix `'$'` indicate that they will be activated when the previous target is executed. This allows these targets to form a functional execution pipeline.
+In this example, we load two separate users, and once both API calls return results, we display their names and briefly flash the background. 
 
-The `'html'` target initializes the text content of the `'div'` to `'loading'`. The `div` is the default element if no `baseElement` target is specified. Then, the `loadUser1` and `loadUser2` targets are executed. If the API call for `loadUser2` returns a result before `loadUser1`, `loadUser2` will be executed again. However, it will fetch the result from the loader cache because we specified the fourth argument in the `fetch()` function. This means another API call will not be made, but it will still activate the `displayName` target again, ensuring that both users' names are displayed without any race conditions.
+All targets without a prefix `_` execute in the order they appear in the code. Targets prefixed with `_` are inactive by default and must be activated externally. Target names ending with `$` indicate that they will activate when the previous target completes, allowing them to form a functional execution pipeline.
 
-The execution pipeline will then continue, expanding the width and height while morphing the background from yellow to purple over 15 steps, with 15-millisecond pauses between them..
+The `html` target initializes the text content of the `div` to `"loading"`. If no `baseElement` target is specified, the `div` is the default element. Then, the `loadUsers` target executes. Once both API results are retrieved, the `displayName` target runs, accessing the results in an array ordered by the sequence in which the APIs were called.
+
+The execution pipeline then continues, gradually expanding the width and height while transitioning the background color from yellow to purple over 15 steps, with 15-millisecond pauses between each step.
 
 ![first example](https://targetjs.io/img/loadingExample6.gif)
 
@@ -159,19 +161,13 @@ import { App, TModel, getLoader } from "targetj";
 
 App(new TModel('apiCall', {
     html: 'Loading...',
-    loadUser1() {
-        getLoader().fetch(this, 'https://targetjs.io/api/randomUser', { id: 'user0' });
+    loadUsers() {
+      getLoader().fetch(this, "https://targetjs.io/api/randomUser", { id: "user0" });
+      getLoader().fetch(this, "https://targetjs.io/api/randomUser",{ id: "user1" });      
     },
-    loadUser2$() {
-        getLoader().fetch(this, 'https://targetjs.io/api/randomUser', { id: 'user1' }, 'user1');
-    },    
-    _displayName$: {
-        value() {
-            this.setTarget('html', `${this.val('loadUser1').name} ${this.val('loadUser2').name}`);
-        },
-        enabledOn() {
-            return this.val('loadUser1') && this.val('loadUser2');
-        }
+    _displayName$() {
+        const [ user0, user1 ] = this.prevTargetValue;
+        this.setTarget("html", `${user0.name} ${user1.name}`);
     },
     _width$: 200,
     _height$: 200,
