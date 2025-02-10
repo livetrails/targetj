@@ -7,13 +7,15 @@ import { tApp, getRunScheduler, getLocationManager, getEvents } from "./App.js";
  */
 class PageManager {
     constructor() {
-        this.lastLink = document.URL;
+        this.lastLink = TUtil.getFullLink(document.URL);
         this.pageCache = {};
     }
 
     async openPage(link) {
         await tApp.stop();
         tApp.reset();
+                
+        link = TUtil.getFullLink(link);
 
         if (!this.pageCache[link]) {
             if (tApp.tRoot.hasDom()) {
@@ -46,10 +48,10 @@ class PageManager {
     }
     
     onPageClose(visibles) {
-        getLocationManager().resizeLastUpdate = TUtil.now();
+        tApp.resizeLastUpdate = TUtil.now();
         getEvents().resizeRoot();
         visibles.forEach(tmodel => {
-            getLocationManager().runEventTargets(tmodel, ['onPageClose', 'onResize']);             
+            getLocationManager().runEventTargets(tmodel, ['onPageClose']);             
         });          
     }
 
@@ -58,7 +60,7 @@ class PageManager {
 
         if (this.lastLink) {
             this.onPageClose(tApp.manager.lists.visible);
-            
+                        
             this.pageCache[this.lastLink] = {
                 link: this.lastLink,
                 html: tApp.tRoot.$dom.innerHTML(),

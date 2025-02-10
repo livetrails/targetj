@@ -17,43 +17,48 @@ class LoadingManager {
 
     fetchCommon(fetchId, cacheId, tmodel, fetchMap, fetchFn) {
         this.addToTModelKeyMap(tmodel, tmodel.key, fetchId, cacheId);
-        
-        if (cacheId && this.isFetched(cacheId)) {
-            if (typeof tmodel.targets[tmodel.key]?.onSuccess === 'function' && tmodel.isTargetEnabled(tmodel.key)) {
-                tmodel.targets[tmodel.key].onSuccess.call(tmodel, { ...this.cacheMap[cacheId], fetchingPeriod: 0 });
-            }            
-        } else if (fetchMap[fetchId]) {
-            fetchMap[fetchId].targets.push({ tmodel, targetName: tmodel.key });
-        } else {
-            fetchMap[fetchId] = {
-                fetchId,
-                cacheId,
-                fetchingFlag: true,
-                startTime: TUtil.now(),
-                targets: [ { tmodel, targetName: tmodel.key } ],
-                fetchMap
-            };            
-            fetchFn();
+
+        if (!cacheId || !this.isFetched(cacheId)) {
+            if (!fetchMap[fetchId]) {
+                fetchMap[fetchId] = {
+                    fetchId,
+                    cacheId,
+                    fetchingFlag: true,
+                    startTime: TUtil.now(),
+                    targets: [{ tmodel, targetName: tmodel.key }],
+                    fetchMap
+                };            
+                fetchFn();
+            } else {
+                fetchMap[fetchId].targets.push({ tmodel, targetName: tmodel.key });
+            }
         }
-        
+
         return fetchId;
     }
     
+    getTModelKey(tmodel, targetName) {
+        return `${tmodel.oid} ${targetName}`;
+    }
+
     addToTModelKeyMap(tmodel, targetName, fetchId, cacheId) {
-        const key = `${tmodel.oid} ${targetName}`;
-        if (this.tmodelKeyMap[key]) {
-            if (!this.tmodelKeyMap[key].fetchMap[fetchId]) {
-                this.tmodelKeyMap[key].fetchMap[fetchId] = { fetchId, order: this.tmodelKeyMap[key].entryCount, cachedValue: this.isFetched(cacheId) ? this.cacheMap[cacheId].result : undefined };
-                this.tmodelKeyMap[key].entryCount++;
-            }
-        } else {
-            this.tmodelKeyMap[key] = { fetchMap: {}, entryCount: 1, resultCount: 0, errorCount: 0 };
-            this.tmodelKeyMap[key].fetchMap[fetchId] = { fetchId, order: 0, cachedValue: this.isFetched(cacheId) ? this.cacheMap[cacheId].result : undefined };
+        const key = this.getTModelKey(tmodel, targetName);
+        if (!this.tmodelKeyMap[key]) {
+            this.tmodelKeyMap[key] = { fetchMap: {}, entryCount: 0, resultCount: 0, errorCount: 0 };
+        }
+
+        if (!this.tmodelKeyMap[key].fetchMap[fetchId]) {
+            this.tmodelKeyMap[key].fetchMap[fetchId] = { 
+                fetchId, 
+                order: this.tmodelKeyMap[key].entryCount, 
+                cachedValue: cacheId && this.isFetched(cacheId) ? this.cacheMap[cacheId] : undefined 
+            };
+            this.tmodelKeyMap[key].entryCount++;
         }
     }
     
     initializeLoaderTargetValue(tmodel, targetName) {
-        const key = `${tmodel.oid} ${targetName}`;
+        const key = this.getTModelKey(tmodel, targetName);
         const tmodelEntry = this.tmodelKeyMap[key];
 
         if (!tmodelEntry) {
@@ -68,8 +73,10 @@ class LoadingManager {
                 const fetchEntry = fetchEntries.find(entry => entry.order === i);
                 if (fetchEntry?.cachedValue !== undefined) {
                     tmodelEntry.resultCount++;
-                    return fetchEntry.cachedValue;
+                    this.callOnSuccessHandler(tmodel, targetName, { ...fetchEntry.cachedValue, fetchingPeriod: 0, order: i });
+                    return fetchEntry.cachedValue.result;
                 }
+                                 
                 return undefined;
             });
 
@@ -77,7 +84,10 @@ class LoadingManager {
         } else {
             const singleEntry = Object.values(tmodelEntry.fetchMap)[0];
             if (singleEntry?.cachedValue !== undefined) {
-                tmodel.val(targetName, singleEntry.cachedValue);
+                tmodel.val(targetName, singleEntry.cachedValue.result);
+                   
+                this.callOnSuccessHandler(tmodel, targetName, { ...singleEntry.cachedValue, fetchingPeriod: 0, order: 0 });
+                
                 tmodelEntry.resultCount = 1;
             } else {
                 tmodel.val(targetName, undefined);
@@ -91,12 +101,12 @@ class LoadingManager {
     }
 
     removeFromTModelKeyMap(tmodel, targetName) {
-        const key = `${tmodel.oid} ${targetName}`;
+        const key = this.getTModelKey(tmodel, targetName);
         delete this.tmodelKeyMap[key];  
     }
     
     isInTModelKeyMap(tmodel, targetName) {
-        const key = `${tmodel.oid} ${targetName}`;
+        const key = this.getTModelKey(tmodel, targetName);
         return this.tmodelKeyMap[key];
     }
 
@@ -141,25 +151,15 @@ class LoadingManager {
         };
 
         targets.forEach(({ tmodel, targetName }) => {
-            const key = `${tmodel.oid} ${targetName}`;
+            const key = this.getTModelKey(tmodel, targetName);
             const tmodelEntry = this.tmodelKeyMap[key];
 
             if (!tmodelEntry) {
                 return;
             }
-
-            const onSuccess = tmodel.targets[targetName]?.onSuccess;
-             if (onSuccess) {
-                 const fetchEntry = tmodelEntry.fetchMap[fetchId];
-
-                 if (typeof onSuccess === 'function') {
-                     onSuccess.call(tmodel, { ...res, order: fetchEntry.order });
-                 } else if (Array.isArray(onSuccess)) {
-                     onSuccess.forEach(t => TargetUtil.activateSingleTarget(tmodel, t));
-                 } else {
-                     TargetUtil.activateSingleTarget(tmodel, onSuccess);
-                 }
-             }          
+                 
+            const fetchEntry = tmodelEntry.fetchMap[fetchId];
+            this.callOnSuccessHandler(tmodel, targetName, { ...res, order: fetchEntry.order });
 
             if (tmodelEntry.entryCount > 1) {
                 let targetResults = tmodel.val(targetName);
@@ -239,10 +239,24 @@ class LoadingManager {
         getRunScheduler().schedule(0, `api_error_${fetchId}`);
     }
     
+    callOnSuccessHandler(tmodel, targetName, res) {        
+        const onSuccess = tmodel.targets[targetName]?.onSuccess;
+         if (onSuccess) {
+
+             if (typeof onSuccess === 'function') {
+                 onSuccess.call(tmodel, res);
+             } else if (Array.isArray(onSuccess)) {
+                 onSuccess.forEach(t => TargetUtil.activateSingleTarget(tmodel, t));
+             } else {
+                 TargetUtil.activateSingleTarget(tmodel, onSuccess);
+             }
+         }           
+    }
+    
     callOnErrorHandler(tmodel, targetName) {
         const onError = tmodel.targets[targetName]?.onError;
         if (onError) {
-
+            
             if (typeof onError === 'function') {
                 onError.call(tmodel, tmodel.val(targetName));
             } else if (Array.isArray(onError)) {
@@ -250,7 +264,7 @@ class LoadingManager {
             } else {
                 TargetUtil.activateSingleTarget(tmodel, onError);
             }
-        }        
+        }
     }
 
     ajaxAPI(url, query, fetchStatus) {
@@ -276,10 +290,10 @@ class LoadingManager {
             };
             this.handleSuccess(fetchStatus, result);
         };
-
-        image.onerror = image.onerror = () => {
+        
+        image.onerror = () => {
             this.handleError(fetchStatus, "not found");
-        };
+        };        
     }
 }
 

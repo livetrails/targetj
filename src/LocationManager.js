@@ -213,14 +213,12 @@ class LocationManager {
         if (tmodel.hasDom()) {
             if (TModelUtil.shouldMeasureWidthFromDom(tmodel)) {
                 TargetUtil.setWidthFromDom(tmodel);
-                tmodel.addToStyleTargetList('width');              
             }
         }
         
         if (tmodel.hasDom()) {
             if (TModelUtil.shouldMeasureHeightFromDom(tmodel)) {
                 TargetUtil.setHeightFromDom(tmodel);
-                tmodel.addToStyleTargetList('height');                       
             }           
         }        
         
@@ -265,26 +263,15 @@ class LocationManager {
             if (typeof target === 'function') {
                 target.call(tmodel, originalTarget);
             } else if (Array.isArray(target)) {
-                target.forEach(t => this.activateSingleTarget(tmodel, t));
+                target.forEach(t => TargetUtil.activateSingleTarget(tmodel, t));
             } else if (typeof target === 'object') {
                 if (tmodel.isTargetEnabled(targetName) && typeof target.value === 'function') {
                     target.value.call(tmodel, originalTarget);
                 }
-            
             } else {
-                this.activateSingleTarget(tmodel, target);
+                TargetUtil.activateSingleTarget(tmodel, target);
             }
         });
-    }
-
-    activateSingleTarget(tmodel, targetName) {
-        if (tmodel.targets[targetName] && tmodel.canTargetBeActivated(targetName)) {
-            if (tmodel.isTargetEnabled(targetName)) {
-                tmodel.activateTarget(targetName);
-            } else {
-                tmodel.addToActiveTargets(targetName);
-            }
-        }
     }
 
     addToLocationList(tmodel) {

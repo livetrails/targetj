@@ -226,6 +226,8 @@ class TargetManager {
                     originalTarget.onImperativeEnd.call(originalTModel, key, originalTModel.val(key));
                     originalTModel.setTargetMethodName(originalTargetName, 'onImperativeEnd');
                 }
+                
+                TargetUtil.shouldActivateNextTargetOnEnd(tmodel, originalTargetName);
             } else {
                 if (!targetValue.valueList && tmodel.getTargetCycle(key) < tmodel.getTargetCycles(key)) {
                     tmodel.incrementTargetCycle(key, tmodel.getTargetCycle(key));

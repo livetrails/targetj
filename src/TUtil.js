@@ -164,14 +164,14 @@ class TUtil {
             return;
         }
 
-        if (link.startsWith('http')) {
-            return link;
-        } else {
+        if (!link.startsWith('http')) {
             let protocol = window.location.protocol;
             protocol += protocol.endsWith(":") ? "//" : "://";
             const base = `${protocol}${window.location.hostname}`;
-            return link.startsWith("/") ? base + link : `${base}/${link}`;
+            link = link.startsWith("/") ? base + link : `${base}/${link}`;
         }
+        
+        return link.endsWith('/') ? link.slice(0, -1) : link;
     }
     
     static isStringBooleanOrNumber(input) {

@@ -294,8 +294,7 @@ class TargetUtil {
         }
 
         let cleanKey = key.startsWith('_') ? key.slice(1) : key;
-        cleanKey = cleanKey.endsWith('$') ? cleanKey.slice(0, -1) : cleanKey;
-
+        cleanKey = cleanKey.endsWith('$$') ? cleanKey.slice(0, -2) : cleanKey.endsWith('$') ? cleanKey.slice(0, -1) : cleanKey;
         return cleanKey;
     }
     
@@ -328,9 +327,9 @@ class TargetUtil {
              
         if (doesNextTargetUsePrevValue) {
             if (typeof target === 'object' && !Array.isArray(target)) {
-                target.activateNextTarget = TargetUtil.getTargetName(nextKey);
+                target.activateNextTarget = nextKey.slice(0, -1);
             } else {
-                tmodel.targets[key] = { value: target, activateNextTarget: TargetUtil.getTargetName(nextKey) };
+                tmodel.targets[key] = { value: target, activateNextTarget: nextKey.slice(0, -1) };
                 target = tmodel.targets[key];                
             }
         }  
@@ -367,13 +366,48 @@ class TargetUtil {
     }
     
     static shouldActivateNextTarget(tmodel, key) {
-        if (tmodel.targets[key]?.activateNextTarget) {
-            const targetName = tmodel.targets[key]?.activateNextTarget;
-            if (!getLoader().isInTModelKeyMap(tmodel, key)) {
-                if (tmodel.isTargetImperative(targetName)) {
-                    tmodel.targetValues[targetName].isImperative = false;
-                }
-                tmodel.activate(targetName);
+        const target = tmodel.targets[key]?.activateNextTarget;
+        if (!target) {
+            return;
+        }
+
+        const isEndTrigger = target.endsWith('$');
+        
+        if (isEndTrigger) {
+            TargetUtil.shouldActivateNextTargetOnEnd(tmodel, key);
+        } else {
+            TargetUtil.activateNextTargetIfEligible(tmodel, key, target);
+        }
+    }
+    
+    static shouldActivateNextTargetOnEnd(tmodel, key) {
+        const target = tmodel.targets[key]?.activateNextTarget;
+        if (target && target.endsWith('$') && tmodel.isTargetComplete(key) && !tmodel.hasUpdatingTargets(key)) {
+            TargetUtil.activateNextTargetIfEligible(tmodel, key, target);
+        };
+        
+    }
+    
+    static activateNextTargetIfEligible(tmodel, key, targetName) {
+        const cleanTargetName = TargetUtil.getTargetName(targetName);
+        if (getLoader().isInTModelKeyMap(tmodel, key)) {
+            //wait till API calls are completed
+            return;
+        }
+        
+        if (tmodel.isTargetImperative(cleanTargetName)) {
+            tmodel.targetValues[cleanTargetName].isImperative = false;
+        }
+        
+        tmodel.activate(cleanTargetName);
+    }
+    
+    static activateSingleTarget(tmodel, targetName) {
+        if (tmodel.targets[targetName] && tmodel.canTargetBeActivated(targetName)) {
+            if (tmodel.isTargetEnabled(targetName)) {
+                tmodel.activateTarget(targetName);
+            } else {
+                tmodel.addToActiveTargets(targetName);
             }
         }
     }
@@ -552,9 +586,12 @@ class TargetUtil {
             child.$dom.width('auto');
             const width = child.$dom.width();
             child.domWidthTimestamp = TUtil.now();
-
+            
             child.val('width', width);  
   
+            if (width > 0 || (width === 0 && child.lastVal('width') > 0)) {
+                child.addToStyleTargetList('width');              
+            }
             getRunScheduler().schedule(15, 'resize');           
         }
     }
@@ -574,8 +611,12 @@ class TargetUtil {
             child.$dom.height('auto');
             const height = child.$dom.height();
             child.domHeightTimestamp = TUtil.now();
-               
-            child.val('height', height);  
+
+            child.val('height', height);
+            
+            if (height > 0 || (height === 0 && child.lastVal('height') > 0)) {
+                child.addToStyleTargetList('height');
+            }
 
             getRunScheduler().schedule(15, 'resize');
         }
