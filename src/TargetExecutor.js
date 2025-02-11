@@ -31,7 +31,17 @@ class TargetExecutor {
         } else if (TargetUtil.isObjectTarget(key, value)) {
             const completeValue = TargetUtil.cssFunctionMap[key] ? { ...TargetUtil.cssFunctionMap[key], ...value } : value; 
             Object.keys(completeValue).forEach(objectKey => {
-                TargetExecutor.executeImperativeTarget(tmodel, objectKey, completeValue[objectKey], steps, interval, easing, originalTargetName);
+                
+                let newValue = completeValue[objectKey];
+                
+                if (typeof newValue !== 'number' && typeof newValue !== 'string' && !TargetUtil.isListTarget(newValue)) {
+                    const valueArray = TargetUtil.getValueStepsCycles(tmodel, completeValue[objectKey], key);
+                    newValue = valueArray[0];
+                    steps = TUtil.isDefined(valueArray[1]) ? valueArray[1] : steps;
+                    interval = TUtil.isDefined(valueArray[2]) ? valueArray[2] : interval;
+                }
+
+                TargetExecutor.executeImperativeTarget(tmodel, objectKey, newValue, steps, interval, easing, originalTargetName);
             });
         } else {
             TargetExecutor.assignSingleTarget(targetValue, value, undefined, steps, 0, interval, easing);
@@ -109,7 +119,7 @@ class TargetExecutor {
             ? tmodel.targets[key].initialValue
             : undefined;
 
-        const valueArray = TargetUtil.getValueStepsCycles(tmodel, key);
+        const valueArray = TargetUtil.getValueStepsCycles(tmodel, tmodel.targets[key], key);
 
         const newValue = valueArray[0];
         const newSteps = valueArray[1] || 0;

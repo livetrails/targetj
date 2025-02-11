@@ -382,7 +382,7 @@ class TargetUtil {
     
     static shouldActivateNextTargetOnEnd(tmodel, key) {
         const target = tmodel.targets[key]?.activateNextTarget;
-        if (target && target.endsWith('$') && tmodel.isTargetComplete(key) && !tmodel.hasUpdatingTargets(key)) {
+        if (target && target.endsWith('$') && (tmodel.isTargetComplete(key) || tmodel.isTargetDone(key)) && !tmodel.hasUpdatingTargets(key)) {
             TargetUtil.activateNextTargetIfEligible(tmodel, key, target);
         };
         
@@ -417,14 +417,13 @@ class TargetUtil {
             return false;
         }
 
-        const result = arr.length >= 2;
         for (let i = 1; i < arr.length; i++) {
             if (typeof arr[i] !== 'number') {
                 return false;
             }
         }
 
-        return result && (typeof arr[0] === 'number' || TargetUtil.isListTarget(arr[0]) || typeof arr[0] === 'string');
+        return arr.length >= 2 && (typeof arr[0] === 'number' || TargetUtil.isListTarget(arr[0]) || typeof arr[0] === 'string');
     }
 
     static isListTarget(value) {
@@ -443,8 +442,7 @@ class TargetUtil {
         return key === 'children' && (Array.isArray(value) || value instanceof TModel);
     }
 
-    static getValueStepsCycles(tmodel, key) {
-        const _target = tmodel.targets[key];
+    static getValueStepsCycles(tmodel, _target, key) {
         const valueOnly = _target && _target.valueOnly;
         const cycle = tmodel.getTargetCycle(key);
         const lastValue = tmodel.val(key);
