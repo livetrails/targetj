@@ -146,11 +146,13 @@ App(new TModel('quickExample', {
 
 ### Loading API Example
 
-In this example, we will load two separate users, and once both APIs return a result, we will display their names and flash the background. All targets without a prefix `'_'` will be executed in the order they appear in the code. Targets with the prefix `'_'` are inactive and must be activated externally. Target names with the suffix `'$'` indicate that they will be activated when the previous target is executed. This allows these targets to form a functional execution pipeline.
+In this example, we load two separate users, and once both API calls return results, we display their names and briefly flash the background. 
 
-The `'html'` target initializes the text content of the `'div'` to `'loading'`. The `div` is the default element if no `baseElement` target is specified. Then, the `loadUser1` and `loadUser2` targets are executed. If the API call for `loadUser2` returns a result before `loadUser1`, `loadUser2` will be executed again. However, it will fetch the result from the loader cache because we specified the fourth argument in the `fetch()` function. This means another API call will not be made, but it will still activate the `displayName` target again, ensuring that both users' names are displayed without any race conditions.
+All targets without a prefix `_` execute in the order they appear in the code. Targets prefixed with `_` are inactive by default and must be activated externally. Target names ending with `$` indicate that they will activate when the previous target completes, allowing them to form a functional execution pipeline.
 
-The execution pipeline will then continue, expanding the width and height while morphing the background from yellow to purple over 15 steps, with 15-millisecond pauses between them..
+The `html` target initializes the text content of the `div` to `"loading"`. If no `baseElement` target is specified, the `div` is the default element. Then, the `loadUsers` target executes. Once both API results are retrieved, the `displayName` target runs, accessing the results in an array ordered by the sequence in which the APIs were called.
+
+The execution pipeline then continues, gradually expanding the width and height while transitioning the background color from yellow to purple over 15 steps, with 15-millisecond pauses between each step.
 
 ![first example](https://targetjs.io/img/loadingExample6.gif)
 
@@ -159,19 +161,13 @@ import { App, TModel, getLoader } from "targetj";
 
 App(new TModel('apiCall', {
     html: 'Loading...',
-    loadUser1() {
-        getLoader().fetch(this, 'https://targetjs.io/api/randomUser', { id: 'user0' });
+    loadUsers() {
+      getLoader().fetch(this, "https://targetjs.io/api/randomUser", { id: "user0" });
+      getLoader().fetch(this, "https://targetjs.io/api/randomUser", { id: "user1" });      
     },
-    loadUser2$() {
-        getLoader().fetch(this, 'https://targetjs.io/api/randomUser', { id: 'user1' }, 'user1');
-    },    
-    _displayName$: {
-        value() {
-            this.setTarget('html', `${this.val('loadUser1').name} ${this.val('loadUser2').name}`);
-        },
-        enabledOn() {
-            return this.val('loadUser1') && this.val('loadUser2');
-        }
+    _displayName$() {
+        const [ user0, user1 ] = this.prevTargetValue;
+        this.setTarget("html", `${user0.name} ${user1.name}`);
     },
     _width$: 200,
     _height$: 200,
@@ -361,10 +357,16 @@ This method is invoked only after the final step of updating the actual value is
 13. **initialValue**
 This is only property. It defines the initial value of the actual value.
 
-14. Postfix **$** to the target name  
-Targets with a `$` postfix in their names indicate that they will be activated when the preceding target is executed or updated.
+14. **activateNextTarget**  
+    This is a string property that specifies the target to be activated when this target executes. If the name ends with `$`, the target will only activate after the current target and all of its imperative targets have completed.
 
-15. **this.prevTargetValue** and **this.isPrevTargetUpdated()**  
+15. **Postfix `$` to the target name**  
+    A target name ending with `$` indicates that it will be activated when the preceding target is executed or updated. It works similarly to `activateNextTarget`, but it only applies to the target that appears next to it.
+    
+16. **Postfix `$$` to the target name**  
+    A target name ending with `$$` indicates that it will be activated only after the preceding target and all of its imperative targets have completed. It works similarly to `activateNextTarget` when it ends with `$`, but it applies only to the target immediately following it.
+    
+17. **this.prevTargetValue** and **this.isPrevTargetUpdated()**  
 `this.prevTargetValue` holds the value of the previous target, while `this.isPrevTargetUpdated()` returns `true` if the previous target has been updated. This method is useful when a target is activated externally, such as by a user event, rather than by the preceding target.  
 
 ---
