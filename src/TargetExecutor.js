@@ -1,4 +1,5 @@
 import { TargetUtil } from "./TargetUtil.js";
+import { TargetData } from "./TargetData.js";
 import { TUtil } from "./TUtil.js";
 import { Easing } from "./Easing.js";
 import { getEvents, getLoader } from "./App.js";
@@ -30,7 +31,7 @@ class TargetExecutor {
         if (TargetUtil.isListTarget(value)) {
             TargetExecutor.assignListTarget(targetValue, value.list, value.list[0], steps, interval, easing);
         } else if (TargetUtil.isObjectTarget(key, value)) {
-            const completeValue = TargetUtil.cssFunctionMap[key] ? { ...TargetUtil.cssFunctionMap[key], ...value } : value; 
+            const completeValue = TargetData.cssFunctionMap[key] ? { ...TargetData.cssFunctionMap[key], ...value } : value; 
             Object.keys(completeValue).forEach(objectKey => {
                 let newValue = completeValue[objectKey];
                 if (typeof newValue === 'object'  && !TargetUtil.isListTarget(newValue)) {

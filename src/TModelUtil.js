@@ -1,5 +1,5 @@
 import { TUtil } from "./TUtil.js";
-import { TargetUtil } from "./TargetUtil.js";
+import { TargetData } from "./TargetData.js";
 import { $Dom } from "./$Dom.js";
 
 /**
@@ -108,10 +108,10 @@ class TModelUtil {
             value = tmodel.getTransformX();
         } else if (key === 'y') {
             value = tmodel.getTransformY();
-        } else if (TargetUtil.transformMap[key]) {
-            value = TargetUtil.rotate3D[key]
+        } else if (TargetData.transformMap[key]) {
+            value = TargetData.rotate3D[key]
                 ? tmodel.val(key)
-                : TargetUtil.scaleMap[key]
+                : TargetData.scaleMap[key]
                 ? TUtil.formatNum(tmodel.val(key), 2)
                 : tmodel.floorVal(key);
         }
@@ -122,7 +122,7 @@ class TModelUtil {
     static fixStyle(tmodel) {
         let transformUpdate = false;
         tmodel.styleTargetList.forEach(key => {          
-            if (TargetUtil.transformMap[key]) {
+            if (TargetData.transformMap[key]) {
                 const value = TModelUtil.getTransformValue(tmodel, key);
                 if (tmodel.transformMap[key] !== value) {
                     tmodel.transformMap[key] = value;
@@ -142,7 +142,7 @@ class TModelUtil {
                     tmodel.styleMap['height'] = height; 
                     tmodel.$dom.height(height); 
                 }                                      
-            } else if (TargetUtil.styleWithUnitMap[key]) {
+            } else if (TargetData.styleWithUnitMap[key]) {
                 if (TUtil.isDefined(tmodel.val(key)) && tmodel.styleMap[key] !== tmodel.val(key)) {
                     tmodel.$dom.style(key, TUtil.isNumber(tmodel.val(key)) ? `${tmodel.val(key)}px` : tmodel.val(key));
                     tmodel.styleMap[key] = tmodel.val(key);
@@ -185,7 +185,7 @@ class TModelUtil {
                 if (tmodel.$dom.css() !== css) {
                     tmodel.$dom.css(css);
                 }                    
-            } else if (TargetUtil.attributeTargetMap[key]) {
+            } else if (TargetData.attributeTargetMap[key]) {
                 tmodel.$dom.attr(key, tmodel.val(key));
             } else {
                 if (TUtil.isDefined(tmodel.val(key)) && tmodel.styleMap[key] !== tmodel.val(key)) {

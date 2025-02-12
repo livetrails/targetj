@@ -1,7 +1,7 @@
 import { $Dom } from "./$Dom.js";
 import { SearchUtil } from "./SearchUtil.js";
 import { TUtil } from "./TUtil.js";
-import { TargetUtil } from "./TargetUtil.js";
+import { TargetData } from "./TargetData.js";
 import { tApp, getRunScheduler, tRoot } from "./App.js";
 
 /**
@@ -157,7 +157,7 @@ class EventListener {
             return;
         }
         this.eventTargetMap[targetName] = true;
-        const events = TargetUtil.targetToEventsMapping[targetName];
+        const events = TargetData.targetToEventsMapping[targetName];
         events.forEach(event => {
             if (targetName === 'onTouchStart') {
                 this.ignoreStartEvents = false;

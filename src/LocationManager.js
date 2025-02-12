@@ -1,6 +1,7 @@
 import { BracketGenerator } from "./BracketGenerator.js";
 import { TUtil } from "./TUtil.js";
 import { TargetUtil } from "./TargetUtil.js";
+import { TargetData } from "./TargetData.js";
 import { TModelUtil } from "./TModelUtil.js";
 import { TargetExecutor } from "./TargetExecutor.js";
 import { tApp, getEvents } from "./App.js";
@@ -235,7 +236,7 @@ class LocationManager {
                 eventTargets.push(targetName);
             }
 
-            if (attachEvents && TargetUtil.targetToEventsMapping[targetName]) {
+            if (attachEvents && TargetData.targetToEventsMapping[targetName]) {
                 getEvents().attachTargetEvents(targetName);
             }
         });
@@ -244,11 +245,11 @@ class LocationManager {
     }
 
     checkInternalEventTargets(tmodel) {
-        this.checkEventTargetsByType(tmodel, TargetUtil.internalEventMap);
+        this.checkEventTargetsByType(tmodel, TargetData.internalEventMap);
     }
 
     checkEventTargets(tmodel) {
-        this.checkEventTargetsByType(tmodel, TargetUtil.allEventMap, true);
+        this.checkEventTargetsByType(tmodel, TargetData.allEventMap, true);
     }
 
     runEventTargets(tmodel, eventTargets) {

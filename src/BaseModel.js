@@ -3,6 +3,7 @@ import { TargetExecutor } from "./TargetExecutor.js";
 import { TUtil } from "./TUtil.js";
 import { TModelUtil } from "./TModelUtil.js";
 import { TargetUtil } from "./TargetUtil.js";
+import { TargetData } from "./TargetData.js";
 import { $Dom } from "./$Dom.js";
 
 /**
@@ -114,7 +115,7 @@ class BaseModel {
 
         const target = this.targets[key];        
 
-        if (TargetUtil.allEventMap[key] || TargetUtil.internalEventMap[key]) {
+        if (TargetData.allEventMap[key] || TargetData.internalEventMap[key]) {
             if (!this.eventTargetMap[key]) {
                 this.eventTargetList.push(key);
                 this.eventTargetMap[key] = true;
@@ -122,7 +123,7 @@ class BaseModel {
             return;
         }
 
-        if (TargetUtil.bypassInitialProcessingTargetMap[key]) {
+        if (TargetData.bypassInitialProcessingTargetMap[key]) {
             return;
         }     
 
@@ -134,11 +135,11 @@ class BaseModel {
             this.addToStyleTargetList(key);
         }
 
-        if (TargetUtil.coreTargetMap[key] && !this.coreTargets.includes(key)) {
+        if (TargetData.coreTargetMap[key] && !this.coreTargets.includes(key)) {
             this.coreTargets.push(key);
         }
 
-        if (!TargetUtil.mustExecuteTargets[key] && TUtil.isStringBooleanOrNumber(target)) {          
+        if (!TargetData.mustExecuteTargets[key] && TUtil.isStringBooleanOrNumber(target)) {          
             this.val(key, target);
             return;
         }
@@ -179,8 +180,8 @@ class BaseModel {
             return;
         }
         
-        const isAsyncStyleTarget = TargetUtil.asyncStyleTargetMap[key];
-        const isAttributeTarget = TargetUtil.attributeTargetMap[key];
+        const isAsyncStyleTarget = TargetData.asyncStyleTargetMap[key];
+        const isAttributeTarget = TargetData.attributeTargetMap[key];
 
         if (isAsyncStyleTarget || isAttributeTarget) {
             if (!this.asyncStyleTargetMap[key]) {
@@ -189,7 +190,7 @@ class BaseModel {
             }
         } else if (this.isStyleTarget(key)) {
             let styleFlag = true;
-            if (TargetUtil.transformMap[key]) {
+            if (TargetData.transformMap[key]) {
                 if (this.getParent()) {
                     this.calcAbsolutePosition(this.getX(), this.getY());
                 }
@@ -223,7 +224,7 @@ class BaseModel {
     }
    
     isStyleTarget(key) {
-        return TargetUtil.styleTargetMap[key];
+        return TargetData.styleTargetMap[key];
     }
     
     useWindowFrame(key) {
