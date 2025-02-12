@@ -366,13 +366,15 @@ class TargetUtil {
             if (targetName && !isImperative) {
                 isEndTrigger = isEndTrigger || targetName.endsWith('$');
                 if (isEndTrigger) {
-                    if ((tmodel.isTargetComplete(key) || tmodel.isTargetDone(key)) && !tmodel.hasUpdatingTargets(key) && !tmodel.hasUpdatingChildren()) {
+                    if ((tmodel.isTargetComplete(key) || tmodel.isTargetDone(key)) && !tmodel.hasUpdatingTargets(key) && !tmodel.hasUpdatingChildren() && !tmodel.hasActiveChildren()) {
                         TargetUtil.activateNextTargetIfEligible(tmodel, key, targetName);
                     }
 
                 } else {
                     TargetUtil.activateNextTargetIfEligible(tmodel, key, targetName);
                 }
+                
+                return;
             }
         }
         

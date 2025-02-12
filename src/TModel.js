@@ -98,9 +98,14 @@ class TModel extends BaseModel {
     
     addChild(child, index = this.addedChildren.length + this.allChildrenList.length) { 
         this.addedChildren.push({ index, child });
-        
+        child.parent = this;
+        if (child.updatingTargetList.length > 0) {
+            this.addToUpdatingChildren(child);
+        }
+        if (child.activeTargetList.length > 0) {
+            this.addToActiveChildren(child);
+        }
         child.activate();
-
         return this;
     }
   
@@ -149,7 +154,6 @@ class TModel extends BaseModel {
                     return;
                 }
                 
-                child.parent = this;
                 if (!TUtil.isDefined(child.val('canDeleteDom')) && this.val('canDeleteDom') === false) {
                     child.val('canDeleteDom', false);
                 }

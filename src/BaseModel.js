@@ -510,12 +510,12 @@ class BaseModel {
         return this.targetValues[key] ? this.targetValues[key].events : undefined;
     }
 
-    setTarget(key, value, steps, interval, easing, originalTargetName) {       
+    setTarget(key, value, steps, interval, easing) {       
         if (typeof key === 'object' && key !== null) {
-            [value, steps, interval, easing, originalTargetName] = [key, value, steps, interval, easing];
+            [value, steps, interval, easing] = [key, value, steps, interval, easing];
             key = '';
         }        
-        originalTargetName = originalTargetName || TargetUtil.currentTargetName;
+        const originalTargetName = TargetUtil.currentTargetName;
         const originalTModel = TargetUtil.currentTModel;
         TargetExecutor.executeImperativeTarget(this, key, value, steps, interval, easing, originalTargetName, originalTModel);
 
