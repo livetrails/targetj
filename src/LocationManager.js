@@ -260,16 +260,15 @@ class LocationManager {
 
         eventTargets.forEach(targetName => {
             const target = tmodel.targets[targetName];
-            if (typeof target === 'function') {
-                target.call(tmodel, originalTarget);
-            } else if (Array.isArray(target)) {
-                target.forEach(t => TargetUtil.activateSingleTarget(tmodel, t));
-            } else if (typeof target === 'object') {
-                if (tmodel.isTargetEnabled(targetName) && typeof target.value === 'function') {
+
+            if (tmodel.isTargetEnabled(targetName)) {
+                if (typeof target.value === 'function') {
                     target.value.call(tmodel, originalTarget);
+                } else if (Array.isArray(target.value)) {
+                    target.value.forEach(t => TargetUtil.activateSingleTarget(tmodel, t));                
+                } else {
+                    TargetUtil.activateSingleTarget(tmodel, target.value);
                 }
-            } else {
-                TargetUtil.activateSingleTarget(tmodel, target);
             }
         });
     }

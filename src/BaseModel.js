@@ -515,8 +515,9 @@ class BaseModel {
             [value, steps, interval, easing, originalTargetName] = [key, value, steps, interval, easing];
             key = '';
         }        
-        originalTargetName = originalTargetName || this.key;
-        TargetExecutor.executeImperativeTarget(this, key, value, steps, interval, easing, originalTargetName);
+        originalTargetName = originalTargetName || TargetUtil.currentTargetName;
+        const originalTModel = TargetUtil.currentTModel;
+        TargetExecutor.executeImperativeTarget(this, key, value, steps, interval, easing, originalTargetName, originalTModel);
 
         return this;
     }

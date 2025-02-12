@@ -12,7 +12,7 @@ import { TargetUtil } from "./TargetUtil.js";
 class TModel extends BaseModel {
     constructor(type, targets) {
         super(type, targets);
-
+        
         this.addedChildren = [];
         this.deletedChildren = [];
         this.movedChildren = [];

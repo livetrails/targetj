@@ -229,7 +229,7 @@ class EventListener {
             pinchHandler = SearchUtil.findFirstPinchHandler(tmodel);
             focusHandler = $Dom.hasFocus(tmodel) ? tmodel : this.currentHandlers.focus;
         }
-                
+                        
         if (this.currentHandlers.scrollLeft !== scrollLeftHandler || this.currentHandlers.scrollTop !== scrollTopHandler) {
             this.clearTouch();
         }
@@ -270,7 +270,7 @@ class EventListener {
         }
         
         const lastEvent = this.eventQueue.shift();
-                                
+                                        
         if (this.canFindHandlers) {
             this.findEventHandlers(lastEvent);
         }
@@ -455,8 +455,8 @@ class EventListener {
     }
     
     resizeRoot() {
-        tRoot().val('width', tRoot().targets.width());
-        tRoot().val('height', tRoot().targets.height());
+        tRoot().val('width', tRoot().targets.width.value());
+        tRoot().val('height', tRoot().targets.height.value());
         tRoot().setActualValueLastUpdate('width');
         tRoot().setActualValueLastUpdate('height');
     }

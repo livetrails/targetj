@@ -7,7 +7,7 @@ import { ColorUtil } from "./ColorUtil.js";
  * It provides helper functions for target management, such as deriving the values for steps, intervals, and cycles from targets.
  */
 class TargetUtil {
-
+    
     static transformMap = {
         x: true,
         y: true,
@@ -324,68 +324,66 @@ class TargetUtil {
         };
         
         const doesNextTargetUsePrevValue = nextKey && nextKey.endsWith('$') ? true : false;
-             
+        
+        if (typeof target !== 'object' || Array.isArray(target)) {
+            tmodel.targets[key] = { value: target };
+            target = tmodel.targets[key];
+            target.parentTargetName = TargetUtil.currentTargetName;
+            target.parentTModel = TargetUtil.currentTModel;
+        }
+        
         if (doesNextTargetUsePrevValue) {
-            if (typeof target === 'object' && !Array.isArray(target)) {
-                target.activateNextTarget = nextKey.slice(0, -1);
-            } else {
-                tmodel.targets[key] = { value: target, activateNextTarget: nextKey.slice(0, -1) };
-                target = tmodel.targets[key];                
-            }
+            target.activateNextTarget = nextKey.slice(0, -1);
         }  
 
-        if (typeof target === 'object') {
-            const stepPattern = /^on[A-Za-z]+Step$/;
-            const endPattern = /^on[A-Za-z]+End$/;  
-            const methods = ['value', 'enabledOn', 'onStepsEnd', 'onValueChange', 'loop', 'onImperativeEnd', 'onImperativeStep', 'onSuccess', 'onError'];
+        const stepPattern = /^on[A-Za-z]+Step$/;
+        const endPattern = /^on[A-Za-z]+End$/;  
+        const methods = ['value', 'enabledOn', 'onStepsEnd', 'onValueChange', 'loop', 'onImperativeEnd', 'onImperativeStep', 'onSuccess', 'onError'];
 
-            Object.keys(target).forEach(method => {
-                if (typeof target[method] === 'function' && (methods.includes(method) || stepPattern.test(method) || endPattern.test(method))) {
-                    const originalMethod = target[method];
-                    target[method] = function() {
-                        this.key = TargetUtil.getTargetName(key);
-                        this.prevTargetValue = getPrevValue();         
-                        this.isPrevTargetUpdated = isPrevTargetUpdated;
-                        const result = originalMethod.apply(this, arguments);
-                        lastPrevUpdateTime = getPrevUpdateTime() ?? lastPrevUpdateTime;
-                        return result;
-                    };
-                }
-            });
-        } else if (typeof target === 'function') {
-            const originalFunction = target;
-            tmodel.targets[key] = function() {
-                this.key = TargetUtil.getTargetName(key);
-                this.prevTargetValue = getPrevValue();
-                this.isPrevTargetUpdated = isPrevTargetUpdated;
-                const result = originalFunction.apply(this, arguments);
-                lastPrevUpdateTime = getPrevUpdateTime() ?? lastPrevUpdateTime;
-                return result;
-            };
-        }
+        Object.keys(target).forEach(method => {
+            if (typeof target[method] === 'function' && (methods.includes(method) || stepPattern.test(method) || endPattern.test(method))) {
+                const originalMethod = target[method];
+                target[method] = function() {
+                    TargetUtil.currentTargetName = TargetUtil.getTargetName(key);
+                    TargetUtil.currentTModel = tmodel;
+                    this.key = TargetUtil.getTargetName(key);
+                    this.prevTargetValue = getPrevValue();         
+                    this.isPrevTargetUpdated = isPrevTargetUpdated;
+                    const result = originalMethod.apply(this, arguments);
+                    lastPrevUpdateTime = getPrevUpdateTime() ?? lastPrevUpdateTime;
+                    return result;
+                };
+            }
+        });
     }
     
-    static shouldActivateNextTarget(tmodel, key) {
-        const target = tmodel.targets[key]?.activateNextTarget;
-        if (!target) {
-            return;
-        }
+    static shouldActivateNextTarget(tmodel, key, isEndTrigger = false, level = 0) {
+        const isImperative = tmodel.isTargetImperative(key);
+        const target = tmodel.targets[key];
+        
+        if (target) {
+            const targetName = target.activateNextTarget; 
+            if (targetName && !isImperative) {
+                isEndTrigger = isEndTrigger || targetName.endsWith('$');
+                if (isEndTrigger) {
+                    if ((tmodel.isTargetComplete(key) || tmodel.isTargetDone(key)) && !tmodel.hasUpdatingTargets(key) && !tmodel.hasUpdatingChildren()) {
+                        TargetUtil.activateNextTargetIfEligible(tmodel, key, targetName);
+                    }
 
-        const isEndTrigger = target.endsWith('$');
+                } else {
+                    TargetUtil.activateNextTargetIfEligible(tmodel, key, targetName);
+                }
+            }
+        }
         
         if (isEndTrigger) {
-            TargetUtil.shouldActivateNextTargetOnEnd(tmodel, key);
-        } else {
-            TargetUtil.activateNextTargetIfEligible(tmodel, key, target);
+            const targetValue = tmodel.targetValues[key];
+            if (isImperative && targetValue.originalTargetName && targetValue.originalTModel) {
+                TargetUtil.shouldActivateNextTarget(targetValue.originalTModel, targetValue.originalTargetName, true, level + 1);
+            } else if (!isImperative && target && target.parentTargetName && target.parentTModel) {
+                TargetUtil.shouldActivateNextTarget(target.parentTModel, target.parentTargetName, true, level + 1);
+            }             
         }
-    }
-    
-    static shouldActivateNextTargetOnEnd(tmodel, key) {
-        const target = tmodel.targets[key]?.activateNextTarget;
-        if (target && target.endsWith('$') && (tmodel.isTargetComplete(key) || tmodel.isTargetDone(key)) && !tmodel.hasUpdatingTargets(key)) {
-            TargetUtil.activateNextTargetIfEligible(tmodel, key, target);
-        };
-        
     }
     
     static activateNextTargetIfEligible(tmodel, key, targetName) {

@@ -227,7 +227,6 @@ class TargetManager {
                     originalTModel.setTargetMethodName(originalTargetName, 'onImperativeEnd');
                 }
                 
-                TargetUtil.shouldActivateNextTargetOnEnd(tmodel, originalTargetName);
             } else {
                 if (!targetValue.valueList && tmodel.getTargetCycle(key) < tmodel.getTargetCycles(key)) {
                     tmodel.incrementTargetCycle(key, tmodel.getTargetCycle(key));
@@ -244,6 +243,9 @@ class TargetManager {
         }
         
         tmodel.updateTargetStatus(key);
+        
+        TargetUtil.shouldActivateNextTarget(tmodel, key, true);
+
         
         getRunScheduler().schedule(scheduleTime, `${tmodel.oid}---${key}-${step}/${steps}-${cycle}-${interval}`);
     }
