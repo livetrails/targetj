@@ -520,7 +520,8 @@ Below is a comparison between implementing animations in TargetJS versus using t
 ```bash
 import { App, TModel, getScreenHeight, getScreenWidth } from "targetj";
 
-App(new TModel('TargetJS vs Animation Api', { 
+App(new TModel('compare', {
+    domHolder: true,
     addAnimateChild() {
         this.addChild(new TModel('animation', {
             width: 150,
@@ -550,10 +551,11 @@ App(new TModel('TargetJS vs Animation Api', {
                     }];
 
                     return this.$dom.animate(keyframes, {
-                        duration: 4500, 
+                        duration: 4000, 
                         iterations: 1
                     });
-                }, enabledOn: function() {
+                },
+                enabledOn: function() {
                     return this.hasDom();
                 }
             }
@@ -562,38 +564,24 @@ App(new TModel('TargetJS vs Animation Api', {
     addDomChild() {
         this.addChild(new TModel('dom', {
             color: 'white',
-            html: 'TargetJS',
-            animate: {
-                cycles: 3,
-                value(cycle) {
-                    return [
-                        { x: 200, y: 0, rotate: 0, scale: 1, width: 80, height: 80, background: 'orange' },
-                        { x: 250, y: 100, rotate: 180, scale: 1.5, width: 120, height: 120, background: 'brown' },
-                        { x: 350, y: 0, rotate: 360, scale: 1, width: 100, height: 100, background: 'crimson' },
-                        { x: 200, y: 0, rotate: 360, scale: 1, width: 150, height: 150, background: 'purple' }
-                    ][cycle];
-                },
-                onValueChange(newValue) {
-                    const steps = this.getTargetCycle(this.key) === 0 ? 0 : 180;
-                    this.setTarget("move", newValue, steps);
-                }
-            }
+            html: 'TargetJ',
+            setup() {
+                this.setTarget({ x: 200, y: 0, rotate: 0, scale: 1, width: 80, height: 80, background: 'orange' });
+            },
+            step1$() {
+                this.setTarget({ x: 250, y: 100, rotate: 180, scale: 1.5, width: 120, height: 120, background: 'brown' }, 160);                
+            },
+            _step2$$() {
+                this.setTarget({ x: 350, y: 0, rotate: 360, scale: 1, width: 100, height: 100, background: 'crimson' }, 160);                
+            },            
+            _step3$$() {
+                this.setTarget({ x: 200, y: 0, rotate: 360, scale: 1, width: 150, height: 150, background: 'purple' }, 160);                
+            }                                                   
         }));
     },
-    restartOnBothComplete: {
-        loop: true,
-        interval: 50,
-        value() {
-            const animation = this.getChild(0).val('animate');            
-            if (animation.currentTime === animation.effect.getComputedTiming().duration 
-                    && this.getChild(1).isTargetComplete('animate')) {
-                this.getChild(0).activateTarget('animate');
-                this.getChild(1).activateTarget('animate');
-            }
-        },
-        enabledOn: function() {
-            return this.getChildren().length === 2 && this.getChild(0).val('animate');
-        }
+    _restartOnBothComplete$$() {
+        this.getChild(0).activateTarget('animate');
+        this.getChild(1).activateTarget('setup');
     },
     width() { return getScreenWidth(); },
     height() { return getScreenHeight(); }    
