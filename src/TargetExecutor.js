@@ -43,12 +43,17 @@ class TargetExecutor {
                 TargetExecutor.executeImperativeTarget(tmodel, objectKey, newValue, steps, interval, easing, originalTargetName, originalTModel);
             });
         } else {
-            if (typeof value === 'object'  && !TargetUtil.isListTarget(value)) {
+            if (typeof value === 'object' && !TargetUtil.isListTarget(value)) {
                 const valueArray = TargetUtil.getValueStepsCycles(tmodel, value, key);
-                value = valueArray[0];
-                steps = TUtil.isDefined(valueArray[1]) ? valueArray[1] : steps;
-                interval = TUtil.isDefined(valueArray[2]) ? valueArray[2] : interval;
-                TargetExecutor.executeImperativeTarget(tmodel, key, value, steps, interval, easing, originalTargetName, originalTModel);
+                if (value !== valueArray[0]) {
+                    value = valueArray[0];
+                    steps = TUtil.isDefined(valueArray[1]) ? valueArray[1] : steps;
+                    interval = TUtil.isDefined(valueArray[2]) ? valueArray[2] : interval;
+                    TargetExecutor.executeImperativeTarget(tmodel, key, value, steps, interval, easing, originalTargetName, originalTModel);
+                } else {
+                    TargetExecutor.assignSingleTarget(targetValue, value, undefined, steps, 0, interval, easing);
+                    targetValue.step = 0;                    
+                }
             } else {
                 TargetExecutor.assignSingleTarget(targetValue, value, undefined, steps, 0, interval, easing);
                 targetValue.step = 0;
