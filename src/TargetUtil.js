@@ -1,6 +1,6 @@
 import { TModel } from "./TModel.js";
 import { TargetData } from "./TargetData.js";
-import { getRunScheduler, getManager, getEvents, getResizeLastUpdate, getLoader } from "./App.js";
+import { getRunScheduler, getManager, getLoader } from "./App.js";
 import { TUtil } from "./TUtil.js";
 import { ColorUtil } from "./ColorUtil.js";
 
@@ -138,11 +138,9 @@ class TargetUtil {
                     if ((tmodel.isTargetComplete(key) || tmodel.isTargetDone(key)) && !tmodel.hasUpdatingTargets(key) && !tmodel.hasUpdatingChildren() && !tmodel.hasActiveChildren()) {
                         TargetUtil.activateNextTargetIfEligible(tmodel, key, targetName);
                     }
-
                 } else {
                     TargetUtil.activateNextTargetIfEligible(tmodel, key, targetName);
                 }
-                
                 return;
             }
         }
@@ -320,7 +318,7 @@ class TargetUtil {
         const easing = tmodel.getTargetEasing(key);
         const easingStep = easing ? easing(tmodel.getTargetStepPercent(key, step)) : tmodel.getTargetStepPercent(key, step);
 
-        if (TargetUtil.colorMap[key]) {
+        if (TargetData.colorMap[key]) {
             const targetColors = ColorUtil.color2Integers(toValue);
             const lastColors = fromValue ? ColorUtil.color2Integers(fromValue) : ColorUtil.color2Integers('#fff');
 

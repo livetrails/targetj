@@ -58,7 +58,6 @@ class LocationManager {
     }
 
     calculate() {
-        this.addToLocationList(tApp.tRoot);
         this.calculateContainer(tApp.tRoot);
     }
 

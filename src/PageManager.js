@@ -29,15 +29,15 @@ class PageManager {
             tApp.tRoot.$dom.innerHTML(this.pageCache[link].html);
 
             TUtil.initDoms(this.pageCache[link].visibleList);
-            this.onPageClose(this.pageCache[link].visibleList);
             tApp.manager.lists.visible = [...this.pageCache[link].visibleList];
             this.lastLink = link;
             tApp.start();
         }
     }
 
-    openLinkFromHistory(state) {
+    openLinkFromHistory(state) {        
         if (state.link) {
+            this.onPageClose();
             this.openPage(state.link);
         } else if (state.browserUrl) {
             history.replaceState({ link: state.browserUrl }, "", state.browserUrl);
@@ -47,19 +47,19 @@ class PageManager {
         getRunScheduler().schedule(0, "pagemanager-openLinkFromHistory");
     }
     
-    onPageClose(visibles) {
+    onPageClose() {        
         tApp.resizeLastUpdate = TUtil.now();
         getEvents().resizeRoot();
-        visibles.forEach(tmodel => {
+        tApp.manager.lists.visible.forEach(tmodel => {
             getLocationManager().runEventTargets(tmodel, ['onPageClose']);             
         });          
     }
 
-    openLink(link) {
+    openLink(link) {    
         link = TUtil.getFullLink(link);
 
         if (this.lastLink) {
-            this.onPageClose(tApp.manager.lists.visible);
+            this.onPageClose();
                         
             this.pageCache[this.lastLink] = {
                 link: this.lastLink,

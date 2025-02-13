@@ -7,7 +7,7 @@ import { tApp, getEvents, getManager, getLocationManager } from "./App.js";
  */
 
 class RunScheduler {
-    static steps = [
+    static domSteps = [
         () => getManager().createDoms(),
         () => getManager().reattachTModels(),
         () => getManager().relocateTModels(),
@@ -52,7 +52,7 @@ class RunScheduler {
         this.activeStartTime = undefined;
     }
     
-    schedule(delay, runId) {
+    schedule(delay, runId) {     
         if (!tApp.isRunning() || this.resetting || (delay === 0 && this.rerunId)) {
             return;
         }
@@ -75,19 +75,19 @@ class RunScheduler {
             }
             return;
         }
-        
+                        
         this.rerunId = '';      
         this.runId = runId;
         this.runningFlag = true;
         this.runStartTime = TUtil.now();
-        
+       
         getEvents().captureEvents();
         
         if (getManager().doneTargets.length > 0) {
             getManager().completeDoneTModels();
             getManager().doneTargets.length = 0;
         }
-        
+                
         tApp.targetManager.applyTargetValues(tApp.tRoot);
         getLocationManager().calculateAll();      
         getLocationManager().calculateActivated();    
@@ -102,7 +102,7 @@ class RunScheduler {
                 this.rerunId = `domrun ${runId}`; 
             }
         }
-
+                
         if (tApp.debugLevel === 1) {
             TUtil.log(true)(`Request from: ${runId} dly: ${delay} step:${runningStep} dom:${this.domProcessing} runs:${this.nextRuns.length} D:${this.delayProcess?.delay}`);
         }
@@ -136,7 +136,7 @@ class RunScheduler {
                     }
                 }
             }
-        }   
+        }         
     }
 
     domOperations(runningStep) {
@@ -144,14 +144,14 @@ class RunScheduler {
                 
         if (runningStep === 10) {
             this.domFixStyles();
-        } else {
-            Promise.all(RunScheduler.steps.filter((_, index) => index >= runningStep).map(step => Promise.resolve().then(step)))
-            .then(() => {
+        } else {             
+            Promise.all(RunScheduler.domSteps.filter((_, index) => index >= runningStep).map(step => Promise.resolve().then(step)))
+            .then(() => {  
                 if (getManager().lists.restyle.length) {
                     this.domFixStyles();            
                 } else {
-                    this.domProcessing = 0;    
-                    this.needsRerun();
+                this.domProcessing = 0;
+                this.needsRerun();
                 }
             });            
         }

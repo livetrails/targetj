@@ -118,7 +118,7 @@ class TModelManager {
             .filter(tmodel => tmodel !== null && tmodel.hasDom() && (tmodel.canDeleteDom() || !tmodel.getParent()?.allChildrenMap[tmodel.oid]));
 
         this.lists.invisibleDom.push(...lastVisible);
-
+        
         return this.lists.noDom.length > 0 ? 0 : 
             this.lists.reattach.length > 0 ? 1 : 
             this.lists.relocation.length > 0 ? 2 :                        
@@ -180,7 +180,7 @@ class TModelManager {
             if (tmodel.hasBaseElementChanged()) {
                 TModelUtil.createDom(tmodel);
             }
-              
+    
             if (tmodel.getDomHolder(tmodel)) {  
                 tmodel.getDomHolder(tmodel).appendTModel$Dom(tmodel);
             }
@@ -193,7 +193,7 @@ class TModelManager {
         for (const tmodel of this.lists.relocation) { 
             tmodel.getDomParent().$dom.relocate(tmodel, tmodel.domOrderIndex);
             tmodel.domOrderIndex = undefined;
-        }           
+        }
     }
     
     deleteDoms() {
@@ -201,7 +201,7 @@ class TModelManager {
             tmodel.styleMap = {};
             tmodel.transformMap = {};
             tmodel.val('isVisible', false);
-            
+        
             tmodel.$dom?.detach();
             tmodel.$dom = null;
         }
@@ -237,7 +237,7 @@ class TModelManager {
         });
     }
 
-    createDoms() {        
+    createDoms() {           
         if (this.lists.noDom.length === 0) { 
             return;
         }
@@ -269,10 +269,10 @@ class TModelManager {
                 } 
                 
                 tmodel.getDomHolder(tmodel).appendTModel$Dom(tmodel);
-                tmodel.hasDomNow = true;                
+                tmodel.hasDomNow = true;  
             }
         }
-    }
+    }        
 }
 
 export { TModelManager };
