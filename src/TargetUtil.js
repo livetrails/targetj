@@ -94,12 +94,8 @@ class TargetUtil {
         
         const doesNextTargetUsePrevValue = nextKey && nextKey.endsWith('$') ? true : false;
         
-        if (typeof target !== 'object' || Array.isArray(target)) {
-            tmodel.targets[key] = { value: target };
-            target = tmodel.targets[key];
-            target.parentTargetName = TargetUtil.currentTargetName;
-            target.parentTModel = TargetUtil.currentTModel;
-        }
+        target.originalTargetName = TargetUtil.currentTargetName;
+        target.originalTModel = TargetUtil.currentTModel;
         
         if (doesNextTargetUsePrevValue) {
             target.activateNextTarget = nextKey.slice(0, -1);
@@ -126,47 +122,47 @@ class TargetUtil {
         });
     }
     
-    static shouldActivateNextTarget(tmodel, key, isEndTrigger = false, level = 0) {
+    static shouldActivateNextTarget(tmodel, key, isEndTrigger = false) {
         const isImperative = tmodel.isTargetImperative(key);
         const target = tmodel.targets[key];
-        
-        if (target) {
-            const targetName = target.activateNextTarget; 
-            if (targetName && !isImperative) {
-                isEndTrigger = isEndTrigger || targetName.endsWith('$');
-                if (isEndTrigger) {
-                    if ((tmodel.isTargetComplete(key) || tmodel.isTargetDone(key)) && !tmodel.hasUpdatingTargets(key) && !tmodel.hasUpdatingChildren() && !tmodel.hasActiveChildren()) {
-                        TargetUtil.activateNextTargetIfEligible(tmodel, key, targetName);
-                    }
-                } else {
-                    TargetUtil.activateNextTargetIfEligible(tmodel, key, targetName);
+        const targetName = target?.activateNextTarget; 
+        const cleanTargetName = TargetUtil.getTargetName(targetName);        
+        isEndTrigger = isEndTrigger || targetName?.endsWith('$');
+        const shouldActivateNextTarget = cleanTargetName && !isImperative;
+
+        if (getLoader().isLoading(tmodel, key)) {
+                        
+            if (getLoader().isLoadingSuccessful(tmodel, key) && TargetUtil.hasTargetEnded(tmodel, key)) {
+                if (shouldActivateNextTarget) {
+                    TargetUtil.activateNextTarget(tmodel, cleanTargetName);
                 }
-                return;
+                getLoader().removeFromTModelKeyMap(tmodel, key);
+            } 
+            return;
+        } else if (shouldActivateNextTarget) {
+            if ((isEndTrigger && TargetUtil.hasTargetEnded(tmodel, key)) || !isEndTrigger) {
+                TargetUtil.activateNextTarget(tmodel, cleanTargetName);
             }
+            return;
         }
-        
+
         if (isEndTrigger) {
-            const targetValue = tmodel.targetValues[key];
-            if (isImperative && targetValue.originalTargetName && targetValue.originalTModel) {
-                TargetUtil.shouldActivateNextTarget(targetValue.originalTModel, targetValue.originalTargetName, true, level + 1);
-            } else if (!isImperative && target && target.parentTargetName && target.parentTModel) {
-                TargetUtil.shouldActivateNextTarget(target.parentTModel, target.parentTargetName, true, level + 1);
+            const { originalTModel, originalTargetName } = isImperative ? tmodel.targetValues[key] : target;
+            if (originalTargetName && originalTModel && TargetUtil.hasTargetEnded(originalTModel, originalTargetName)) {
+                TargetUtil.shouldActivateNextTarget(originalTModel, originalTargetName, true);
             }             
         }
     }
+
+    static hasTargetEnded(tmodel, key) {
+        return (tmodel.isTargetComplete(key) || tmodel.isTargetDone(key)) && !tmodel.hasUpdatingTargets(key) && !tmodel.hasUpdatingChildren() && !tmodel.hasActiveChildren();
+    }
     
-    static activateNextTargetIfEligible(tmodel, key, targetName) {
-        const cleanTargetName = TargetUtil.getTargetName(targetName);
-        if (getLoader().isInTModelKeyMap(tmodel, key)) {
-            //wait till API calls are completed
-            return;
+    static activateNextTarget(tmodel, activateNextTarget) {
+        if (tmodel.isTargetImperative(activateNextTarget)) {
+            tmodel.targetValues[activateNextTarget].isImperative = false;
         }
-        
-        if (tmodel.isTargetImperative(cleanTargetName)) {
-            tmodel.targetValues[cleanTargetName].isImperative = false;
-        }
-        
-        tmodel.activate(cleanTargetName);
+        tmodel.activate(activateNextTarget);   
     }
     
     static activateSingleTarget(tmodel, targetName) {

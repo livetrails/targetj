@@ -95,9 +95,15 @@ class TargetManager {
         let schedulePeriod = 0;
         
         for (const key of updatingList) {
-            if (tmodel.isScheduledPending(key) && getRunScheduler().nextRuns.length > 0) {
-                continue;
-            }
+            const lastScheduledTime = tmodel.getScheduleTimeStamp(key); 
+            const interval = tmodel.getTargetInterval(key);
+            
+            if (lastScheduledTime && lastScheduledTime + interval > TUtil.now()) {
+                const nextRun = getRunScheduler().nextRuns.length > 0 ? getRunScheduler().nextRuns[0] : undefined;
+                if (nextRun && nextRun.delay + nextRun.insertTime < lastScheduledTime + interval) {                
+                    continue;
+                }
+            }            
             
             schedulePeriod = TargetUtil.scheduleExecution(tmodel, key);
 
@@ -177,7 +183,7 @@ class TargetManager {
             
             TargetUtil.shouldActivateNextTarget(tmodel, key);
                      
-            if (tmodel.getTargetStep(key) < steps) {
+            if (tmodel.getTargetStep(key) < steps) {              
                 getRunScheduler().schedule(interval, `${tmodel.oid}---${key}-${step}/${steps}-${cycle}-${interval}`);
                 return;
             }
@@ -244,10 +250,11 @@ class TargetManager {
         
         tmodel.updateTargetStatus(key);
         
-        TargetUtil.shouldActivateNextTarget(tmodel, key, true);
+        if (TargetUtil.hasTargetEnded(tmodel, key)) {
+            TargetUtil.shouldActivateNextTarget(tmodel, key, true);            
+        }
 
-        
-        getRunScheduler().schedule(scheduleTime, `${tmodel.oid}---${key}-${step}/${steps}-${cycle}-${interval}`);
+        getRunScheduler().schedule(scheduleTime, `${tmodel.oid}---${key}-${step}/${steps}-${cycle}-${scheduleTime}`);
     }
 }
 

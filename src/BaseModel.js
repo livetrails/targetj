@@ -91,10 +91,16 @@ class BaseModel {
     }    
     
     processNewTarget(key, targetNames) {
-        
-        if (!TUtil.isDefined(this.targets[key])) {
+        let target = this.targets[key];        
+
+        if (!TUtil.isDefined(target)) {
             this.delVal('key');
             return;
+        }
+        
+       if (typeof target !== 'object' || Array.isArray(target)) {
+            this.targets[key] = { value: target };
+            target = this.targets[key];
         }
 
         TargetUtil.bindTarget(this, key, targetNames);
@@ -103,17 +109,13 @@ class BaseModel {
         const isInactiveKey = key.startsWith('_');
 
         if (cleanKey !== key) {
+            this.targets[cleanKey] = this.targets[key];
             if (isInactiveKey) {
-                this.targets[cleanKey] = typeof this.targets[key] === 'object' && this.targets[key].value ? this.targets[key] : { value: this.targets[key] };
                 this.targets[cleanKey].active = false;
-            } else {
-                this.targets[cleanKey] = this.targets[key];
             }
             delete this.targets[key];
             key = cleanKey;
         }
-
-        const target = this.targets[key];        
 
         if (TargetData.allEventMap[key] || TargetData.internalEventMap[key]) {
             if (!this.eventTargetMap[key]) {

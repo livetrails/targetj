@@ -118,16 +118,15 @@ class RunScheduler {
         if (this.rerunId) {
             this.schedule(1, `rerun-${this.rerunId}`); 
         } else {
-            const newDelay = this.nextRuns.length > 0 ? this.nextRuns[0].delay - (TUtil.now() - this.nextRuns[0].insertTime) : 15;
-
-            if (newDelay >= 15) {
+            const newDelay = this.nextRuns.length > 0 ? this.nextRuns[0].delay - (TUtil.now() - this.nextRuns[0].insertTime) : undefined;
+            if (newDelay === undefined) {
                 if (getEvents().eventQueue.length > 0) {
                     this.schedule(15, `events-${getEvents().eventQueue.length}`); 
                 } else if (getManager().lists.updatingTModels.length > 0) {
                     this.schedule(15, `getManager-needsRerun-updatingTModels`);                     
                 } else if (getManager().lists.activeTModels.length > 0) {
                     const activeTModel = getManager().lists.activeTModels.find(tmodel => {
-                        return tmodel.activeTargetList.some(target => tmodel.isTargetEnabled(target) && tmodel.shouldScheduleRun(target));
+                        return tmodel.activeTargetList.some(target => !tmodel.isExecuted() || (tmodel.isTargetEnabled(target) && tmodel.shouldScheduleRun(target)));
                     });
                     if (activeTModel) {
                         const delay = !this.activeStartTime || TUtil.now() - this.activeStartTime > 15 ? 1 : 15;
@@ -135,8 +134,10 @@ class RunScheduler {
                         this.schedule(delay, `getManager-needsRerun-${activeTModel.oid}-${activeTModel.activeTargetList}`);
                     }
                 }
+            } else if (newDelay < 0 && newDelay >= -15) {
+                this.executeNextRun();            
             }
-        }         
+        }       
     }
 
     domOperations(runningStep) {
@@ -192,21 +193,34 @@ class RunScheduler {
     }
     
     executeNextRun() {
-        
+        let lastNegativeRun = null;
+        let nextValidRun = null;
+
         while (this.nextRuns.length > 0) {
             const nextRun = this.nextRuns.shift();
             const now = TUtil.now();
             const newDelay = nextRun.delay - (now - nextRun.insertTime);
-            
-            if (newDelay >= 0 || this.nextRuns.length === 0) {
-                this.setDelayProcess(nextRun.runId, nextRun.insertTime, now + newDelay, Math.max(newDelay, 0));
-                return;
-            }
-        }
 
-        this.delayProcess = undefined;
+            if (newDelay < 0) {
+                lastNegativeRun = nextRun;
+            } else {
+                nextValidRun = nextRun;
+                break;
+            }
+        }        
+        
+
+        if (lastNegativeRun) {
+            this.setDelayProcess(lastNegativeRun.runId, lastNegativeRun.insertTime, TUtil.now(), 0);
+        } else if (nextValidRun) {
+            const now = TUtil.now();
+            const newDelay = Math.max(1, nextValidRun.delay - (now - nextValidRun.insertTime));
+            this.setDelayProcess(nextValidRun.runId, nextValidRun.insertTime, now + newDelay, newDelay);
+        } else {
+            this.delayProcess = undefined;
+        }
     }
-    
+
     delayRun(delay, runId) {
         const insertTime = this.runStartTime;        
         const runTime = insertTime + delay;

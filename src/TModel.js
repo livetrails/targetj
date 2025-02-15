@@ -370,7 +370,7 @@ class TModel extends BaseModel {
     
     isVisible() {
         if (this.targets['isVisible']) {
-            return typeof this.targets['isVisible'] === 'function' ? this.targets['isVisible'].call(this) : this.targets['isVisible'];
+            return typeof this.targets['isVisible'].value === 'function' ? this.targets['isVisible'].value.call(this) : this.targets['isVisible'].value;
         }
         return this.val('isVisible');
     }

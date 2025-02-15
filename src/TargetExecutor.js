@@ -2,7 +2,7 @@ import { TargetUtil } from "./TargetUtil.js";
 import { TargetData } from "./TargetData.js";
 import { TUtil } from "./TUtil.js";
 import { Easing } from "./Easing.js";
-import { getEvents, getLoader } from "./App.js";
+import { getEvents } from "./App.js";
 
 /**
  * It is responsible for executing both declarative and imperative targets.
@@ -13,11 +13,7 @@ class TargetExecutor {
         TargetExecutor.resolveTargetValue(tmodel, key);
         TargetExecutor.updateTarget(tmodel, tmodel.targetValues[key], key);
 
-        if (getLoader().isInTModelKeyMap(tmodel, key)) {
-            getLoader().initializeLoaderTargetValue(tmodel, key);    
-        } else {
-            TargetUtil.shouldActivateNextTarget(tmodel, key);        
-        }
+        TargetUtil.shouldActivateNextTarget(tmodel, key);
     }
 
     static executeImperativeTarget(tmodel, key, value, steps, interval, easing, originalTargetName, originalTModel) {
