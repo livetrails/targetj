@@ -1,4 +1,4 @@
-import { tApp, App, getRunScheduler, getLocationManager } from "./App.js";
+import { tApp, App, getRunScheduler, getLocationManager, getLoader } from "./App.js";
 import { TargetExecutor } from "./TargetExecutor.js";
 import { TUtil } from "./TUtil.js";
 import { TModelUtil } from "./TModelUtil.js";
@@ -681,6 +681,8 @@ class BaseModel {
                 this.val(`__${key}`, value);
             }
             
+            getLoader().removeFromTModelKeyMap(this, key);
+
             const targetValue = this.targetValues[key];
 
             if (targetValue) {

@@ -136,7 +136,6 @@ class TargetUtil {
                 if (shouldActivateNextTarget) {
                     TargetUtil.activateNextTarget(tmodel, cleanTargetName);
                 }
-                getLoader().removeFromTModelKeyMap(tmodel, key);
             } 
             return;
         } else if (shouldActivateNextTarget) {

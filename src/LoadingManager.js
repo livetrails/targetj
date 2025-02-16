@@ -49,12 +49,18 @@ class LoadingManager {
     getTModelKey(tmodel, targetName) {
         return `${tmodel.oid} ${targetName}`;
     }
+    
+    getLoadTargetName(targetName) {
+        return `load-${targetName}`;
+    }
 
     addToTModelKeyMap(tmodel, targetName, fetchId, cacheId) {
         const key = this.getTModelKey(tmodel, targetName);
+        const loadTargetName = this.getLoadTargetName(targetName);
+                
         if (!this.tmodelKeyMap[key]) {
             this.tmodelKeyMap[key] = { fetchMap: {}, entryCount: 0, resultCount: 0, errorCount: 0, activeIndex: 0 };
-            tmodel.val(targetName, []);
+            tmodel.val(loadTargetName, []);
         }
 
         if (!this.tmodelKeyMap[key].fetchMap[fetchId]) {
@@ -64,7 +70,7 @@ class LoadingManager {
             };
             
             this.tmodelKeyMap[key].entryCount++;
-            tmodel.val(targetName).push(undefined);
+            tmodel.val(loadTargetName).push(undefined);
   
             if (cacheId && this.isFetched(cacheId)) {
                 this.handleSuccess(this.fetchingAPIMap[fetchId], this.cacheMap[cacheId].result);
@@ -130,6 +136,7 @@ class LoadingManager {
         targets.forEach(({ tmodel, targetName }) => {
             const key = this.getTModelKey(tmodel, targetName);
             const tmodelEntry = this.tmodelKeyMap[key];
+            const loadTargetName = this.getLoadTargetName(targetName);
 
             if (!tmodelEntry) {
                 return;
@@ -138,9 +145,12 @@ class LoadingManager {
             const fetchEntry = tmodelEntry.fetchMap[fetchId];
             this.callOnSuccessHandler(tmodel, targetName, { ...res, order: fetchEntry.order });
 
-            let targetResults = tmodel.val(targetName);
+            let targetResults = tmodel.val(loadTargetName);
             
             targetResults[fetchEntry.order] = res.result;
+            
+            tmodel.val(targetName, targetResults.length === 1 ? targetResults[0] : targetResults);
+            
             tmodelEntry.resultCount++;
 
             if (tmodelEntry.errorCount === 0) {

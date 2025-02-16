@@ -126,7 +126,7 @@ class RunScheduler {
                     this.schedule(15, `getManager-needsRerun-updatingTModels`);                     
                 } else if (getManager().lists.activeTModels.length > 0) {
                     const activeTModel = getManager().lists.activeTModels.find(tmodel => {
-                        return tmodel.activeTargetList.some(target => !tmodel.isExecuted() || (tmodel.isTargetEnabled(target) && tmodel.shouldScheduleRun(target)));
+                        return tmodel.targetExecutionCount === 0 || tmodel.activeTargetList.some(target => tmodel.isTargetEnabled(target) && tmodel.shouldScheduleRun(target));
                     });
                     if (activeTModel) {
                         const delay = !this.activeStartTime || TUtil.now() - this.activeStartTime > 15 ? 1 : 15;
