@@ -9,8 +9,8 @@ import { getEvents } from "./App.js";
  */
 class TargetExecutor {
     
-    static executeDeclarativeTarget(tmodel, key) { 
-        TargetExecutor.resolveTargetValue(tmodel, key);
+    static executeDeclarativeTarget(tmodel, key, cycle) { 
+        TargetExecutor.resolveTargetValue(tmodel, key, cycle);
         TargetExecutor.updateTarget(tmodel, tmodel.targetValues[key], key);
 
         TargetUtil.shouldActivateNextTarget(tmodel, key);
@@ -123,12 +123,12 @@ class TargetExecutor {
         TargetUtil.handleValueChange(tmodel, key, tmodel.val(key), oldValue, 0, 0);
     }
 
-    static resolveTargetValue(tmodel, key) {
+    static resolveTargetValue(tmodel, key, cycle = tmodel.getTargetCycle(key)) {
         const targetInitial = !tmodel.targetValues[key] && TUtil.isDefined(tmodel.targets[key].initialValue)
             ? tmodel.targets[key].initialValue
             : undefined;
 
-        const valueArray = TargetUtil.getValueStepsCycles(tmodel, tmodel.targets[key], key);
+        const valueArray = TargetUtil.getValueStepsCycles(tmodel, tmodel.targets[key], key, cycle);
 
         const newValue = valueArray[0];
         const newSteps = valueArray[1] || 0;

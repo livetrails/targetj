@@ -74,7 +74,13 @@ class TargetUtil {
         const nextKey = keyIndex < keys.length - 1 ? keys[keyIndex + 1] : undefined;
         
         const getPrevValue = () => {
-            return (prevKey !== undefined ? tmodel.val(prevKey) : undefined);
+            if (prevKey) { 
+                if (getLoader().isLoading(tmodel, prevKey) && !key.endsWith('$$')) {
+                    return getLoader().getLoadingItemValue(tmodel, prevKey);
+                } else {
+                    return tmodel.val(prevKey);
+                }
+            }
         };
 
         let lastPrevUpdateTime = prevKey !== undefined ? tmodel.getActualValueLastUpdate(prevKey) : undefined;
@@ -122,43 +128,72 @@ class TargetUtil {
         });
     }
     
-    static shouldActivateNextTarget(tmodel, key, isEndTrigger = false) {
-        const isImperative = tmodel.isTargetImperative(key);
+    static shouldActivateNextTarget(tmodel, key, level = 0) {
         const target = tmodel.targets[key];
         const targetName = target?.activateNextTarget; 
         const cleanTargetName = TargetUtil.getTargetName(targetName);        
-        isEndTrigger = isEndTrigger || targetName?.endsWith('$');
-        const shouldActivateNextTarget = cleanTargetName && !isImperative;
+        const isEndTrigger = targetName?.endsWith('$');
+        const shouldActivate = target && cleanTargetName;
 
-        if (getLoader().isLoading(tmodel, key)) {
-                        
-            if (getLoader().isLoadingSuccessful(tmodel, key) && TargetUtil.hasTargetEnded(tmodel, key)) {
-                if (shouldActivateNextTarget) {
+
+        if (target?.fetch) {
+            if (shouldActivate) {
+                if (isEndTrigger && TargetUtil.hasTargetEnded(tmodel, key)) {
                     TargetUtil.activateNextTarget(tmodel, cleanTargetName);
-                }
-            } 
+                } else if (!isEndTrigger) {
+                    while (getLoader().isNextLoadingItemSuccessful(tmodel, key)) {
+                        if (tmodel.activatedTargets.indexOf(cleanTargetName) >= 0) {
+                            tmodel.activatedTargets.push(cleanTargetName);
+                        } else {
+                            TargetUtil.activateNextTarget(tmodel, cleanTargetName);
+                        }
+                        getLoader().nextActiveItem(tmodel, key);
+                    }
+                }                
+            } else if (TargetUtil.hasTargetEnded(tmodel, key)) {
+                getLoader().removeFromTModelKeyMap(tmodel, key);
+            }
             return;
-        } else if (shouldActivateNextTarget) {
+        } else if (target?.addChild === true || target?.addChild === false) {
+            if (target?.addChild === true && ((isEndTrigger && TargetUtil.hasTargetEnded(tmodel, key)) || (tmodel.hasChildren() && !isEndTrigger))) {
+                TargetUtil.activateNextTarget(tmodel, cleanTargetName);
+                target.addChild = false;
+            }
+            return;            
+        } else if (shouldActivate) {
             if ((isEndTrigger && TargetUtil.hasTargetEnded(tmodel, key)) || !isEndTrigger) {
                 TargetUtil.activateNextTarget(tmodel, cleanTargetName);
             }
             return;
         }
 
-        if (isEndTrigger) {
-            const { originalTModel, originalTargetName } = isImperative ? tmodel.targetValues[key] : target;
-            if (originalTargetName && originalTModel && TargetUtil.hasTargetEnded(originalTModel, originalTargetName)) {
-                TargetUtil.shouldActivateNextTarget(originalTModel, originalTargetName, true);
-            }             
-        }
+        const { originalTModel, originalTargetName } = tmodel.isTargetImperative(key) ? tmodel.targetValues[key] : target;
+        if (level < 2 && originalTargetName && originalTModel && TargetUtil.hasTargetEnded(originalTModel, originalTargetName)) {
+            TargetUtil.shouldActivateNextTarget(originalTModel, originalTargetName, level + 1);
+        }             
     }
 
     static hasTargetEnded(tmodel, key) {
-        return (tmodel.isTargetComplete(key) || tmodel.isTargetDone(key)) && !tmodel.hasUpdatingTargets(key) && !tmodel.hasUpdatingChildren() && !tmodel.hasActiveChildren();
+        const isComplete = (tmodel.isTargetComplete(key) || tmodel.isTargetDone(key)) && !tmodel.hasUpdatingTargets(key);
+        if (!isComplete) {
+            return false;
+        }
+        
+        const target = tmodel.targets[key];
+        if (target) {
+            if ((target.addChild && (tmodel.hasUpdatingChildren() || tmodel.hasActiveChildren()))) {
+                return false;
+            }
+            if (target.fetch && !getLoader().isLoadingSuccessful(tmodel, key)) {
+                return false;
+            }
+        }
+        
+        return true;
     }
     
     static activateNextTarget(tmodel, activateNextTarget) {
-        if (tmodel.isTargetImperative(activateNextTarget)) {
+        if (tmodel.targetValues[activateNextTarget]) {
             tmodel.targetValues[activateNextTarget].isImperative = false;
         }
         tmodel.activate(activateNextTarget);   
@@ -204,9 +239,8 @@ class TargetUtil {
         return key === 'children' && (Array.isArray(value) || value instanceof TModel);
     }
 
-    static getValueStepsCycles(tmodel, _target, key) {
+    static getValueStepsCycles(tmodel, _target, key, cycle = tmodel.getTargetCycle(key)) {
         const valueOnly = _target && _target.valueOnly;
-        const cycle = tmodel.getTargetCycle(key);
         const lastValue = tmodel.val(key);
 
         let value = null, steps = 0, interval = 0, cycles = 0;

@@ -15,7 +15,11 @@ class LoadingManager {
         this.fetchingImageMap = {};
     }
 
-    fetchCommon(fetchId, cacheId, tmodel, fetchMap, fetchFn) {
+    fetchCommon(fetchId, cacheId, tmodel, fetchMap, fetchFn) {       
+        if (typeof tmodel.targets[TargetUtil.currentTargetName] === 'object') {
+            tmodel.targets[TargetUtil.currentTargetName].fetch = true;
+        }
+        
         if (!cacheId || !this.isFetched(cacheId)) {
             if (!fetchMap[fetchId]) {
                 fetchMap[fetchId] = {
@@ -59,7 +63,7 @@ class LoadingManager {
         const loadTargetName = this.getLoadTargetName(targetName);
                 
         if (!this.tmodelKeyMap[key]) {
-            this.tmodelKeyMap[key] = { fetchMap: {}, entryCount: 0, resultCount: 0, errorCount: 0, activeIndex: 0 };
+            this.tmodelKeyMap[key] = { fetchMap: {}, entryCount: 0, resultCount: 0, errorCount: 0, activeIndex: 0, accessIndex: 0 };
             tmodel.val(loadTargetName, []);
         }
 
@@ -91,7 +95,43 @@ class LoadingManager {
     isLoadingSuccessful(tmodel, targetName) {
         const key = this.getTModelKey(tmodel, targetName);
         return this.tmodelKeyMap[key] && this.tmodelKeyMap[key].resultCount === this.tmodelKeyMap[key].entryCount && this.tmodelKeyMap[key].errorCount === 0;
-    }  
+    }
+    
+    nextActiveItem(tmodel, targetName) {
+        const key = this.getTModelKey(tmodel, targetName);
+        const modelEntry = this.tmodelKeyMap[key];
+        if (!modelEntry) {
+            return false;
+        }
+        return modelEntry.activeIndex++;
+    }
+    
+    isNextLoadingItemSuccessful(tmodel, targetName) {
+        const key = this.getTModelKey(tmodel, targetName);
+        const modelEntry = this.tmodelKeyMap[key];
+        if (!modelEntry) {
+            return false;
+        }
+        const loadTargetName = this.getLoadTargetName(targetName);
+        const targetValue = tmodel.val(loadTargetName);
+        
+        return modelEntry.errorCount === 0 && Array.isArray(targetValue) && TUtil.isDefined(targetValue[modelEntry.activeIndex]);        
+    }
+    
+    getLoadingItemValue(tmodel, targetName) {
+        const key = this.getTModelKey(tmodel, targetName);
+        const modelEntry = this.tmodelKeyMap[key];
+        
+        if (!modelEntry) {
+            return undefined;
+        }
+                
+        const loadTargetName = this.getLoadTargetName(targetName);
+        const targetValue = tmodel.val(loadTargetName);
+        modelEntry.accessIndex++;
+        
+        return targetValue[modelEntry.accessIndex - 1];
+    }
 
     fetch(tmodel, url, query, cacheId) {
         const fetchId = `${tmodel.oid}_${url}_${JSON.stringify(query)}`;
@@ -152,7 +192,7 @@ class LoadingManager {
             tmodel.val(targetName, targetResults.length === 1 ? targetResults[0] : targetResults);
             
             tmodelEntry.resultCount++;
-
+            
             if (tmodelEntry.errorCount === 0) {
                 TargetUtil.shouldActivateNextTarget(tmodel, targetName);
             }

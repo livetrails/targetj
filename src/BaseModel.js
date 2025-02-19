@@ -1,4 +1,4 @@
-import { tApp, App, getRunScheduler, getLocationManager, getLoader } from "./App.js";
+import { tApp, App, getRunScheduler, getLocationManager } from "./App.js";
 import { TargetExecutor } from "./TargetExecutor.js";
 import { TUtil } from "./TUtil.js";
 import { TModelUtil } from "./TModelUtil.js";
@@ -599,14 +599,14 @@ class BaseModel {
     addToUpdatingChildren(child) {
         if (!this.updatingChildrenMap[child.oid]) {
             this.updatingChildrenMap[child.oid] = true;
-            this.updatingChildrenList.push(child.oid);
+            this.updatingChildrenList.push(child);
         }
     }
 
     removeFromUpdatingChildren(child) {
         if (this.updatingChildrenMap[child.oid]) {
             delete this.updatingChildrenMap[child.oid];
-            const index = this.updatingChildrenList.indexOf(child.oid);
+            const index = this.updatingChildrenList.indexOf(child);
             if (index >= 0) {
                 this.updatingChildrenList.splice(index, 1);
             }
@@ -620,14 +620,14 @@ class BaseModel {
     addToActiveChildren(child) {
         if (!this.activeChildrenMap[child.oid]) {
             this.activeChildrenMap[child.oid] = true;
-            this.activeChildrenList.push(child.oid);
+            this.activeChildrenList.push(child);
         }
     }
     
     removeFromActiveChildren(child) {
         if (this.activeChildrenMap[child.oid]) {
             delete this.activeChildrenMap[child.oid];
-            const index = this.activeChildrenList.indexOf(child.oid);
+            const index = this.activeChildrenList.indexOf(child);
             if (index >= 0) {
                 this.activeChildrenList.splice(index, 1);
             }
@@ -681,8 +681,6 @@ class BaseModel {
                 this.val(`__${key}`, value);
             }
             
-            getLoader().removeFromTModelKeyMap(this, key);
-
             const targetValue = this.targetValues[key];
 
             if (targetValue) {

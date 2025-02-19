@@ -99,6 +99,10 @@ class TModelManager {
                     this.lists.activeTModels.push(tmodel);
                     this.lists.activeTargets = [...this.lists.activeTargets, ...tmodel.activeTargetList];
                 }
+                
+                if (tmodel.activeChildrenList.length > 0) {
+                    this.lists.activeTModels = [...this.lists.activeTModels, ...tmodel.activeChildrenList];
+                }
 
                 if (Object.keys(tmodel.targetMethodMap).length > 0) {
                     this.targetMethodMap[tmodel.oid] = { ...tmodel.targetMethodMap };

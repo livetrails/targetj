@@ -9,24 +9,29 @@ class TUtil {
     static calcVisibility(child) {
         const x = child.absX;
         const y = child.absY;
-
-        const parent = child.getDomParent();
-
-        const scale = (parent.getMeasuringScale() || 1) * child.getMeasuringScale();
+        const domParent = child.getDomParent();
+        const parent = child.getRealParent();
+        
+        const scale = (domParent.getMeasuringScale() || 1) * child.getMeasuringScale();
         const maxWidth = TUtil.isDefined(child.getWidth()) ? scale * child.getWidth() : 0;
         const maxHeight = TUtil.isDefined(child.getHeight()) ? scale * child.getHeight() : 0;
 
         const status = child.visibilityStatus;
-        
-        const parentX = child.validateVisibilityInParent() ? parent.absX : 0;
-        const parentY = child.validateVisibilityInParent() ? parent.absY : 0;
-        const parentWidth = child.validateVisibilityInParent() ? parent.getWidth() : getScreenWidth();
-        const parentHeight = child.validateVisibilityInParent() ? parent.getHeight() : getScreenHeight();
+
+
+        const parentX = child.validateVisibilityInParent() ? Math.max(domParent.absX, parent.absX) : 0;
+        const parentY = child.validateVisibilityInParent() ? Math.max(domParent.absY, parent.absY) : 0;
+        const parentWidth = child.validateVisibilityInParent() ? Math.min(domParent.getWidth(), parent.getWidth()) : getScreenWidth();
+        const parentHeight = child.validateVisibilityInParent() ? Math.min(domParent.getHeight(), parent.getHeight()) : getScreenHeight();
         
         status.right = x <= parentX + parentWidth;
         status.left = x + maxWidth >= parentX;
         status.bottom = y - child.getTopMargin() <= parentY + parentHeight;
         status.top = y + maxHeight + child.getBottomMargin() >= parentY;
+        status.parentX = parentX;
+        status.parentY = parentY;
+        status.parentWidth = parentWidth;
+        status.parentHeight = parentHeight;
         
         child.val('isVisible', status.left && status.right && status.top && status.bottom);    
        

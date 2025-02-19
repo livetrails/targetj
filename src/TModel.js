@@ -96,7 +96,10 @@ class TModel extends BaseModel {
         this.absY = TUtil.isDefined(this.val('absY')) ? this.val('absY') : this.getParent().absY + y;
     }
     
-    addChild(child, index = this.addedChildren.length + this.allChildrenList.length) { 
+    addChild(child, index = this.addedChildren.length + this.allChildrenList.length) {
+        if (typeof this.targets[TargetUtil.currentTargetName] === 'object') {
+            this.targets[TargetUtil.currentTargetName].addChild = true;
+        }
         this.addedChildren.push({ index, child });
         child.parent = this;
         if (child.updatingTargetList.length > 0) {

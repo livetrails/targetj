@@ -63,7 +63,7 @@ class TargetManager {
             for (let cycle = 0; cycle <= cycles; cycle++) {
                 promises.push(
                     new Promise(resolve => {
-                        TargetExecutor.executeDeclarativeTarget(tmodel, key);
+                        TargetExecutor.executeDeclarativeTarget(tmodel, key, cycle);
                         resolve();
                     })
                 );
@@ -250,8 +250,8 @@ class TargetManager {
         
         tmodel.updateTargetStatus(key);
         
-        if (TargetUtil.hasTargetEnded(tmodel, key)) {
-            TargetUtil.shouldActivateNextTarget(tmodel, key, true);            
+        if (TargetUtil.hasTargetEnded(tmodel, key)) {     
+            TargetUtil.shouldActivateNextTarget(tmodel, key);            
         }
 
         getRunScheduler().schedule(scheduleTime, `${tmodel.oid}---${key}-${step}/${steps}-${cycle}-${scheduleTime}`);

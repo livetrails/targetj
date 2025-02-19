@@ -51,7 +51,7 @@ class LocationManager {
         Object.keys(this.childrenLengthMap).forEach(key => {
             const { tmodel, length } = this.childrenLengthMap[key];            
             if ((length !== tmodel.getChildren().length)) {
-                this.runEventTargets(tmodel, 'onChildrenChange');
+                    this.runEventTargets(tmodel, 'onChildrenChange');
                 delete this.childrenLengthMap[key];                
             }
         }); 
@@ -141,7 +141,7 @@ class LocationManager {
 
             child.getCoreTargets().forEach(target => {
                 if (child.isTargetEnabled(target) && !child.isTargetUpdating(target) && !child.isTargetImperative(target)) {
-                    TargetExecutor.executeDeclarativeTarget(child, target); 
+                    TargetExecutor.executeDeclarativeTarget(child, target, child.getTargetCycle(target)); 
                 };
             });
             

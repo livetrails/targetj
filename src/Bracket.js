@@ -103,7 +103,7 @@ class Bracket extends TModel {
     }
     
     validateVisibilityInParent() {
-        return this.getRealParent().validateVisibilityInParent();
+        return this.getChildren().length > 0 ? this.getChild(0).validateVisibilityInParent() : false;
     }
     
     getChildren() {
