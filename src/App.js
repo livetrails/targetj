@@ -52,7 +52,7 @@ const AppFn = (firstChild) => {
                         new $Dom('body').insertFirst$Dom(this.$dom);
                     } else {
                         this.$dom = new $Dom('#tj-root');
-                    }
+                    }                  
                 },
                 styling: false,
                 domHolder() {

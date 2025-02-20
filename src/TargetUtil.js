@@ -75,7 +75,7 @@ class TargetUtil {
         
         const getPrevValue = () => {
             if (prevKey) { 
-                if (getLoader().isLoading(tmodel, prevKey) && !key.endsWith('$$')) {
+                if (getLoader().isLoading(tmodel, prevKey)) {
                     return getLoader().getLoadingItemValue(tmodel, prevKey);
                 } else {
                     return tmodel.val(prevKey);
@@ -133,14 +133,13 @@ class TargetUtil {
         const targetName = target?.activateNextTarget; 
         const cleanTargetName = TargetUtil.getTargetName(targetName);        
         const isEndTrigger = targetName?.endsWith('$');
-        const shouldActivate = target && cleanTargetName;
+        const fetchAction = target?.fetchAction;
+        const childAction = target?.childAction;
 
-
-        if (target?.fetch) {
-            if (shouldActivate) {
-                if (isEndTrigger && TargetUtil.hasTargetEnded(tmodel, key)) {
+        if (fetchAction) {
+            if (fetchAction === 'onEnd' && TargetUtil.hasTargetEnded(tmodel, key)) {
                     TargetUtil.activateNextTarget(tmodel, cleanTargetName);
-                } else if (!isEndTrigger) {
+            } else if (fetchAction === 'onEach') {
                     while (getLoader().isNextLoadingItemSuccessful(tmodel, key)) {
                         if (tmodel.activatedTargets.indexOf(cleanTargetName) >= 0) {
                             tmodel.activatedTargets.push(cleanTargetName);
@@ -149,18 +148,24 @@ class TargetUtil {
                         }
                         getLoader().nextActiveItem(tmodel, key);
                     }
-                }                
-            } else if (TargetUtil.hasTargetEnded(tmodel, key)) {
+            } else if (fetchAction === 'inactive' && TargetUtil.hasTargetEnded(tmodel, key)) {
                 getLoader().removeFromTModelKeyMap(tmodel, key);
             }
             return;
-        } else if (target?.addChild === true || target?.addChild === false) {
-            if (target?.addChild === true && ((isEndTrigger && TargetUtil.hasTargetEnded(tmodel, key)) || (tmodel.hasChildren() && !isEndTrigger))) {
+        }
+        
+        if (childAction) {
+            if (childAction === 'onEnd' && TargetUtil.hasTargetEnded(tmodel, key)) {
                 TargetUtil.activateNextTarget(tmodel, cleanTargetName);
-                target.addChild = false;
+                target.childAction = 'inactive';
+            } else if (childAction === 'onEach') {
+                TargetUtil.activateNextTarget(tmodel, cleanTargetName);
+                target.childAction = 'inactive';
             }
-            return;            
-        } else if (shouldActivate) {
+            return;
+        }
+        
+        if (target && cleanTargetName) {
             if ((isEndTrigger && TargetUtil.hasTargetEnded(tmodel, key)) || !isEndTrigger) {
                 TargetUtil.activateNextTarget(tmodel, cleanTargetName);
             }
@@ -181,10 +186,10 @@ class TargetUtil {
         
         const target = tmodel.targets[key];
         if (target) {
-            if ((target.addChild && (tmodel.hasUpdatingChildren() || tmodel.hasActiveChildren()))) {
+            if ((target.childAction && (tmodel.hasUpdatingChildren() || tmodel.hasActiveChildren()))) {
                 return false;
             }
-            if (target.fetch && !getLoader().isLoadingSuccessful(tmodel, key)) {
+            if (target.fetchAction && !getLoader().isLoadingSuccessful(tmodel, key)) {
                 return false;
             }
         }
@@ -207,6 +212,25 @@ class TargetUtil {
                 tmodel.addToActiveTargets(targetName);
             }
         }
+    }
+    
+    static markTargetAction(tmodel, actionName) {
+        if (!tmodel) {
+            return;
+        }
+        
+        const target = tmodel.targets[TargetUtil.currentTargetName];
+        
+        if (typeof target === 'object') {
+            const targetName = target.activateNextTarget;
+            if (targetName?.endsWith('$')) {
+                target[actionName] = 'onEnd';
+            } else if (targetName) {
+                target[actionName] = 'onEach';
+            } else {
+                target[actionName] = 'inactive';
+            }
+        }        
     }
 
     static isValueStepsCycleArray(arr) {
@@ -389,7 +413,7 @@ class TargetUtil {
             getRunScheduler().schedule(15, 'resize');           
         }
     }
-
+    
     static setHeightFromDom(child) {
         const timestamp = child.domHeightTimestamp;
         const parent = child.getParent();

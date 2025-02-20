@@ -151,7 +151,7 @@ class BaseModel {
         }
     }
     
-    activate(targetName) {
+    activate(targetName) {   
         getLocationManager().addToActivatedList(this);
         this.currentStatus = 'active';
         if (targetName && this.isTargetEnabled(targetName) && this.activatedTargets.indexOf(targetName) === -1) {
@@ -520,6 +520,11 @@ class BaseModel {
         }        
         const originalTargetName = TargetUtil.currentTargetName;
         const originalTModel = TargetUtil.currentTModel;
+        
+        if (this.getParent() === originalTModel) {
+            TargetUtil.markTargetAction(originalTModel, 'childAction');
+        }
+        
         TargetExecutor.executeImperativeTarget(this, key, value, steps, interval, easing, originalTargetName, originalTModel);
 
         return this;

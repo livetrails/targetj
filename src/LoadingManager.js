@@ -15,10 +15,8 @@ class LoadingManager {
         this.fetchingImageMap = {};
     }
 
-    fetchCommon(fetchId, cacheId, tmodel, fetchMap, fetchFn) {       
-        if (typeof tmodel.targets[TargetUtil.currentTargetName] === 'object') {
-            tmodel.targets[TargetUtil.currentTargetName].fetch = true;
-        }
+    fetchCommon(fetchId, cacheId, tmodel, fetchMap, fetchFn) { 
+        TargetUtil.markTargetAction(tmodel, 'fetchAction');
         
         if (!cacheId || !this.isFetched(cacheId)) {
             if (!fetchMap[fetchId]) {
@@ -49,6 +47,20 @@ class LoadingManager {
 
         return fetchId;
     }
+    
+    fetch(tmodel, url, query, cacheId) {
+        const fetchId = `${tmodel.oid}_${url}_${JSON.stringify(query)}`;
+        this.fetchCommon(fetchId, cacheId, tmodel, this.fetchingAPIMap, () => {
+            this.ajaxAPI(url, query, this.fetchingAPIMap[fetchId]);
+        });
+    }
+
+    fetchImage(tmodel, src, cacheId) {
+        const fetchId = `${tmodel.oid}_${src}`;
+        return this.fetchCommon(fetchId, cacheId, tmodel, this.fetchingImageMap, () => {
+            this.loadImage(src, this.fetchingImageMap[fetchId]);
+        });
+    }    
     
     getTModelKey(tmodel, targetName) {
         return `${tmodel.oid} ${targetName}`;
@@ -119,32 +131,27 @@ class LoadingManager {
     }
     
     getLoadingItemValue(tmodel, targetName) {
+        const target = tmodel.targets[targetName];
         const key = this.getTModelKey(tmodel, targetName);
         const modelEntry = this.tmodelKeyMap[key];
         
-        if (!modelEntry) {
+        if (!modelEntry || !target) {
             return undefined;
         }
                 
         const loadTargetName = this.getLoadTargetName(targetName);
         const targetValue = tmodel.val(loadTargetName);
-        modelEntry.accessIndex++;
+        let result;
         
-        return targetValue[modelEntry.accessIndex - 1];
-    }
-
-    fetch(tmodel, url, query, cacheId) {
-        const fetchId = `${tmodel.oid}_${url}_${JSON.stringify(query)}`;
-        this.fetchCommon(fetchId, cacheId, tmodel, this.fetchingAPIMap, () => {
-            this.ajaxAPI(url, query, this.fetchingAPIMap[fetchId]);
-        });
-    }
-
-    fetchImage(tmodel, src, cacheId) {
-        const fetchId = `${tmodel.oid}_${src}`;
-        return this.fetchCommon(fetchId, cacheId, tmodel, this.fetchingImageMap, () => {
-            this.loadImage(src, this.fetchingImageMap[fetchId]);
-        });
+        if (target.fetchAction === 'onEnd') {
+            result = targetValue.slice(modelEntry.accessIndex);
+            modelEntry.accessIndex += result.length;
+        } else {
+            result = targetValue[modelEntry.accessIndex];   
+            modelEntry.accessIndex++;            
+        }
+        
+        return result;
     }
 
     isFetching(fetchId) {

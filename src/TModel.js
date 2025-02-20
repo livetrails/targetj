@@ -97,9 +97,8 @@ class TModel extends BaseModel {
     }
     
     addChild(child, index = this.addedChildren.length + this.allChildrenList.length) {
-        if (typeof this.targets[TargetUtil.currentTargetName] === 'object') {
-            this.targets[TargetUtil.currentTargetName].addChild = true;
-        }
+        TargetUtil.markTargetAction(this, 'childAction');
+
         this.addedChildren.push({ index, child });
         child.parent = this;
         if (child.updatingTargetList.length > 0) {
@@ -167,7 +166,7 @@ class TModel extends BaseModel {
                     this.allChildrenList.splice(index, 0, child);
                 }
                 
-                this.allChildrenMap[child.oid] = true;
+                this.allChildrenMap[child.oid] = child;
  
                 this.lastChildrenUpdate.additions.push({ index, child });
             });
@@ -272,6 +271,10 @@ class TModel extends BaseModel {
     
     getChild(index) {
         return this.allChildrenList[index];
+    }
+    
+    getChildByOid(oid) {
+        return this.allChildrenMap[oid];
     }
 
     getChildIndex(child) {
