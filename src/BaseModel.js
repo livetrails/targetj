@@ -98,13 +98,15 @@ class BaseModel {
             return;
         }
         
-       if (typeof target !== 'object' || Array.isArray(target)) {
-            this.targets[key] = { value: target };
-            target = this.targets[key];
+       if (!TargetData.controlTargetMap[key]) {
+            if (typeof target !== 'object' || Array.isArray(target)) {
+                this.targets[key] = { value: target };
+                target = this.targets[key];
+            }
+                    
+            TargetUtil.bindTarget(this, key, targetNames);
         }
 
-        TargetUtil.bindTarget(this, key, targetNames);
-        
         const cleanKey = TargetUtil.getTargetName(key);
         const isInactiveKey = key.startsWith('_');
 

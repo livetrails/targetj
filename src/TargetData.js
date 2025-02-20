@@ -155,6 +155,16 @@ class TargetData {
         onPageClose: true, 
         onVisible: true
     };
+    
+    static controlTargetMap = {
+        defaultStyling: true,
+        styling: true,
+        reuseDomDefinition: true,
+        useWindowFrame: true,
+        interval: true,
+        onDomEvent: true,
+        canHaveDom: true
+    };
 
     static targetToEventsMapping = {
         onClickEvent: [ 'clickEvents', 'touchStart', 'touchEnd', 'startEvents' ],
