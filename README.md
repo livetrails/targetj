@@ -165,7 +165,7 @@ App(new TModel('apiCall', {
       getLoader().fetch(this, "https://targetjs.io/api/randomUser", { id: "user0" });
       getLoader().fetch(this, "https://targetjs.io/api/randomUser", { id: "user1" });      
     },
-    _displayName$() {
+    _displayName$$() {
         const [ user0, user1 ] = this.prevTargetValue;
         this.setTarget("html", `${user0.name} ${user1.name}`);
     },
