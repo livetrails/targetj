@@ -87,11 +87,11 @@ class LoadingManager {
             
             this.tmodelKeyMap[key].entryCount++;
             tmodel.val(loadTargetName).push(undefined);
-  
-            if (cacheId && this.isFetched(cacheId)) {
-                this.handleSuccess(this.fetchingAPIMap[fetchId], this.cacheMap[cacheId].result);
-            }
-        }      
+        }
+        
+        if (cacheId && this.isFetched(cacheId)) {
+            this.handleSuccess(this.fetchingAPIMap[fetchId], this.cacheMap[cacheId].result);
+        }        
     }
 
     removeFromTModelKeyMap(tmodel, targetName) {
@@ -107,6 +107,14 @@ class LoadingManager {
     isLoadingSuccessful(tmodel, targetName) {
         const key = this.getTModelKey(tmodel, targetName);
         return this.tmodelKeyMap[key] && this.tmodelKeyMap[key].resultCount === this.tmodelKeyMap[key].entryCount && this.tmodelKeyMap[key].errorCount === 0;
+    }
+    
+    resetLoadingError(tmodel, targetName) {
+        const key = this.getTModelKey(tmodel, targetName);
+        const modelEntry = this.tmodelKeyMap[key];
+        if (modelEntry) {
+            modelEntry.errorCount = 0;
+        }
     }
     
     nextActiveItem(tmodel, targetName) {
@@ -187,7 +195,7 @@ class LoadingManager {
 
             if (!tmodelEntry) {
                 return;
-            }
+            } 
                  
             const fetchEntry = tmodelEntry.fetchMap[fetchId];
             this.callOnSuccessHandler(tmodel, targetName, { ...res, order: fetchEntry.order });
