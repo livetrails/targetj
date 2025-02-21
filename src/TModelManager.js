@@ -117,7 +117,7 @@ class TModelManager {
                 this.noDomMap[tmodel.oid] = true;
             }
         }
-
+        
         const lastVisible = Object.values(lastVisibleMap)
             .filter(tmodel => tmodel !== null && tmodel.hasDom() && (tmodel.canDeleteDom() || !tmodel.getParent()?.allChildrenMap[tmodel.oid]));
 
@@ -205,6 +205,7 @@ class TModelManager {
             tmodel.styleMap = {};
             tmodel.transformMap = {};
             tmodel.val('isVisible', false);
+            tmodel.hasDomNow = false;
         
             tmodel.$dom?.detach();
             tmodel.$dom = null;

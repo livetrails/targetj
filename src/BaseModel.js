@@ -74,7 +74,7 @@ class BaseModel {
         const targetNames = Object.keys(this.targets);
         
         const domExists = $Dom.query(`#${this.oid}`);
-        
+                
         if (!domExists && !this.excludeDefaultStyling()) {
             Object.entries(TModelUtil.defaultTargetStyles()).forEach(([key, value]) => {
                 if (!(key in this.targets)) {

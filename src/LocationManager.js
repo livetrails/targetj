@@ -103,8 +103,6 @@ class LocationManager {
     calculateContainer(container, shouldCalculateChildTargets = true) {
         const allChildrenList = this.getChildren(container);
         const viewport = container.createViewport();                        
-        const contentWidth = container.getContentWidth();
-        const contentHeight = container.getContentHeight();
         container.visibleChildren.length = 0;                
         
         for (const child of allChildrenList) {
@@ -194,11 +192,7 @@ class LocationManager {
             }            
         }
         
-        container.calcContentWidthHeight();
-        
-        if (contentWidth !== container.getContentWidth() || contentHeight !== container.getContentHeight()) {
-            this.runEventTargets(container, 'onContentResize');
-        }        
+        container.calcContentWidthHeight();     
 
         for (const child of allChildrenList) {
             this.checkEventTargets(child);
@@ -256,16 +250,18 @@ class LocationManager {
             eventTargets = [eventTargets];
         }
                
-        const originalTarget = getEvents().getEventTarget();
+        const originalEventTarget = getEvents().getEventTarget();
 
         eventTargets.forEach(targetName => {
             const target = tmodel.targets[targetName];
-
+            
             if (tmodel.isTargetEnabled(targetName)) {
                 if (typeof target.value === 'function') {
-                    target.value.call(tmodel, originalTarget);
+                    target.value.call(tmodel, originalEventTarget);
                 } else if (Array.isArray(target.value)) {
-                    target.value.forEach(t => TargetUtil.activateSingleTarget(tmodel, t));                
+                    target.value.forEach(t => TargetUtil.activateSingleTarget(tmodel, t));
+                } else if (Array.isArray(target)) {
+                    target.forEach(t => TargetUtil.activateSingleTarget(tmodel, t));                      
                 } else {
                     TargetUtil.activateSingleTarget(tmodel, target.value);
                 }

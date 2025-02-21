@@ -161,6 +161,8 @@ class TargetData {
         styling: true,
         reuseDomDefinition: true,
         useWindowFrame: true,
+        canDeleteDom: true,
+        domHolder: true,
         interval: true,
         onDomEvent: true,
         canHaveDom: true
