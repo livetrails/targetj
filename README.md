@@ -111,32 +111,36 @@ App(new TModel('quickExample', {
 
 ### Loading API Example
 
-In this example, we load two separate users, and once both API calls return results, we display their names and briefly flash the background. 
+In this example, we load two separate users and display two purple div elements, each containing a user's name, based on the previous example.
 
-All targets without a prefix `_` execute in the order they appear in the code. Targets prefixed with `_` are inactive by default and must be activated externally. Target names ending with `$` indicate that they will activate when the previous target completes, allowing them to form a functional execution pipeline.
+- Children: Since the target name ends with $, it executes each time an API call returns a result. TargetJS ensures that results are processed in the same order as the API execution. If user1 arrives first, the children target will not execute. It will only run once the result for user0 has been received. If the target name ends with `$$`, the children target will execute only after both API calls have completed. The results will be returned as an array, with user0 as the first element and user2 as the second.
+- Html: Initializes with the user's name. prevTargetValue refers to the result of the API call.
+  
+The execution pipeline then continues as in the previous example.
 
-The `html` target initializes the text content of the `div` to `"loading"`. If no `baseElement` target is specified, the `div` is the default element. Then, the `loadUsers` target executes. Once both API results are retrieved, the `displayName` target runs, accessing the results in an array ordered by the sequence in which the APIs were called.
-
-The execution pipeline then continues, gradually expanding the width and height while transitioning the background color from yellow to purple over 15 steps, with 15-millisecond pauses between each step.
-
-![first example](https://targetjs.io/img/loadingExample6.gif)
+![first example](https://targetjs.io/img/quickExample10.gif)
 
 ```bash
 import { App, TModel, getLoader } from "targetj";
 
-App(new TModel('apiCall', {
-    html: 'Loading...',
+App(new TModel("quickLoad", {
     loadUsers() {
-      getLoader().fetch(this, "https://targetjs.io/api/randomUser", { id: "user0" });
-      getLoader().fetch(this, "https://targetjs.io/api/randomUser", { id: "user1" });      
+        getLoader().fetch(this, "https://targetjs.io/api/randomUser", {id: "user0"});
+        getLoader().fetch(this, "https://targetjs.io/api/randomUser", {id: "user1"});
     },
-    _displayName$$() {
-        const [ user0, user1 ] = this.prevTargetValue;
-        this.setTarget("html", `${user0.name} ${user1.name}`);
-    },
-    _width$: 200,
-    _height$: 200,
-    _background$: [{ list: ["#FCE961", "#B388FF"] }, 15, 15]
+    _children$() {
+        return new TModel("user", {
+            html: this.prevTargetValue.name,
+            background: "#B388FF",
+            width$: [{list: [100, 250, 100]}, 50, 10],
+            height$() {
+                return this.prevTargetValue / 2;
+            },
+            onSwipe() {
+                this.setTarget({x: getEvents().swipeX(this), y: getEvents().swipeY(this)});
+            }
+        });
+    }
 }));
 ```
 
