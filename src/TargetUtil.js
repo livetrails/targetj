@@ -167,9 +167,6 @@ class TargetUtil {
         
         if (target && cleanTargetName && !tmodel.isTargetImperative(key)) {
             if ((isEndTrigger && TargetUtil.hasTargetEnded(tmodel, key)) || !isEndTrigger) {
-                if (tmodel.oid === 'explosion') {
-                    console.log("activating: " + tmodel.oid + ", " + key + ", " + cleanTargetName);
-                }
                 TargetUtil.activateNextTarget(tmodel, cleanTargetName);
             }
             return;
