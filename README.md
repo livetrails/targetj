@@ -699,28 +699,31 @@ import { App, TModel, $Dom } from "targetj";
 App(new TModel("rows", {
     isVisible: true,
     containerOverflowMode: "always",
-    rectTop() { return this.$dom.getBoundingClientRect().top; },
-    absY() { return this.prevTargetValue - $Dom.getWindowScrollTop(); },
+    rectTop() { return this.$dom.getBoundingClientRect().top + $Dom.getWindowScrollTop(); },
+    absY() { return this.val('rectTop') - $Dom.getWindowScrollTop(); },
     defaultStyling: false,
     domHolder: true,
     onDomEvent: ["rectTop", "absY"],
     onWindowScroll: "absY",
     createRows: {
-        parallel: true,
-        cycles: 9,
-        value() {
-            const childrenLength = this.getChildren().length;
-            Array.from({length: 100}, (_, i) => {
-                this.addChild(new TModel("row", {
-                    keepEventDefault: true,
-                    height: 36,
-                    width: [{list: [100, 500, 200]}, 30],
-                    background: "#b388ff",
-                    canDeleteDom: false,
-                    html: `row ${i + childrenLength}`,
-                }));
-            });
-        }
+      parallel: true,
+      cycles: 9,
+      value() {
+        const childrenLength = this.getChildren().length;
+        Array.from({ length: 100 }, (_, i) => {
+          this.addChild(
+            new TModel("row", {
+              defaultStyling: false,
+              keepEventDefault: true,
+              height: 36,
+              width: [{ list: [100, 500, 200] }, 30],
+              background: "#b388ff",
+              canDeleteDom: false,
+              html: `row ${i + childrenLength}`,
+            })
+          );
+        });
+      }
     }
 }));
 ```
