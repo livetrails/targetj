@@ -228,7 +228,8 @@ class LoadingManager {
         targets.forEach(({ tmodel, targetName }) => {
             const key = `${tmodel.oid} ${targetName}`;
             const tmodelEntry = this.tmodelKeyMap[key];
-            
+            const loadTargetName = this.getLoadTargetName(targetName);
+
             if (!tmodelEntry) {
                 return;
             }
@@ -240,11 +241,14 @@ class LoadingManager {
                 success: false,
                 order: fetchEntry.order,
                 error
-            };            
+            };
             
-            const targetValue = tmodel.val(targetName);
+            let targetResults = tmodel.val(loadTargetName);
+            
+            targetResults[fetchEntry.order] = res;            
+            
+            tmodel.val(targetName, targetResults.length === 1 ? targetResults[0] : targetResults);
 
-            targetValue[fetchEntry.order] = res;
             tmodelEntry.resultCount++;
             tmodelEntry.errorCount++;
 
