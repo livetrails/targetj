@@ -1,6 +1,6 @@
 # TargetJS: A Novel JavaScript UI Framework for Simplified Development and Enhanced User Experience
 
-**[targetjs.io](https://targetjs.io)** [![MIT License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE) [![Stars](https://img.shields.io/github/stars/livetrails/targetjs.svg)](https://github.com/livetrails/targetjs/stargazers)
+**[targetjs.io](https://targetjs.io)** [![MIT License](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/livetrails/targetjs/blob/main/License) [![Stars](https://img.shields.io/github/stars/livetrails/targetjs.svg)](https://github.com/livetrails/targetjs/stargazers)
 
 TargetJS is a modern JavaScript UI framework designed to streamline front-end development by introducing a unique computational paradigm centered around **Targets**.  It offers a unified approach to UI rendering, animations, API interactions, state management, and event handling, leading to cleaner, more maintainable, and highly performant web applications.
 
