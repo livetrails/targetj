@@ -12,8 +12,7 @@ TargetJS addresses several common pain points in front-end development:
 
 2.  **Scattered State Management:** Many frameworks require separate libraries or complex patterns for state management. TargetJS *unifies* state management within its core concept of Targets, eliminating the need for external dependencies.
 
-3.  **Boilerplate and Verbosity:** TargetJS aims to reduce boilerplate code. It is compact and follows a predictable execution flow, executing in the order it appears in the code. It also minimizes the role of traditional HTML and CSS, allowing JavaScript to drive the user experience directly without the intermediate HTML step.
-4.  
+3.  **Boilerplate and Verbosity:** TargetJS aims to reduce boilerplate code. It is compact and follows a predictable execution flow, executing in the order it appears in the code. It also minimizes the role of traditional HTML and CSS, allowing JavaScript to drive the user experience directly without the intermediate HTML step.  
 5.  **Disjointed Development Workflow:**  Developers often juggle multiple tools and concepts (UI libraries, animation libraries, state managers, event handlers). TargetJS provides a *unified* solution, simplifying the learning curve and development process.
 
 6.  **Difficult Animation Control:**  TargetJS makes animations first-class citizens. Targets can iterate step-by-step towards new values, with built-in control over pauses and progression.  This provides fine-grained control over animations without external libraries.
