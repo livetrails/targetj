@@ -155,7 +155,7 @@ TargetJS employs a tree-like structure to track visible branches, optimizing the
 
 If you inspect the HTML elements in the browser's developer tools, you'll notice that the scroller’s elements are not nested inside the container. This is because nesting itself is a dynamic target that determines how elements are structured. This enables efficient reuse of HTML elements and unlocks new user experiences.
 
-![Single page app](https://targetjs.io/img/infiniteScrolling10.gif)
+![Single page app](https://targetjs.io/img/infiniteScrolling11.gif)
 
 ```bash
 import { App, TModel, getEvents, getLoader, getScreenWidth, getScreenHeight } from "targetj";
