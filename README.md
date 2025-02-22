@@ -180,7 +180,8 @@ App(new TModel("scroller", {
         );
     },
     _load$() {
-        this.prevTargetValue.forEach(data => getLoader().fetch(this, "https://targetjs.io/api/randomUser", { id: data.oid }));
+        this.prevTargetValue.forEach(data =>
+            getLoader().fetch(this, "https://targetjs.io/api/randomUser", { id: data.oid }));
     },
     _populate$$() {
         this.prevTargetValue.forEach((data) => this.getChildByOid(data.id).setTarget("html", data.name));
