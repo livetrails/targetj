@@ -103,8 +103,8 @@ App(new TModel('quickExample', {
 
 In this example, we load two separate users and display two purple div elements, each containing a user's name, based on the previous example.
 
-- Children: Since the target name ends with $, it executes each time an API call returns a result. TargetJS ensures that results are processed in the same order as the API execution. If user1 arrives first, the children target will not execute. It will only run once the result for user0 has been received. If the target name ends with `$$`, the children target will execute only after both API calls have completed. The results will be returned as an array, with user0 as the first element and user2 as the second.
-- Html: Initializes with the user's name. prevTargetValue refers to the result of the API call.
+- Children: Since the target name ends with $, it executes each time an API call returns a result. TargetJS ensures that API results are ordered in the same sequence as the API execution. For example, if the user1 API result arrives before user0, the children target will not execute. It will only run once the result for user0 has been received. If the target name ends with $$, the children target will execute only after both API calls have completed. The results will be returned as an array, with user0 as the first element and user1 as the second, ordered according to the API call execution.
+- Html: Sets the text content of the div with the user's name. prevTargetValue refers to the result of the API call.
   
 The execution pipeline then continues as in the previous example.
 
