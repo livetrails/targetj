@@ -74,12 +74,14 @@ npm install targetj
 
 ### Quick example
 
-This example shows a purple div that grows and shrinks, with proportional height adjustments and scaling.  Notice the absence of external CSS and minimal HTML involvement.
+This example shows a purple div that grows and shrinks, with proportional height adjustments and scaling.
 
 - width: Animates from 100 to 250, then back to 100, in 50 steps with 10ms pauses.
-- height:  Calculates height proportionally based on width. The _ prefix indicates that it is inactive by default and must be activated externally to execute. The $ postfix means it is activated each time the width executes. this.prevTargetValue refers to the previous target's value.
+- height:  Calculates height proportionally based on width. The _ prefix indicates that it is inactive by default and must be activated externally to execute. The $ postfix means it is activated each time the width executes. this.prevTargetValue refers to the previous target's value, which in this case is the width.
 - scale: Calculates scale based on height.
-- onSwipe: Demonstrates event handling by updating the position based on swipe gestures.
+- onSwipe: Updates the div position based on swipe gestures.
+
+Notice the absence of external CSS and minimal HTML involvement.
 
 ![first example](https://targetjs.io/img/quickExample8.gif)
 
