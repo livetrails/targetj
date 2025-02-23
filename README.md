@@ -10,12 +10,12 @@ TargetJS addresses several common pain points in front-end development:
 
 1.  **Complexity of Asynchronous Operations:**  Traditional JavaScript often involves complex handling of asynchronous operations (Promises, callbacks, `async/await`). TargetJS addresses this by providing a structured, synchronous, and predictable execution flow, allowing developers to avoid asynchronous operations altogether.
 2.  **Scattered State Management:** Many frameworks require separate libraries or complex patterns for state management. In TargetJS, state management is inherently handled through its core concept of Targets, eliminating the need for direct state management.
-3.  **Boilerplate and Verbosity:** TargetJS aims to reduce boilerplate code. The code is compact and follows a predictable execution flow, executing in the order it appears.
+3.  **Boilerplate and Verbosity:** TargetJS aims to reduce boilerplate code. The code is compact and follows a predictable execution flow.
 4.  **Rigid Static Layer of HTML:** Many frameworks use HTML as the primary medium for generating the user interface. TargetJS minimizes reliance on traditional HTML and CSS, allowing JavaScript to drive the user interface, resulting in a better and more dynamic user experience.
 5.  **Disjointed Development Workflow:**  Developers often juggle multiple tools and concepts (UI libraries, animation libraries, state managers, event handlers). TargetJS provides a *unified* solution, simplifying the learning curve and development process.
 6.  **Difficult Animation Control:**  TargetJS makes animations first-class citizens. Targets can iterate step-by-step towards new values and manage execution flow by time.  This provides fine-grained control over animations without external libraries.
-7.  **Complicated execution flow**: other frameworks are based on reactive model which might lead to unpredictable execution while TargetJS execution is based on the order targets are written.
-8.  **Performance Bottlenecks with Large Lists:** TargetJS optimizes rendering for large lists by using a tree structure that renders only the visible branches, significantly improving performance.
+7.  **Complicated execution flow**: other frameworks are based on reactive model which often lead to unpredictable execution flow while TargetJS execution is based on the order targets are written.
+8.  **Performance Bottlenecks with Large Lists:** TargetJS optimizes rendering for large lists by using a tree structure that renders only the visible branches.
 
 ## Table of Contents
 
@@ -51,22 +51,18 @@ npm install targetj
 ## Key Features and Concepts
 
 *   **Targets:** The fundamental building blocks of TargetJS. Targets are like enhanced variables and methods with built-in lifecycles. They can:
-    *   Provide unified interface for methods and variables.
     *   Iterate towards values (useful for animations).
     *   Execute conditionally.
     *   Self-activate and operate autonomously.
     *   Form synchronous execution pipelines.
     *   Manage their own state.
 
-*   **Deterministic Execution Flow:** Targets are executed based on their activation order (initially, the order they appear in the code).  This makes the flow predictable and easier to debug.
-
 *   **Unified Approach:**  Targets handle UI updates, API calls, animations, state, and events, reducing the need to learn and integrate multiple libraries.
 
-* **Unique computational paradigm** by blending multiple models:
+*  **Unique computational paradigm:** TargetJS introduces a novel computational model by integrating multiple paradigms: Turing Completeness, the Von Neumann Execution Model, and Functional Programming. This results in:
 
-   * Turing Completeness: Targets can execute continuously, conditionally skip execution, and modify values dynamically.  
-   * Von Neumann Execution Model: Targets are executed based on their activation order, which initially follows the order they appear in the code. Targets cannot also be called directly. This makes the execution flow more predictable, easier to understand, and performant.  
-   * Functional Programming**: Targets can be composed to transform data in a pipeline-like manner, similar to functional programming. It also has ability to observe the execution of the preceding target. This keeps the pipeline execution again simple, easy to understand, and performant.
+   * Deterministic Execution Flow: Targets execute based on their activation order, initially following their order in the code. This ensures a predictable flow, making debugging easier.  
+   * Powerful Functional Pipeline: Targets can be composed to transform data in a pipeline-like manner, similar to functional programming, while also observing the execution of preceding targets. This keeps pipeline execution simple, easy to understand, and highly performant
 
 *   **Easy Integration:** Can be used as a library within existing projects.
 
