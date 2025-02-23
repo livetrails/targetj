@@ -21,7 +21,6 @@ TargetJS addresses several common pain points in front-end development:
 
 1. [Installation](#installation)
 2. [Key Features and Concepts](#Key-Features-and-Concepts)
-4. [New computational Model](#New-computational-Model)
 5. Examples:
    - [Quick Example](#quick-example)   
    - [Simple Loading API Example](#simple-loading-api-example)
@@ -52,6 +51,7 @@ npm install targetj
 ## Key Features and Concepts
 
 *   **Targets:** The fundamental building blocks of TargetJS. Targets are like enhanced variables and methods with built-in lifecycles. They can:
+    *   Provide unified interface for methods and variables.
     *   Iterate towards values (useful for animations).
     *   Execute conditionally.
     *   Self-activate and operate autonomously.
@@ -62,19 +62,13 @@ npm install targetj
 
 *   **Unified Approach:**  Targets handle UI updates, API calls, animations, state, and events, reducing the need to learn and integrate multiple libraries.
 
-*   **Minimal HTML and CSS Reliance:** TargetJS emphasizes code-centric development rather than relying on a static HTML layer. CSS styles can also be incorporated directly as targets.
+* **Unique computational paradigm** by blending multiple models:
 
-*   **High Performance:**  Optimized for large lists and efficient rendering.
+   * Turing Completeness: Targets can execute continuously, conditionally skip execution, and modify values dynamically.  
+   * Von Neumann Execution Model: Targets are executed based on their activation order, which initially follows the order they appear in the code. Targets cannot also be called directly. This makes the execution flow more predictable, easier to understand, and performant.  
+   * Functional Programming**: Targets can be composed to transform data in a pipeline-like manner, similar to functional programming. It also has ability to observe the execution of the preceding target. This keeps the pipeline execution again simple, easy to understand, and performant.
 
 *   **Easy Integration:** Can be used as a library within existing projects.
-
-## New computational Model
-
-TargetJS introduces a unique paradigm by blending multiple computational models:
-
-- **Turing Completeness**: Targets can execute continuously, conditionally skip execution, and modify values dynamically.  
-- **Von Neumann Execution Model**: Targets are executed based on their activation order, which initially follows the order they appear in the code. Targets cannot also be called directly. This makes the execution flow more predictable, easier to understand, and performant.  
-- **Functional Programming**: Targets can be composed to transform data in a pipeline-like manner, similar to functional programming. It also has ability to observe the execution of the preceding target. This keeps the pipeline execution again simple, easy to understand, and performant.
 
 ## Examples
 
