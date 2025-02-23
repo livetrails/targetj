@@ -132,7 +132,7 @@ App(new TModel("quickLoad", {
 
 ### Infinite Loading and Scrolling Example
 
-We expand on the previous example to demonstrate an infinite scrolling application where each item dynamically triggers an API call to fetch and display its details.
+We expand on the previous example to demonstrate a simple infinite scrolling application where each item dynamically triggers an API call to fetch and display its details.
 
 - Children: Items are dynamically added to the container's children. The `onVisibleChildrenChange` event function detects changes in the visible children and activates the `children` target to generate new items that fill the gaps.  
 - Load: Since the target name ends with `$`, it executes for every batch of 20 newly created children. TargetJS ensures that results are processed in the same order in which the APIs are called, rather than the order in which their responses are received. 
