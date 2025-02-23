@@ -77,7 +77,7 @@ npm install targetj
 This example shows a purple div that grows and shrinks, with proportional height adjustments and scaling.
 
 - width: Animates from 100 to 250, then back to 100, in 50 steps with 10ms pauses.
-- height:  Calculates height proportionally based on width. The _ prefix indicates that it is inactive by default and must be activated externally to execute. The $ postfix means it is activated each time the width executes. this.prevTargetValue refers to the previous target's value, which in this case is the width.
+- height:  Calculates height proportionally based on width. The `_` prefix indicates that it is inactive by default and must be activated externally to execute. The `$` postfix means it is activated each time the width executes. this.prevTargetValue refers to the previous target's value, which in this case is the width.
 - scale: Calculates scale based on height.
 - onSwipe: Updates the div position based on swipe gestures.
 
@@ -103,7 +103,7 @@ App(new TModel('quickExample', {
 
 In this example, we load two separate users and display two purple div elements, each containing a user's name, based on the previous example.
 
-- Children: Since the target name ends with $, it executes each time an API call returns a result. TargetJS ensures that API results are ordered in the same sequence as the API execution. For example, if the user1 API result arrives before user0, the children target will not execute. It will only run once the result for user0 has been received. If the target name ends with $$, the children target will execute only after both API calls have completed. The results will be returned as an array, with user0 as the first element and user1 as the second, ordered according to the API call execution.
+- Children: Since the target name ends with `$`, it executes each time an API call returns a result. TargetJS ensures that API results are ordered in the same sequence as the API execution. For example, if the user1 API result arrives before user0, the children target will not execute. It will only run once the result for user0 has been received. If the target name ends with `$$`, the children target will execute only after both API calls have completed. The results will be returned as an array, with user0 as the first element and user1 as the second, ordered according to the API call execution.
 - Html: Sets the text content of the div with the user's name. prevTargetValue refers to the result of the API call.
   
 The execution pipeline then continues as in the previous example.
