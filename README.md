@@ -20,14 +20,13 @@ TargetJS addresses several common pain points in front-end development:
 ## Table of Contents
 
 1. [Installation](#installation)
-2. [Key Features and Concepts](#Key-Features-and-Concepts)
+2. [Key Features and Concepts](#key-features-and-concepts)
 5. Examples:
    - [Quick Example](#quick-example)   
    - [Simple Loading API Example](#simple-loading-api-example)
    - [Infinite Loading and Scrolling Example](#infinite-loading-and-scrolling-example)
-6. [Comparison with Other UI Frameworks](#Comparison-with-other-ui-frameworks)
+6. [Comparison with Other UI Frameworks](#comparison-with-other-ui-frameworks)
 7. [Anatomy of a Target](#anatomy-of-a-target)
-8. [How TargetJS Operates](#how-targetjs-operates)
 9. [Target Methods](#target-methods)
 10. More Examples:
     - [Simple Example](#simple-example)
@@ -41,6 +40,7 @@ TargetJS addresses several common pain points in front-end development:
 13. [Documentation](#documentation)
 14. [License](#license)
 15. [Contact](#contact)
+16. [Call to Action](#call-to-action)
 
 ## Installation
 
@@ -187,48 +187,25 @@ App(new TModel("scroller", {
 
 ```
 
----
-
-
 ## Comparison with Other UI Frameworks  
 
 | Feature                               | TargetJS                        | Reactive Model Frameworks             |
 |--------------------------------------|-----------------------------------------------------------------|------------------------------------------------------|
-| **Component Basic Structure**     | Components consist of targets, which internally provide unified interface for methods and variables | Components consist of methods and variables
-| **Execution Order**                   | Targets are executed based on their activation order, which initially follows their appearance in the code. They run in a sequential and predictable manner | Execution is mainly **driven by data changes** and less predictable. |
-| **Function Calls**                    | Functions (or Targets in TargetJS) **cannot be called directly**. TargetJS executes all active targets in sequence as part of its task cycle | Functions **re-execute reactively** when dependencies change or are imperatively called. |
-| **Flow Control**                      | Execution is structured by a **deterministic task cycle**. **No direct invocation, only activation** | The flow is **data-driven**, and execution order depends on observed changes. |
-| **Autonomous Execution**              | **Targets can self-activate and operate autonomously**. | Functions do not execute autonomously. |
-| **Execution Pipeline**                | **Targets can form a controlled execution pipeline**, where a target can be activated when the **preceding target in the code is executed**. | Functions are called **whenever dependencies update**. Execution order is not based on code appearance. |
-| **Event Handling**                    | **Events in TargetJS are handled primarily by activating targets**, making event handling consistent with the core execution model. | Events are handled through **event listeners, subscriptions, or reactive bindings**. |
-| **State Management**                  | **State is managed by targets**, which provide a **unified interface** for both methods and functions, eliminating the need for external state libraries. | State is often managed through reactive stores. |
-| **UI Organization and Animation**      | **UI is primarily controlled by targets**, with styles incorporated directly within them. **Animations are handled directly by targets**, which iterate step by step towards new values and allow **pauses between updates**. | UI is updated via **component-based rendering and reactivity**. Animations are often handled via **CSS transitions, imperative JavaScript animations, or external libraries**. |
-| **HTML and Nesting**                   | **TargetJS minimizes the role of HTML** and strives to make **code the primary player** in user experience rather than relying on a static HTML layer. **HTML Nesting is managed as a target**, making the structure dynamic, simplified, and only as deep as necessary**. | HTML structure is an **integral part** of UI frameworks. Components and templates define **static layouts**, and **JSX, templates, or compiled HTML structures** are used to organize UI elements. |
-| **CSS Handling**                       | **CSS is optional**: Instead of relying on external stylesheets, **styles can be incorporated directly as targets**. This allows styles to be **dynamically updated** and easily accessible from the rest of the code. | CSS is usually handled through **external stylesheets, CSS-in-JS (styled-components, Emotion), or Tailwind**. Styles are often **separate from logic**. |
-| **API Calls**                          | **API calls can be chained together in a pipeline**, where the **bottom target is activated only when all API calls are complete**. | API calls are usually handled with **Promises, async/await, or reactive effects**, which result in a less structured execution. |
+| **Component Basic Structure**     | Components consist of Targets, providing a unified interface for methods and variables. | Components consist of methods and variables.
+| **Execution Order**                   | Components consist of Targets, providing a unified interface for methods and variables. | Primarily data-driven, less predictable. |
+| **Function Calls**                    | Targets cannot be called directly. Execution is part of a task cycle. | Functions execute reactively or are called imperatively. |
+| **Autonomous Execution**              | Targets can self-activate and operate autonomously. | Functions do not execute autonomously. |
+| **Execution Pipeline**                | Targets can form controlled pipelines; a target can activate when the preceding target executes or completes. | Functions are called whenever dependencies update. Execution order is not based on code appearance. |
+| **Event Handling**                    | Primarily by activating Targets, making event handling consistent with the core execution model. | Events are handled through event listeners, subscriptions, or reactive bindings. |
+| **State Management**                  | Unified within Targets; no external state libraries needed. | State is often managed through reactive stores. |
+| **UI Organization and Animation**      | UI controlled by Targets; styles incorporated directly. Animations handled directly by Targets, with step-by-step updates. | Component-based rendering and reactivity. Animations via CSS transitions, JavaScript, or external libraries. |
+| **HTML and Nesting**                   | Minimal HTML reliance; code is the primary driver. Dynamic nesting. | HTML structure is an integral part of UI frameworks. Components and templates define static layouts; JSX or templates are used.|
+| **CSS Handling**                       | CSS is optional; styles can be incorporated directly as Targets. | External stylesheets, CSS-in-JS, or utility-first CSS (e.g., Tailwind). Styles are often separate from logic. |
+| **API Calls**                          | Can be chained in a pipeline; the bottom target activates only when each call is completed in the order invoked or when all calls are complete. | Usually handled with Promises, async/await, or reactive effects; less structured execution. |
+| **Large List Performance**             | Optimized with an internal tree structure; monitors only the visible branch. | Can require careful optimization for very large lists (e.g., virtualization).
+| **Workflow development**               | Targets offer a unified solution for UI , animation, event handling, API calls, and state management | Multiple technologies, commands, and approaches.
+| **Execution control by time**          | TargetJS enables easy sequencing and parallelization for complex UI behaviors. | Not easily accomplished
 
-**Other Advantages of TargetJS**:
-
-### Unified Approach for Development  
-
-Targets offer a **unified solution** for **UI**, **animation**, **event handling**, **API calls**, and **state management**, rather than working with multiple technologies, 
-commands, and approaches. This simplifies development and makes **TargetJS** easier to learn.
-
-### Execution Control with Time 
-
-TargetJS enables developers to control the execution timing of targets, allowing for the sequencing and parallelization of numerous actions, which simplifies the development of complex UI behaviors.
- 
-### High Performance for large Lists
-
-**TargetJS** optimizes performance by internally building a **tree structure** where there is a long list of components. The TargetJS task cycle monitors only 
-the **visible branch** of the tree, ensuring high performance of pages with large lists of UI items.
-
-### Enhanced User Experience  
-
-With its simplified and unified approach, eliminating the need for a static HTML layer and CSS files, along with the dynamic nature of targets, we believe TargetJS enables developers
-to focus on the user experience more than other frameworks.
-
----
 
 ## Anatomy of a Target
 
@@ -243,23 +220,6 @@ Each target consists of the following:
 
 4. Target Methods: All methods are optional. They are used to control the lifecycle of targets or serve as callbacks to reflect changes. The controlling methods are: enabledOn, loop, steps, cycles. The callbacks are: onValueChange, onStepsEnd, onImperativeStep, onImperativeEnd. More details in the method section.
 
----
-
-## How TargetJS Operates
-
-All targets are in the active state by default and ready for execution unless explicitly set as inactive or their name is prefixed with an underscore (_). They can also include an enabledOn function that delays their execution until the specified conditions are met.
-
-The target task monitors all active targets, and if a target is enabled, it will be executed. The target task executes active targets in the order they are defined in the program. The target value is generated either from the result of a method or from a static value defined in the target. For simple targets without steps, cycles, or loops, the actual value is set immediately based on the target value. Once executed, the target’s state becomes complete, and it will not be executed again.
-
-If the target has loop or cycle methods defined, its value method will be re-executed. The number of executions will be determined by the cycles or will continue as long as the loop condition returns true. A pause can be inserted by setting the `interval`, which can be a fixed value defined as a property or dynamic, defined as a function.
-
-If the target has steps defined, its state changes to updating, and the actual value is updated iteratively until it reaches the target value, according to the number of steps and pauses specified by `steps` and `intervals`.
-
-A target can reactivate itself in the `onStepsEnd` callback once all steps are completed, or in the `onImperativeEnd` callback when all imperative targets initiated by that target are finished, allowing it to re-execute.
-
-Targets can also be reactivated externally, either directly by calling activateTarget() or through user events.
-
----
 
 ## Target methods
 
@@ -316,7 +276,6 @@ This is only property. It defines the initial value of the actual value.
 17. **this.prevTargetValue** and **this.isPrevTargetUpdated()**  
 `this.prevTargetValue` holds the value of the previous target, while `this.isPrevTargetUpdated()` returns `true` if the previous target has been updated. This method is useful when a target is activated externally, such as by a user event, rather than by the preceding target.  
 
----
 
 ## More examples
 
@@ -365,7 +324,6 @@ App(new TModel({
  }));
 ```
 
----
 
 ## Declarative and Imperative Targets Example
 
@@ -408,7 +366,7 @@ App(
   })
 );
 ```
----
+
 
 ## Another Loading Data Example
 
@@ -454,7 +412,6 @@ App(new TModel("apiCall", {
     }
 }));
 ```
----
 
 ## Animation API Comparison Example
 
@@ -534,8 +491,6 @@ App(new TModel('compare', {
     height() { return getScreenHeight(); }    
 }));
 ```
-
----
 
 ## Simple Single Page App Example
 
@@ -630,7 +585,6 @@ App(new TModel("simpleApp", {
     onResize: ["width", "height"]
 }));
 ```
----
 
 ## Using TargetJS as a Library Example
 
@@ -674,7 +628,6 @@ App(new TModel("rows", {
     }
 }));
 ```
----
 
 ## Special target names
 
@@ -742,7 +695,6 @@ Here are all the event targets:
 20. **onDomEvent**: It accepts an array of targets and activates them when their associated object acquires a DOM element.
 21. 
 
----
 
 ## How to debug in TargetJS
 1. TargetJS.tApp.stop(): Stops the application.
@@ -753,20 +705,21 @@ Here are all the event targets:
 6. Use `t(oid).bug()` to inspect all the vital properities of an object.
 7. Use `t(oid).logTree()` to inspect the internal children structure including brackets of a container.
 
----
    
 ## Documentation
 Explore the potential of TargetJS and dive into our interactive documentation at www.targetjs.io.
 
----
+
 
 ## License
 Distributed under the MIT License. See LICENSE for more information.
 
----
+
 
 ## Contact
 Ahmad Wasfi - wasfi2@gmail.com
 
 
-
+## Call to Action
+⭐ We appreciate your star on GitHub! It helps us grow and reach more developers.
+Give TargetJS a try and let us know what you think!
