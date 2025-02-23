@@ -8,18 +8,14 @@ TargetJS is a modern JavaScript UI framework designed to streamline front-end de
 
 TargetJS addresses several common pain points in front-end development:
 
-1.  **Complexity of Asynchronous Operations:**  Traditional JavaScript often involves complex handling of asynchronous operations (Promises, callbacks, `async/await`). TargetJS simplifies this by providing a structured, synchronous, and predictable execution flow, making it easier to manage timing and sequence.
-
-2.  **Scattered State Management:** Many frameworks require separate libraries or complex patterns for state management. TargetJS *unifies* state management within its core concept of Targets, eliminating the need for external dependencies.
-
-3.  **Boilerplate and Verbosity:** TargetJS aims to reduce boilerplate code. It is compact and follows a predictable execution flow, executing in the order it appears in the code. It also minimizes the role of traditional HTML and CSS, allowing JavaScript to drive the user experience directly without the intermediate HTML step.  
-4.  **Disjointed Development Workflow:**  Developers often juggle multiple tools and concepts (UI libraries, animation libraries, state managers, event handlers). TargetJS provides a *unified* solution, simplifying the learning curve and development process.
-
-5.  **Difficult Animation Control:**  TargetJS makes animations first-class citizens. Targets can iterate step-by-step towards new values, with built-in control over pauses and progression.  This provides fine-grained control over animations without external libraries.
-
-6. **Reactivity Overhead**: other frameworks are based on reactive model which might lead to unpredictable execution while TargetJS execution is based on the order targets are written.
-
-7.  **Performance Bottlenecks with Large Lists:** TargetJS optimizes rendering for large lists by internally using a tree structure.  It monitors only the *visible* branch of the tree, leading to significant performance gains when dealing with extensive data sets.
+1.  **Complexity of Asynchronous Operations:**  Traditional JavaScript often involves complex handling of asynchronous operations (Promises, callbacks, `async/await`). TargetJS addresses this by providing a structured, synchronous, and predictable execution flow, allowing developers to avoid asynchronous operations altogether.
+2.  **Scattered State Management:** Many frameworks require separate libraries or complex patterns for state management. In TargetJS, state management is inherently handled through its core concept of Targets, eliminating the need for direct state management.
+3.  **Boilerplate and Verbosity:** TargetJS aims to reduce boilerplate code. The code is compact and follows a predictable execution flow, executing in the order it appears.
+4.  **Rigid Static Layer of HTML:** Many frameworks use HTML as the primary medium for generating the user interface. TargetJS minimizes reliance on traditional HTML and CSS, allowing JavaScript to drive the user interface, resulting in a better and more dynamic user experience.
+5.  **Disjointed Development Workflow:**  Developers often juggle multiple tools and concepts (UI libraries, animation libraries, state managers, event handlers). TargetJS provides a *unified* solution, simplifying the learning curve and development process.
+6.  **Difficult Animation Control:**  TargetJS makes animations first-class citizens. Targets can iterate step-by-step towards new values and manage execution flow by time.  This provides fine-grained control over animations without external libraries.
+7.  **Complicated execution flow**: other frameworks are based on reactive model which might lead to unpredictable execution while TargetJS execution is based on the order targets are written.
+8.  **Performance Bottlenecks with Large Lists:** TargetJS optimizes rendering for large lists by using a tree structure that renders only the visible branches, significantly improving performance.
 
 ## Table of Contents
 
