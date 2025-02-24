@@ -31,8 +31,6 @@ TargetJS addresses several common pain points in front-end development:
 10. More Examples:
     - [Simple Example](#simple-example)
     - [Declarative and Imperative Targets Example](#declarative-and-imperative-targets-example)
-    - [Another Loading Data Example](#another-loading-data-example)
-    - [Animation API Comparison Example](#animation-api-comparison-example)
     - [Simple Single Page App Example](#simple-single-page-app-example)
     - [Using TargetJS as a Library Example](#using-targetjs-as-a-library-example) 
 11. [Special Target Names](#special-target-names)
@@ -373,131 +371,6 @@ App(new TModel("declarative", {
 }));
 ```
 
-
-## Another Loading Data Example
-
-Calling backend APIs is simplified through the use of targets in TargetJS. It also provides a `Loader` class, as seen in the earlier example, which is accessible via `getLoader()`.
-
-In the example below, we define a target named load. Inside the value function, we make the API call using fetch(). The second argument specifies the API URL, and the third argument contains the query parameters passed to the API. A fourth optional parameter, omitted in this example, can specify a cache ID if we want to cache the result. This cache ID can also be used to retrieve the cached data. If it’s not specified, the result will always come from the API. 
-
-Once the API response is received, it activates the `children` target to create the user and add it to its children. Notice that `prevTargetValue` will have a different value in each occurrence.  
-
-- In the `height` target, it reflects the `width` value.  
-- In the `lineHeight` target, it reflects the `height` value.  
-- In the `html` target, it holds the retrieved user value, as it is not inside a function and takes the value from `loader`.  
-
-You can also define `onSuccess` and `onError` callbacks in `loader`, which will be executed based on the result returned.
-
-![api loading example](https://targetjs.io/img/loadingExample2.gif)
-
-```bash
-import { App, TModel, getLoader, getScreenHeight, getScreenWidth, Moves } from "targetj";
-
-App(new TModel("apiCall", {
-    height() { return getScreenHeight(); },
-    width: 250,
-    load: {
-      interval: 1000,
-      cycles: 4,
-      value: function (cycle) {
-        getLoader().fetch(this, "https://targetjs.io/api/randomUser", { id: `user${cycle}` });
-      }
-    },
-    _children$() {
-      return new TModel("user", {
-        width: [120, 50, 30],
-        height$() { return this.prevTargetValue / 2; },
-        lineHeight$() { return this.prevTargetValue; },
-        html: this.prevTargetValue.name,        
-        bottomMargin: 5,
-        rightMargin: 5,
-        textAlign: "center",
-        backgroundColor: "#B388FF",
-        overflow: "hidden"
-      });
-    }
-}));
-```
-
-## Animation API Comparison Example
-
-TargetJS provides efficient, easy-to-control UI animation and manipulation through special targets that reflect HTML style names, such as `width`, `height`, `scale`, `rotate`, and `opacity`. 
-
-Below is a comparison between implementing animations in TargetJS versus using the Animation API. While the Animation API may still offer a slight performance edge, TargetJS comes very close.
-
-![animation api example](https://targetjs.io/img/animationComparison2.gif)
-
-```bash
-import { App, TModel, getScreenHeight, getScreenWidth } from "targetj";
-
-App(new TModel('compare', {
-    domHolder: true,
-    addAnimateChild() {
-        this.addChild(new TModel('animation', {
-            width: 150,
-            height: 150,
-            animate: {
-                value() {
-                    var keyframes = [{
-                        transform: 'translate(0, 0) rotate(0deg) scale(1)',
-                        width: '80px',
-                        height: '80px',
-                        background: 'orange'
-                    }, {
-                        transform: 'translate(50px, 100px) rotate(180deg) scale(1.5)',
-                        width: '120px',
-                        height: '120px',
-                        background: 'brown'
-                    }, {
-                        transform: 'translate(150px, 0) rotate(360deg) scale(1)',
-                        width: '100px',
-                        height: '100px',
-                        background: 'crimson'
-                    }, {
-                        transform: 'translate(0, 0) rotate(360deg) scale(1)',
-                        width: '150px',
-                        height: '150px',
-                        background: 'purple'
-                    }];
-
-                    return this.$dom.animate(keyframes, {
-                        duration: 4000, 
-                        iterations: 1
-                    });
-                },
-                enabledOn: function() {
-                    return this.hasDom();
-                }
-            }
-        }));
-    },
-    addDomChild() {
-        this.addChild(new TModel('dom', {
-            color: 'white',
-            html: 'TargetJ',
-            setup() {
-                this.setTarget({ x: 200, y: 0, rotate: 0, scale: 1, width: 80, height: 80, background: 'orange' });
-            },
-            step1$() {
-                this.setTarget({ x: 250, y: 100, rotate: 180, scale: 1.5, width: 120, height: 120, background: 'brown' }, 160);                
-            },
-            _step2$$() {
-                this.setTarget({ x: 350, y: 0, rotate: 360, scale: 1, width: 100, height: 100, background: 'crimson' }, 160);                
-            },            
-            _step3$$() {
-                this.setTarget({ x: 200, y: 0, rotate: 360, scale: 1, width: 150, height: 150, background: 'purple' }, 160);                
-            }                                                   
-        }));
-    },
-    _restartOnBothComplete$$() {
-        this.getChild(0).activateTarget('animate');
-        this.getChild(1).activateTarget('setup');
-    },
-    width() { return getScreenWidth(); },
-    height() { return getScreenHeight(); }    
-}));
-```
-
 ## Simple Single Page App Example
 
 Below is a simple single-page application that demonstrates how to build a fully-featured app using TargetJS. Each page is represented by a textarea. You’ll notice that when you type something, switch to another page, and then return to the same page, your input remains preserved. This also applies to the page's scroll position—when you return, the page will open at the same scroll position where you left it, rather than defaulting to the top.
@@ -594,7 +467,7 @@ App(new TModel("simpleApp", {
 
 ## Using TargetJS as a Library Example
 
-Here is an example that creates 1000 rows. The first argument, 'rows,' is used to find an element with the ID 'rows.' If no such element exists, it will be created at the top of the page. The OnDomEvent target activates the targets defined in its value when the DOM is found or created, eliminating the need for conditions to verify the DOM's availability before executing the target. Additionally, the parallel property creates subtasks, which improve browser performance.
+Here is an example that creates 1000 rows. The first argument, 'rows,' is used to find an element with the ID 'rows.' If no such element exists, it will be created at the top of the page. The OnDomEvent target activates the targets defined in its value when the DOM is found or created, eliminating the need for conditions to verify the DOM's availability before executing the target.
 
 The `rectTop`, `absY`, and `onWindowScroll` targets are used to track the visible rows during scrolling. TargetJS automatically divides a long list into a tree structure, efficiently managing only the visible branch. The `onWindowScroll` target updates the `absY` of the table, enabling TargetJS to identify the branch visible to the user. You can opt out of this algorithm by setting the `shouldBeBracketed` target to `false`.
 
@@ -701,7 +574,6 @@ Here are all the event targets:
 20. **onDomEvent**: It accepts an array of targets and activates them when their associated object acquires a DOM element.
 21. 
 
-
 ## How to debug in TargetJS
 1. TargetJS.tApp.stop(): Stops the application.
 2. TargetJS.tApp.start(): Restarts the application
@@ -711,16 +583,11 @@ Here are all the event targets:
 6. Use `t(oid).bug()` to inspect all the vital properities of an object.
 7. Use `t(oid).logTree()` to inspect the internal children structure including brackets of a container.
 
-   
 ## Documentation
 Explore the potential of TargetJS and dive into our interactive documentation at www.targetjs.io.
 
-
-
 ## License
 Distributed under the MIT License. See LICENSE for more information.
-
-
 
 ## Contact
 Ahmad Wasfi - wasfi2@gmail.com
