@@ -333,6 +333,27 @@ App(new TModel({
  }));
 ```
 
+It can also be written using the imperative target approach (see the next example):
+
+```bash
+    animate() {
+      this.setTarget('background', '#fff');
+      this.setTarget('width',[250, 30, 50]);
+      this.setTarget('height', [250, 30, 50]);
+      this.setTarget('opacity', [0.15, 30, 50]);
+    },
+```
+Or in a more compact format:
+
+```bash
+import { App, TModel } from "targetj";
+
+App(new TModel({
+    animate() {
+      this.setTarget({ 'background': '#fff', width: [ 250, 30, 50], height: [ 250, 30, 50], opacity: [ 0.15, 30, 50] });
+    }
+ }));
+```
 
 ## Declarative and Imperative Targets Example
 
@@ -534,7 +555,7 @@ In addition to styles and attribute names, we have the following special names:
 2. **style**: An object to set the HTML style of the object, especially for style names that aren’t built-in.
 3. **css**: A string that sets the CSS of the object.
 4. **baseElement**: Sets the HTML tag of the object, defaulting to `div`.
-5. **x** and **y*: Sets the location of the object.
+5. **x** and **y**: Sets the location of the object.
 6. **scrollLeft** and **scrollTop**: Control the scrolling position of the object.
 7. **leftMargin**, **rightMargin**, **topMargin**, **bottomMargin**: Set margins between objects.
 8. **children**: Sets the `TModel` children of the object.
@@ -602,7 +623,6 @@ Distributed under the MIT License. See LICENSE for more information.
 
 ## Contact
 Ahmad Wasfi - wasfi2@gmail.com
-
 
 ## Call to Action
 ⭐ We appreciate your star on GitHub! It helps us grow and reach more developers.
