@@ -226,8 +226,25 @@ All methods and properties are optional, but they play integral roles in making 
 1. **value**
 If defined, value is the primary target method that will be executed. The target value will be calculated based on the result of value().
 
-2. **active**
-This is only property. It indicates that the target is in an inactive state and is not ready to be executed. It must be activated first, for example, by a user event, before it can execute. You can also prefix the target name with '_' to achieve the same effect as setting active to false.
+2. **Prefix `_` to the target name**
+It indicates that the target is in an inactive state and must be activated by an event, other targets, or a preceding target if postfixed with `$` or `$$`.
+
+15. **Postfix `$` to the target name**
+A target name ending with $ indicates that it will be activated when the preceding target is executed. If the preceding target involves API calls, it will be activated
+each time an API response is received, while ensuring the order of API calls is enforced. This means it will remain inactive until the first API result is received,
+then the second, and so on.
+  
+17. **Postfix `$$` to the target name**
+A target name ending with `$$` indicates indicates that it will be activated only after the preceding target has completed, along with all its imperative targets,
+and after all API results have been received without error.
+
+17. **this.prevTargetValue**  
+It holds the value of the preceding target. If the preceding target involves API calls, a single $ postfix means it will hold one API result at a time, as the target is
+activated with each API response. If the target is postfixed with $$, it will have the results as an array, ordered by the sequence of API calls rather than the order in
+which the responses are received.
+
+19. **this.isPrevTargetUpdated()**
+It returns `true` if the previous target has been updated. This method is useful when a target is activated externally, such as by a user event, rather than by the preceding target.  
 
 2. **onEnabled**
 Determines whether the target is eligible for execution. If enabledOn() returns false, the target remains active until it is enabled and gets executed.
@@ -254,27 +271,21 @@ This callbak is triggered whenever there is a change returned by the target meth
 This method is invoked only after the final step of updating the actual value is completed, assuming the target has a defined steps value.
 
 11. **onImperativeStep**
-   - `onImperativeStep()`: This callback tracks the progress of imperative targets defined within a declarative target. If there are multiple imperative targets, this method is called at each step, identifiable by their target name. You can also use `on${targetName}Step` to track individual targets with their own callbacks. For example, `onWidthStep()` is called on each update of the `width` target.
+This callback tracks the progress of imperative targets defined within a declarative target. If there are multiple imperative targets, this method is called at each step,
+identifiable by their target name. You can also use `on${targetName}Step` to track individual targets with their own callbacks. For example, `onWidthStep()` is called on each update of the `width` target.
 
-11. **onImperativeEnd**
-   - Similar to `onImperativeStep`, but it is triggered when an imperative target completes. If multiple targets are expected to complete, you can use `on${targetName}End` instead. For example, `onWidthEnd` is called when the `width` target gets completed.
+13. **onImperativeEnd**
+Similar to `onImperativeStep`, but it is triggered when an imperative target completes. If multiple targets are expected to complete, you can use `on${targetName}End` instead. For example, `onWidthEnd` is called when the `width` target gets completed.
 
 13. **initialValue**
 This is only property. It defines the initial value of the actual value.
+   
+18. **onSuccess**
+An optional callback for targets that make API calls. It will be invoked for each API response received.
 
-14. **activateNextTarget**  
-    This is a string property that specifies the target to be activated when this target executes. If the name ends with `$`, the target will only activate after the current target and all of its imperative targets have completed.
-
-15. **Postfix `$` to the target name**  
-    A target name ending with `$` indicates that it will be activated when the preceding target is executed or updated. It works similarly to `activateNextTarget`, but it only applies to the target that appears next to it.
+19. **onError**
+Similar to the `onSuccess` but it will be invoked on every error.
     
-16. **Postfix `$$` to the target name**  
-    A target name ending with `$$` indicates that it will be activated only after the preceding target and all of its imperative targets have completed. It works similarly to `activateNextTarget` when it ends with `$`, but it applies only to the target immediately following it.
-    
-17. **this.prevTargetValue** and **this.isPrevTargetUpdated()**  
-`this.prevTargetValue` holds the value of the previous target, while `this.isPrevTargetUpdated()` returns `true` if the previous target has been updated. This method is useful when a target is activated externally, such as by a user event, rather than by the preceding target.  
-
-
 ## More examples
 
 Below are examples of various TargetJS use cases:
