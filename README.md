@@ -331,17 +331,19 @@ Targets in TargetJS can be defined in two ways: declaratively or imperatively.
 
 The declarative approach offers a structured method for defining targets, as seen in the previous example. However, orchestrating multiple targets with varying speeds and timings can be challenging. For instance, tracking the completion of multiple targets to trigger a new set of targets is not easily done using only declarative targets. To address this, TargetJS provides the setTarget function, allowing you to define multiple imperative targets from within a single declarative target. Additionally, the onImperativeStep and onImperativeEnd callbacks, defined in the declarative target, enable you to track each step of the imperative targets or just their completion.
 
-By combining both declarative and imperative targets, you gain a powerful toolset for designing complex interactions.
+By combining imperative and declarative targets with their functional pipeline, you gain a powerful toolset for designing complex interactions.
 
-The following example demonstrates both declarative and imperative approaches. In the `animate` target, two imperative targets are set to move a square across the screen. Once both `x` and `y` targets are completed, the `animate` target will re-execute because `loop` is defined as `true`, causing it to continue indefinitely. Additionally, we can add `onImperativeEnd()` to trigger when either the `x` or `y` target completes. We can also use `onXEnd` or `onYEnd` to listen specifically for the completion of the `x` or `y` target, respectively.
+The following example demonstrates both declarative and imperative approaches. In the `animateLeftToRight` target, two imperative targets move a square across the screen 
+from left to right. Once both `x` and `y` targets are completed, `animateLeftToRight` is considered complete. The `animateRightToLeft` target executes next because 
+it is postfixed with `$$`, forming a pipeline that starts when the preceding target finishes. Similarly, the `repeat` target executes when `animateLeftToRight` 
+completes, reactivating the animation pipeline and allowing the animation to continue indefinitely.
 
-![declarative example](https://targetjs.io/img/declarative.gif)
+![declarative example](https://targetjs.io/img/declarative3.gif)
 
 ```bash
 import { App, TModel, getScreenWidth, getScreenHeight } from "targetj";
 
-App(
-  new TModel("declarative", {
+App(new TModel("declarative", {
     children: {
       loop() { return this.getChildren().length < 10; },
       interval: 500,
@@ -350,21 +352,25 @@ App(
           width: 50,
           height: 50,
           background: "brown",
-          animate: {
-            loop: true,
-            value() {
+          animateLeftToRight() {
               const width = this.getWidth();
               const parentWidth = this.getParentValue("width");
               this.setTarget("x", { list: [-width, parentWidth + width] }, Math.floor(30 + parentWidth * Math.random()));
               this.setTarget("y", Math.floor(Math.random() * (this.getParentValue("height") - this.getHeight())), 30);
-            }
           },
-        }),
+          _animateRightToLeft$$() {
+            const width = this.getWidth();
+            const parentWidth = this.getParentValue("width");
+            this.setTarget("x", { list: [parentWidth + width, -width] }, Math.floor(30 + parentWidth * Math.random()));
+          },
+          _repeat$$() {
+            this.activateTarget('animateLeftToRight');
+          }
+        })
     },
     width: getScreenWidth,
     height: getScreenHeight
-  })
-);
+}));
 ```
 
 
